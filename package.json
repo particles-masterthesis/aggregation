@@ -1,0 +1,87 @@
+{
+  "name": "Particles",
+  "version": "0.0.1",
+  "description": "Practical project to master-theses",
+  "main": "index.js",
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
+  "config": {
+    "environment": "development",
+    "pre-git": {
+      "commit-msg": "",
+      "pre-commit": [
+        "npm run build",
+        "git add dist -n"
+      ],
+      "post-commit": "git status",
+      "pre-push": [],
+      "post-checkout": "npm install",
+      "post-merge": "npm install"
+    }
+  },
+  "scripts": {
+    "build": "npm run build:css && npm run build:img && npm run build:js && browserify -v -t babelify src/js -o dist/main.js --debug --verbose && npm run build:dataset",
+    "build:css": "stylus --include-css src/css/**.styl -o dist/main.css",
+    "build:img": "cp -r src/img dist",
+    "build:dataset": "cp -r src/dataset/superstore_preprocessed.csv dist/superstore_preprocessed.csv",
+    "build:js": "browserify -v -t babelify src/js -o dist/main.js --debug --verbose",
+    "build:markup": "jade -P src/jade/**.jade -o .",
+    "clean": "rm -rf dist/* lib/*",
+    "dev": "npm run build:css && npm run build:img && npm run build:markup && npm run build:dataset && npm run watch & npm run serve",
+    "lint": "jshint src/js",
+    "prebuild:js": "npm run lint",
+    "postbuild:js": "npm test",
+    "serve": "browser-sync start --server --port 3000 --index './index.html' --files './dist'",
+    "test": "#karma start karma.conf.js --singleRun",
+    "watch": "npm run watch:js & npm run watch:css & npm run watch:img & npm run watch:markup",
+    "watch:js": "watchify -v -t babelify src/js -o dist/main.js --debug --verbose",
+    "watch:css": "npm run build:css -- -w",
+    "watch:img": "watch 'npm run build:img' src/img/",
+    "watch:markup": "npm run build:markup -- -w",
+    "watch:test": "karma start karma.conf.js",
+    "commit": "commit-wizard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gbeschbacher/m-project.git"
+  },
+  "author": "Georg Eschbacher, Lukas Wanko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Gbeschbacher/m-project/issues"
+  },
+  "homepage": "https://github.com/Gbeschbacher/m-project#readme",
+  "devDependencies": {
+    "babel-preset-es2015": "latest",
+    "babelify": "latest",
+    "bootstrap": "^3.3.6",
+    "browser-sync": "latest",
+    "browserify": "latest",
+    "exdat": "github:anvaka/dat.gui",
+    "fast-csv": "^2.0.0",
+    "fpsmeter": "github:darsain/fpsmeter",
+    "fs": "0.0.2",
+    "jade": "^1.11.0",
+    "jasmine-core": "latest",
+    "jquery": "^2.2.3",
+    "jquery-csv": "^0.8.1",
+    "jshint": "latest",
+    "karma": "latest",
+    "karma-browserify": "^5.0.4",
+    "karma-jasmine": "latest",
+    "karma-phantomjs-launcher": "latest",
+    "phantomjs-prebuilt": "latest",
+    "physicsjs": "^0.7.0",
+    "pixi.js": "github:pixijs/pixi.js",
+    "pre-git": "^3.8.4",
+    "pug": "^2.0.0-alpha6",
+    "sleep": "^3.0.1",
+    "stylus": "latest",
+    "sync-request": "^3.0.1",
+    "watch": "latest",
+    "watchify": "^3.7.0"
+  }
+}

@@ -34,6 +34,7 @@ export default class Chart {
         this.addLabels(features, "Superstore");
 
         this.boundaries = this.getMaxAndMinValuesFromSelectedFeatures(dataset, features);
+        this.boundaries = this.getMaxAndMinValuesFromSelectedFeatures(dataset, features);
     }
 
     /**

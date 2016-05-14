@@ -58,7 +58,7 @@ window.onload = () => {
 
 function updateVisualization() {
     canvas.reset();
-    canvas.addScatter(dataStore.subset, dataStore.currentSelection, boundaries, "Superstore");
+    canvas.addScatter(dataStore.subset, dataStore.currentSelection, "Superstore");
     canvas.render();
 }
 

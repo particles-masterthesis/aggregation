@@ -10,21 +10,23 @@ window.jQuery = jQuery;
 
 require("./../../node_modules/jquery-csv/src/jquery.csv.js");
 
-let ui = null;
-let canvas = null;
-let dataStore = null;
+window.ui = null;
+window.canvas = null;
+window.dataStore = null;
 
 import UI from './ui';
 import Canvas from './canvas';
 import DataStore from './data-store';
+
 /**
  * @method window.onload
  * @description After loading all scripts initialize the instances, load dataset and update ui
  */
+
 window.onload = () => {
-    ui = new UI();
-    canvas = new Canvas();
-    dataStore = new DataStore();
+    window.ui = new UI();
+    window.canvas = new Canvas();
+    window.dataStore = new DataStore();
 
     document.body.appendChild(canvas.renderer.view);
 
@@ -49,7 +51,6 @@ window.onload = () => {
         updateVisualization();
     });
 
-
     updateVisualization();
 };
 
@@ -63,11 +64,7 @@ function updateVisualization() {
     console.info("Min and max values: ", boundaries);
 
     canvas.reset();
-    canvas.addAxes();
-    canvas.addLabels(dataStore.currentSelection, "Superstore");
-    canvas.addTicks(boundaries);
-    canvas.addItems(dataStore.subset, dataStore.currentSelection, boundaries);
-
+    canvas.addScatter(dataStore.subset, dataStore.currentSelection, boundaries, "Superstore");
     canvas.render();
 }
 

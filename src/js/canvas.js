@@ -55,19 +55,19 @@ export default class Canvas {
         }
     }
 
-    addScatter(dataset, features, boundaries, title) {
+    addScatter(datastore, title) {
         var container = new PIXI.Container();
         container.width = this.width;
         container.height = this.height;
         container.x = container.y = 0;
         this.stage.addChild(container);
 
-        new ScatterPlot(container, dataset, features, boundaries, title);
+        new ScatterPlot(container, datastore, title);
     }
 
     render() {
         this.renderer.render(this.stage);
-        this.FPSMeter.tick();
-        this.requestFrameID = requestAnimationFrame(this.render.bind(this));
+        // this.FPSMeter.tick();
+        // this.requestFrameID = requestAnimationFrame(this.render.bind(this));
     }
 }

@@ -1,6 +1,5 @@
 /* jshint esversion: 6 */
 
-//
 import "./helper";
 import $ from 'jquery';
 import jQuery from 'jquery';
@@ -60,11 +59,11 @@ window.onload = () => {
  */
 
 function updateVisualization() {
-    const boundaries = dataStore.getMaxAndMinValuesFromSelectedFeatures();
-    console.info("Min and max values: ", boundaries);
+    // const boundaries = dataStore.getMaxAndMinValuesFromSelectedFeatures();
+    // console.info("Min and max values: ", boundaries);
 
     canvas.reset();
-    canvas.addScatter(dataStore.subset, dataStore.currentSelection, boundaries, "Superstore");
+    canvas.addScatter(dataStore, "Superstore");
     canvas.render();
 }
 

@@ -31,7 +31,6 @@ export default class Chart {
         };
 
         this.addAxes();
-        this.addLabels(features, "Superstore");
     }
 
     /**

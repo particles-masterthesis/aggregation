@@ -2,42 +2,132 @@
 
 import Chart from "./chart";
 
+function drawNominalTicks (ticks, maxValue, uniqueValues, axis){
+
+    let iteration, addTickFnc;
+    if(axis === 'x'){
+        iteration  = this.widthVisualization;
+        addTickFnc = this.addTickX;
+    }
+    else {
+        iteration  = this.heightVisualization;
+        addTickFnc = this.addTickY;
+    }
+
+    let pxStep  = iteration / maxValue;
+    let counter = -1;
+    for(let key in uniqueValues){
+        let val = (++counter) * pxStep + pxStep / 2;
+        this.nominalDict[key] = this.nominalDict[key] || {};
+        this.nominalDict[key][axis] = val;
+        addTickFnc.call(this, val, `${key}`, ticks, true);
+    }
+}
+
+function drawNumericalTicks (ticks, minValue, maxValue, axis){
+    const pxDistanceBetweenTicks = 100;
+
+    let iteration, addTickFnc;
+    if(axis === 'x'){
+        iteration  = this.widthVisualization;
+        addTickFnc = this.addTickX;
+    }
+    else {
+        iteration  = this.heightVisualization;
+        addTickFnc = this.addTickY;
+    }
+
+    let amountMarker = Math.floor(iteration / pxDistanceBetweenTicks);
+    let pxStep       = iteration / amountMarker;
+    let range        = Math.abs(maxValue) + Math.abs(minValue);
+    let valMapped    = Math.abs(maxValue).map(0, range, 0, iteration);
+
+    let val = valMapped;
+
+    let labelText;
+    while (val >= 0) {
+        labelText = Math.floor(val.map(
+            0,
+            iteration,
+            maxValue,
+            minValue
+        ) * 100) / 100;
+        addTickFnc.call(this, val, labelText, ticks);
+        val -= pxStep;
+    }
+
+    val = valMapped + pxStep;
+    while (val < iteration) {
+        labelText = Math.floor(val.map(
+            0,
+            iteration,
+            maxValue,
+            minValue
+        ) * 100) / 100;
+        addTickFnc.call(this, val, labelText, ticks);
+        val += pxStep;
+    }
+}
+
+function getBoundaries (dataStore) {
+    let schema = `${dataStore.schema[dataStore.currentSelection.x]} ${dataStore.schema[dataStore.currentSelection.y]}`;
+    let result = {}, nominals, numerics;
+
+    switch (schema) {
+
+        case 'nominal numeric':
+            nominals = dataStore.subset.getNominalBoundaries(dataStore.currentSelection.x, false, 'x');
+            numerics = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, false, 'y');
+
+            Object.assign(result, nominals, numerics);
+            break;
+
+        case 'numeric nominal':
+            nominals = dataStore.subset.getNominalBoundaries(dataStore.currentSelection.y, false, 'y');
+            numerics = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, false, 'x');
+
+            Object.assign(result, nominals, numerics);
+            break;
+
+
+        case 'nominal nominal':
+            result = dataStore.subset.getNominalBoundaries(dataStore.currentSelection, true);
+
+            break;
+
+        case 'numeric numeric':
+            result = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, true);
+            break;
+
+        default:
+            throw new Error(`Schema not handled ("${schema}")`);
+    }
+
+    return {
+        schema: schema,
+        values: result
+    };
+}
+
+
+
 export default class ScatterPlot extends Chart {
 
     /**
      * @param container
      * @param dataset
      * @param features
-     * @param boundaries
      * @param title
      */
-    constructor(container, dataset, features, boundaries, title){
-        super(container, dataset, features, boundaries, title);
+    constructor(container, dataStore, title){
 
-        this.padding = 70;
-        this.width = container._width;
-        this.height = container._height;
-        this.heightVisualization = this.height - this.padding*2;
-        this.widthVisualization = this.width - this.padding*2;
+        super(container);
 
-        this.stage = container;
-
-        this.labels = {
-            x: new PIXI.Text("X", {
-                font: "14px Arial"
-            }),
-            y: new PIXI.Text("Y", {
-                font: "14px Arial"
-            }),
-            title: new PIXI.Text("Title", {
-                font: "16px Arial"
-            })
-        };
-
-        this.addAxes();
-        this.addLabels(features, "Superstore");
+        let boundaries = getBoundaries(dataStore);
+        this.nominalDict = {};
+        this.addLabels(dataStore.currentSelection, "Superstore");
         this.addTicks(boundaries);
-        this.addItems(dataset, features, boundaries);
+        this.addItems(dataStore.subset, dataStore.currentSelection, boundaries);
     }
 
     /**
@@ -48,38 +138,33 @@ export default class ScatterPlot extends Chart {
         const ticks = new PIXI.Graphics();
         ticks.lineStyle(1, 0x111111, 1);
 
-        const pxDistanceBetweenTicks = 100;
-        const amountOfMarkerX = Math.floor(this.widthVisualization / pxDistanceBetweenTicks);
-        const amountOfMarkerY = Math.floor(this.heightVisualization / pxDistanceBetweenTicks);
+        switch (boundaries.schema) {
+            case 'nominal numeric':
 
-        const pxStepX = this.widthVisualization / amountOfMarkerX;
-        const pxStepY = this.heightVisualization / amountOfMarkerY;
+                drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, 'x');
+                drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, 'y');
+                break;
 
-        const rangeX = Math.abs(boundaries.maxX) + Math.abs(boundaries.minX);
-        const rangeY = Math.abs(boundaries.maxY) + Math.abs(boundaries.minY);
+            case 'numeric nominal':
 
-        // Here the origin tick on the x axis gets drawn and any further ticks to the left
-        let x = Math.abs(boundaries.minX).map(0, rangeX, 0, this.widthVisualization);
-        while (x >= 0) {
-            this.addTickX(x, boundaries, ticks);
-            x -= pxStepX;
-        }
 
-        x = Math.abs(boundaries.minX).map(0, rangeX, 0, this.widthVisualization) + pxStepX;
-        while (x < this.widthVisualization) {
-            this.addTickX(x, boundaries, ticks);
-            x += pxStepX;
-        }
+                drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, 'x');
+                drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, 'y');
+                break;
 
-        let y = Math.abs(boundaries.maxY).map(0, rangeY, 0, this.heightVisualization);
-        while (y >= 0) {
-            this.addTickY(y, boundaries, ticks);
-            y -= pxStepY;
-        }
-        y = Math.abs(boundaries.maxY).map(0, rangeY, 0, this.heightVisualization) + pxStepY;
-        while (y < this.heightVisualization) {
-            this.addTickY(y, boundaries, ticks);
-            y += pxStepY;
+            case 'nominal nominal':
+
+                drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, 'x');
+                drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, 'y');
+                break;
+
+            case 'numeric numeric':
+                drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, 'x');
+                drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, 'y');
+                break;
+
+            default:
+                throw new Error(`Schema not handled ("${schema}")`);
         }
 
         this.stage.addChild(ticks);
@@ -88,17 +173,22 @@ export default class ScatterPlot extends Chart {
     /**
      * Creates ticks on the x axis
      * @param {Integer} x
-     * @param {Object} boundaries
+     * @param {Object} labelText
      * @param {PIXI.Graphics} ticks
      */
-    addTickX(x, boundaries, ticks) {
-        const text = x.map(0, this.widthVisualization, boundaries.minX, boundaries.maxX);
-        const tickLabel = new PIXI.Text(Math.floor(text * 100) / 100, {
+    addTickX(x, labelText, ticks, rotate) {
+        const tickLabel = new PIXI.Text(labelText, {
             font: "12px Arial"
         });
         tickLabel.anchor = new PIXI.Point(0.5, 0.5);
         tickLabel.x = this.padding + x;
         tickLabel.y = this.padding + this.heightVisualization + 16;
+
+        if(rotate){
+            tickLabel.anchor = new PIXI.Point(1, 0.5);
+            tickLabel.rotation = -Math.PI / 2;
+        }
+
         this.stage.addChild(tickLabel);
 
         ticks.moveTo(this.padding + x, this.padding + this.heightVisualization);
@@ -108,12 +198,11 @@ export default class ScatterPlot extends Chart {
     /**
      * Creates ticks on the y axis
      * @param {Integer} y
-     * @param {Object} boundaries
+     * @param {Object} labelText
      * @param {PIXI.Graphics} ticks
      */
-    addTickY(y, boundaries, ticks) {
-        const text = y.map(0, this.heightVisualization, boundaries.maxY, boundaries.minY);
-        const tickLabel = new PIXI.Text(Math.floor(text * 100) / 100, {
+    addTickY(y, labelText, ticks) {
+        const tickLabel = new PIXI.Text(labelText, {
             font: "12px Arial"
         });
         tickLabel.anchor = new PIXI.Point(1, 0.5);
@@ -132,20 +221,63 @@ export default class ScatterPlot extends Chart {
      * @param {Object} boundaries
      */
     addItems(data, features, boundaries) {
-        const items = new PIXI.Graphics();
+        let items = new PIXI.Graphics();
         items.lineStyle(2, 0x5555AA, 1);
         items.beginFill(0xF8F8F8, 1);
 
         let x = 0;
         let y = 0;
-        for (let i = 0; i < data.length; i++) {
-            x = parseFloat(data[i][features.x]);
-            y = parseFloat(data[i][features.y]);
 
-            x = x.map(boundaries.minX, boundaries.maxX, 0, this.widthVisualization);
-            y = y.map(boundaries.minY, boundaries.maxY, 0, this.heightVisualization);
+        switch (boundaries.schema) {
 
-            items.drawCircle(x + this.padding, this.height - this.padding - y, 3);
+            case 'nominal numeric':
+
+                for (let i = 0; i < data.length; i++) {
+                    x = this.nominalDict[data[i][features.x]].x;
+                    y = parseFloat(data[i][features.y]);
+                    y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization);
+                    items.drawCircle(x + this.padding, this.height - this.padding - y, 3);
+                }
+                break;
+
+            case 'numeric nominal':
+
+                for (let i = 0; i < data.length; i++) {
+                    x = parseFloat(data[i][features.x]);
+                    x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization);
+                    y = this.nominalDict[data[i][features.y]].y;
+                    items.drawCircle(x + this.padding, y + this.padding, 3);
+                }
+
+                break;
+
+            case 'nominal nominal':
+
+                for (let i = 0; i < data.length; i++) {
+                    x = this.nominalDict[data[i][features.x]].x;
+                    y = this.nominalDict[data[i][features.y]].y;
+                    items.drawCircle(x + this.padding, y + this.padding, 3);
+                }
+
+                break;
+
+            case 'numeric numeric':
+
+                for (let i = 0; i < data.length; i++) {
+
+                    x = parseFloat(data[i][features.x]);
+                    y = parseFloat(data[i][features.y]);
+
+                    x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization);
+                    y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization);
+
+                    items.drawCircle(x + this.padding, this.height - this.padding - y, 3);
+                }
+
+                break;
+
+            default:
+                throw new Error(`Schema not handled ("${schema}")`);
         }
 
         this.stage.addChild(items);

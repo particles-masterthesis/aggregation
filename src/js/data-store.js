@@ -13,36 +13,7 @@ export default class DataStore{
             y: null
         };
     }
-
-    getMaxAndMinValuesFromSelectedFeatures() {
-        let maxValueX = 0, minValueX = 0;
-        let maxValueY = 0, minValueY = 0;
-        let x = 0, y = 0;
-
-        for (let i = 0; i < this.subset.length; i++) {
-            x = parseFloat(this.subset[i][this.currentSelection.x]);
-            y = parseFloat(this.subset[i][this.currentSelection.y]);
-
-            if (x > maxValueX) {
-                maxValueX = x;
-            } else if (x < minValueX) {
-                minValueX = x;
-            }
-
-            if (y > maxValueY) {
-                maxValueY = y;
-            } else if (y < minValueY) {
-                minValueY = y;
-            }
-        }
-
-        return {
-            maxX: maxValueX,
-            minX: minValueX,
-            maxY: maxValueY,
-            minY: minValueY
-        };
-    }
+    
     createFeatures(header = []) {
         this.features = [];
 

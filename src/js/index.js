@@ -9,10 +9,6 @@ window.jQuery = jQuery;
 
 require("./../../node_modules/jquery-csv/src/jquery.csv.js");
 
-window.ui = null;
-window.canvas = null;
-window.dataStore = null;
-
 import UI from './ui';
 import Canvas from './canvas';
 import DataStore from './data-store';
@@ -29,9 +25,13 @@ window.onload = () => {
 
     document.body.appendChild(canvas.renderer.view);
 
-    const controller = ui.DatGui.add(dataStore, 'sizeOfSubset', 1, 6000);
-    controller.onChange(() => {
+    ui.DatGui.add(dataStore, 'sizeOfSubset', 1, 6000).onChange(() => {
+        dataStore.sizeOfSubset = Math.floor(dataStore.sizeOfSubset);
         dataStore.createSubset();
+        updateVisualization();
+    });
+
+    ui.DatGui.add(canvas, "barChartParticles").onChange(() => {
         updateVisualization();
     });
 
@@ -39,6 +39,7 @@ window.onload = () => {
 
     // After import the dataset we now can update the dropboxes with the features
     ui.updateDropdown(dataStore.features, dataStore.currentSelection);
+    ui.disableDropdown();
 
     $("select.feature-x").change(function () {
         dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
@@ -47,6 +48,11 @@ window.onload = () => {
 
     $("select.feature-y").change(function () {
         dataStore.currentSelection.y = $(this).children(":selected")[0].innerHTML;
+        updateVisualization();
+    });
+
+    $("select.visualization").change(function () {
+        ui.disableDropdown();
         updateVisualization();
     });
 
@@ -59,11 +65,27 @@ window.onload = () => {
  */
 
 function updateVisualization() {
-    // const boundaries = dataStore.getMaxAndMinValuesFromSelectedFeatures();
-    // console.info("Min and max values: ", boundaries);
 
     canvas.reset();
-    canvas.addScatter(dataStore, "Superstore");
+
+    let visualization = $("select.visualization").val();
+    switch (visualization) {
+        case 'bar':
+
+            canvas.addBarChart(
+                dataStore.subset,
+                dataStore.currentSelection,
+                "Superstore"
+            );
+            break;
+
+        default:
+            canvas.addScatterPlot(
+                dataStore,
+                "Superstore"
+            );
+            break;
+    }
     canvas.render();
 }
 

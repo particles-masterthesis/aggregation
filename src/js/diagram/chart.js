@@ -9,7 +9,7 @@ export default class Chart {
      * @param boundaries
      * @param title
      */
-    constructor(container, dataset, features, boundaries, title){
+    constructor(container, dataset, features, title){
         this.padding = 70;
         this.width = container._width;
         this.height = container._height;
@@ -30,7 +30,6 @@ export default class Chart {
             })
         };
 
-        this.addAxes();
     }
 
     /**

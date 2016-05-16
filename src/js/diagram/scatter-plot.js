@@ -44,6 +44,13 @@ function drawNumericalTicks (ticks, minValue, maxValue, axis){
 
     let val = valMapped;
 
+    // this is only needed to turn x axis from left to right
+    if(axis === 'x'){
+        let tmp = maxValue;
+        maxValue = minValue;
+        minValue = tmp;
+    }
+
     let labelText;
     while (val >= 0) {
         labelText = Math.floor(val.map(
@@ -125,6 +132,7 @@ export default class ScatterPlot extends Chart {
 
         let boundaries = getBoundaries(dataStore);
         this.nominalDict = {};
+        this.addAxes();
         this.addLabels(dataStore.currentSelection, "Superstore");
         this.addTicks(boundaries);
         this.addItems(dataStore.subset, dataStore.currentSelection, boundaries);
@@ -132,7 +140,6 @@ export default class ScatterPlot extends Chart {
 
     /**
      * Add ticks along the axes
-     * @param {object} boundaries
      */
     addTicks(boundaries) {
         const ticks = new PIXI.Graphics();
@@ -165,6 +172,7 @@ export default class ScatterPlot extends Chart {
 
             default:
                 throw new Error(`Schema not handled ("${schema}")`);
+
         }
 
         this.stage.addChild(ticks);
@@ -218,7 +226,6 @@ export default class ScatterPlot extends Chart {
      * Adds the items to the diagram
      * @param {Array} data
      * @param {Object} features
-     * @param {Object} boundaries
      */
     addItems(data, features, boundaries) {
         let items = new PIXI.Graphics();
@@ -281,5 +288,40 @@ export default class ScatterPlot extends Chart {
         }
 
         this.stage.addChild(items);
+    }
+
+    /**
+     * Evaluates the max and the min value form a feature of the dataset
+     * @returns {{maxX: number, minX: number, maxY: number, minY: number}}
+     */
+
+    getMaxAndMinValuesFromSelectedFeatures(dataset, features) {
+        let maxValueX = 0, minValueX = 0;
+        let maxValueY = 0, minValueY = 0;
+        let x = 0, y = 0;
+
+        for (let i = 0; i < dataset.length; i++) {
+            x = parseFloat(dataset[i][features.x]);
+            y = parseFloat(dataset[i][features.y]);
+
+            if (x > maxValueX) {
+                maxValueX = x;
+            } else if (x < minValueX) {
+                minValueX = x;
+            }
+
+            if (y > maxValueY) {
+                maxValueY = y;
+            } else if (y < minValueY) {
+                minValueY = y;
+            }
+        }
+
+        return {
+            maxX: maxValueX,
+            minX: minValueX,
+            maxY: maxValueY,
+            minY: minValueY
+        };
     }
 }

@@ -2,14 +2,16 @@
 
 import "pixi.js";
 import "fpsmeter";
-import ScatterPlot from "./diagram/scatterPlot";
-import BarChart from "./diagram/barChart";
+import ScatterPlot from "./diagram/scatter-plot";
+import BarChart from "./diagram/bar-chart";
 
 export default class Canvas {
 
     constructor() {
-        this.height = window.innerHeight - 90; //windowH height - menu height - css-paddings
-        this.width = window.innerWidth - 40; //windowH width - css-paddings
+        //windowH height - menu height - css-paddings
+        this.height = window.innerHeight - 90;
+        //windowH width - css-paddings
+        this.width = window.innerWidth - 40;
 
         this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
             backgroundColor: 0xF8F8F8,
@@ -43,7 +45,7 @@ export default class Canvas {
 
         this.requestFrameID = null;
 
-        this.diagrams = [];
+        this.barChartParticles = true;
     }
 
     reset() {
@@ -55,14 +57,28 @@ export default class Canvas {
         }
     }
 
-    addScatter(datastore, title) {
-        var container = new PIXI.Container();
-        container.width = this.width;
-        container.height = this.height;
-        container.x = container.y = 0;
+    addVisualization(width, height, origin){
+        let container = new PIXI.Container();
+        container.width = width;
+        container.height = height;
+        container.x = origin.x;
+        container.y = origin.y;
         this.stage.addChild(container);
+        return container;
+    }
 
-        new ScatterPlot(container, datastore, title);
+    addScatterPlot(dataStore, title) {
+        let container = this.addVisualization(
+            this.width,
+            this.height,
+            new PIXI.Point(0,0)
+        );
+        new ScatterPlot(container, dataStore, title);
+    }
+
+    addBarChart(dataset, features, title) {
+        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
+        new BarChart(container, dataset, features, title, this.barChartParticles);
     }
 
     render() {

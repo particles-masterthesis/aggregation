@@ -43,7 +43,7 @@ export default class Canvas {
 
         this.requestFrameID = null;
 
-        this.diagrams = [];
+        this.barChartParticles = true;
     }
 
     reset() {
@@ -66,14 +66,14 @@ export default class Canvas {
         return container;
     }
 
-    addScatter(dataset, features, title) {
+    addScatterPlot(dataset, features, title) {
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         new ScatterPlot(container, dataset, features, title);
     }
 
     addBarChart(dataset, features, title) {
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
-        new ScatterPlot(container, dataset, features, title);
+        new BarChart(container, dataset, features, title, this.barChartParticles);
     }
 
     render() {

@@ -29,11 +29,6 @@ export default class Chart {
                 font: "16px Arial"
             })
         };
-
-        this.addAxes();
-        this.addLabels(features, "Superstore");
-
-        this.boundaries = this.getMaxAndMinValuesFromSelectedFeatures(dataset, features);
     }
 
     /**
@@ -85,40 +80,5 @@ export default class Chart {
         axes.lineTo(this.width - this.padding, this.height - this.padding + 10);
 
         this.stage.addChild(axes);
-    }
-
-    /**
-     * Evaluates the max and the min value form a feature of the dataset
-     * @returns {{maxX: number, minX: number, maxY: number, minY: number}}
-     */
-
-    getMaxAndMinValuesFromSelectedFeatures(dataset, features) {
-        let maxValueX = 0, minValueX = 0;
-        let maxValueY = 0, minValueY = 0;
-        let x = 0, y = 0;
-
-        for (let i = 0; i < dataset.length; i++) {
-            x = parseFloat(dataset[i][features.x]);
-            y = parseFloat(dataset[i][features.y]);
-
-            if (x > maxValueX) {
-                maxValueX = x;
-            } else if (x < minValueX) {
-                minValueX = x;
-            }
-
-            if (y > maxValueY) {
-                maxValueY = y;
-            } else if (y < minValueY) {
-                minValueY = y;
-            }
-        }
-
-        return {
-            maxX: maxValueX,
-            minX: minValueX,
-            maxY: maxValueY,
-            minY: minValueY
-        };
     }
 }

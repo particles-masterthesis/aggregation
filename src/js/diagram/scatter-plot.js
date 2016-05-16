@@ -8,7 +8,6 @@ export default class ScatterPlot extends Chart {
      * @param container
      * @param dataset
      * @param features
-     * @param this.boundaries
      * @param title
      */
     constructor(container, dataset, features, title){
@@ -34,6 +33,10 @@ export default class ScatterPlot extends Chart {
             })
         };
 
+        this.boundaries = this.getMaxAndMinValuesFromSelectedFeatures(dataset, features);
+
+        this.addAxes();
+        this.addLabels(features, "Superstore");
         this.addTicks();
         this.addItems(dataset, features);
     }
@@ -143,5 +146,40 @@ export default class ScatterPlot extends Chart {
         }
 
         this.stage.addChild(items);
+    }
+
+    /**
+     * Evaluates the max and the min value form a feature of the dataset
+     * @returns {{maxX: number, minX: number, maxY: number, minY: number}}
+     */
+
+    getMaxAndMinValuesFromSelectedFeatures(dataset, features) {
+        let maxValueX = 0, minValueX = 0;
+        let maxValueY = 0, minValueY = 0;
+        let x = 0, y = 0;
+
+        for (let i = 0; i < dataset.length; i++) {
+            x = parseFloat(dataset[i][features.x]);
+            y = parseFloat(dataset[i][features.y]);
+
+            if (x > maxValueX) {
+                maxValueX = x;
+            } else if (x < minValueX) {
+                minValueX = x;
+            }
+
+            if (y > maxValueY) {
+                maxValueY = y;
+            } else if (y < minValueY) {
+                minValueY = y;
+            }
+        }
+
+        return {
+            maxX: maxValueX,
+            minX: minValueX,
+            maxY: maxValueY,
+            minY: minValueY
+        };
     }
 }

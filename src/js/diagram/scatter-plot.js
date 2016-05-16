@@ -2,122 +2,6 @@
 
 import Chart from "./chart";
 
-function drawNominalTicks (ticks, maxValue, uniqueValues, axis){
-
-    let iteration, addTickFnc;
-    if(axis === 'x'){
-        iteration  = this.widthVisualization;
-        addTickFnc = this.addTickX;
-    }
-    else {
-        iteration  = this.heightVisualization;
-        addTickFnc = this.addTickY;
-    }
-
-    let pxStep  = iteration / maxValue;
-    let counter = -1;
-    for(let key in uniqueValues){
-        let val = (++counter) * pxStep + pxStep / 2;
-        this.nominalDict[key] = this.nominalDict[key] || {};
-        this.nominalDict[key][axis] = val;
-        addTickFnc.call(this, val, `${key}`, ticks, true);
-    }
-}
-
-function drawNumericalTicks (ticks, minValue, maxValue, axis){
-    const pxDistanceBetweenTicks = 100;
-
-    let iteration, addTickFnc;
-    if(axis === 'x'){
-        iteration  = this.widthVisualization;
-        addTickFnc = this.addTickX;
-    }
-    else {
-        iteration  = this.heightVisualization;
-        addTickFnc = this.addTickY;
-    }
-
-    let amountMarker = Math.floor(iteration / pxDistanceBetweenTicks);
-    let pxStep       = iteration / amountMarker;
-    let range        = Math.abs(maxValue) + Math.abs(minValue);
-    let valMapped    = Math.abs(maxValue).map(0, range, 0, iteration);
-
-    let val = valMapped;
-
-    // this is only needed to turn x axis from left to right
-    if(axis === 'x'){
-        let tmp = maxValue;
-        maxValue = minValue;
-        minValue = tmp;
-    }
-
-    let labelText;
-    while (val >= 0) {
-        labelText = Math.floor(val.map(
-            0,
-            iteration,
-            maxValue,
-            minValue
-        ) * 100) / 100;
-        addTickFnc.call(this, val, labelText, ticks);
-        val -= pxStep;
-    }
-
-    val = valMapped + pxStep;
-    while (val < iteration) {
-        labelText = Math.floor(val.map(
-            0,
-            iteration,
-            maxValue,
-            minValue
-        ) * 100) / 100;
-        addTickFnc.call(this, val, labelText, ticks);
-        val += pxStep;
-    }
-}
-
-function getBoundaries (dataStore) {
-    let schema = `${dataStore.schema[dataStore.currentSelection.x]} ${dataStore.schema[dataStore.currentSelection.y]}`;
-    let result = {}, nominals, numerics;
-
-    switch (schema) {
-
-        case 'nominal numeric':
-            nominals = dataStore.subset.getNominalBoundaries(dataStore.currentSelection.x, false, 'x');
-            numerics = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, false, 'y');
-
-            Object.assign(result, nominals, numerics);
-            break;
-
-        case 'numeric nominal':
-            nominals = dataStore.subset.getNominalBoundaries(dataStore.currentSelection.y, false, 'y');
-            numerics = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, false, 'x');
-
-            Object.assign(result, nominals, numerics);
-            break;
-
-
-        case 'nominal nominal':
-            result = dataStore.subset.getNominalBoundaries(dataStore.currentSelection, true);
-
-            break;
-
-        case 'numeric numeric':
-            result = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, true);
-            break;
-
-        default:
-            throw new Error(`Schema not handled ("${schema}")`);
-    }
-
-    return {
-        schema: schema,
-        values: result
-    };
-}
-
-
-
 export default class ScatterPlot extends Chart {
 
     /**
@@ -130,7 +14,7 @@ export default class ScatterPlot extends Chart {
 
         super(container);
 
-        let boundaries = getBoundaries(dataStore);
+        let boundaries = this.getBoundaries(dataStore);
         this.nominalDict = {};
         this.addAxes();
         this.addLabels(dataStore.currentSelection, "Superstore");
@@ -147,27 +31,23 @@ export default class ScatterPlot extends Chart {
 
         switch (boundaries.schema) {
             case 'nominal numeric':
-
-                drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, 'x');
-                drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, 'y');
+                this.drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, 'x');
+                this.drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, 'y');
                 break;
 
             case 'numeric nominal':
-
-
-                drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, 'x');
-                drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, 'y');
+                this.drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, 'x');
+                this.drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, 'y');
                 break;
 
             case 'nominal nominal':
-
-                drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, 'x');
-                drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, 'y');
+                this.drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, 'x');
+                this.drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, 'y');
                 break;
 
             case 'numeric numeric':
-                drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, 'x');
-                drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, 'y');
+                this.drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, 'x');
+                this.drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, 'y');
                 break;
 
             default:
@@ -220,6 +100,79 @@ export default class ScatterPlot extends Chart {
 
         ticks.moveTo(this.padding, this.padding + y);
         ticks.lineTo(this.padding - 8, this.padding + y);
+    }
+
+    drawNominalTicks (ticks, maxValue, uniqueValues, axis){
+        let iteration, addTickFnc;
+        if(axis === 'x'){
+            iteration  = this.widthVisualization;
+            addTickFnc = this.addTickX;
+        }
+        else {
+            iteration  = this.heightVisualization;
+            addTickFnc = this.addTickY;
+        }
+
+        let pxStep  = iteration / maxValue;
+        let counter = -1;
+        for(let key in uniqueValues){
+            let val = (++counter) * pxStep + pxStep / 2;
+            this.nominalDict[key] = this.nominalDict[key] || {};
+            this.nominalDict[key][axis] = val;
+            addTickFnc.call(this, val, `${key}`, ticks, true);
+        }
+    }
+
+    drawNumericalTicks (ticks, minValue, maxValue, axis){
+        const pxDistanceBetweenTicks = 100;
+
+        let iteration, addTickFnc;
+        if(axis === 'x'){
+            iteration  = this.widthVisualization;
+            addTickFnc = this.addTickX;
+        }
+        else {
+            iteration  = this.heightVisualization;
+            addTickFnc = this.addTickY;
+        }
+
+        let amountMarker = Math.floor(iteration / pxDistanceBetweenTicks);
+        let pxStep       = iteration / amountMarker;
+        let range        = Math.abs(maxValue) + Math.abs(minValue);
+        let valMapped    = Math.abs(maxValue).map(0, range, 0, iteration);
+
+        let val = valMapped;
+
+        // this is only needed to turn x axis from left to right
+        if(axis === 'x'){
+            let tmp = maxValue;
+            maxValue = minValue;
+            minValue = tmp;
+        }
+
+        let labelText;
+        while (val >= 0) {
+            labelText = Math.floor(val.map(
+                        0,
+                        iteration,
+                        maxValue,
+                        minValue
+                    ) * 100) / 100;
+            addTickFnc.call(this, val, labelText, ticks);
+            val -= pxStep;
+        }
+
+        val = valMapped + pxStep;
+        while (val < iteration) {
+            labelText = Math.floor(val.map(
+                        0,
+                        iteration,
+                        maxValue,
+                        minValue
+                    ) * 100) / 100;
+            addTickFnc.call(this, val, labelText, ticks);
+            val += pxStep;
+        }
     }
 
     /**
@@ -288,6 +241,50 @@ export default class ScatterPlot extends Chart {
         }
 
         this.stage.addChild(items);
+    }
+
+    /**
+     * @param dataStore
+     * @returns {{schema: string, values: {}}}
+     */
+    getBoundaries (dataStore) {
+        let schema = `${dataStore.schema[dataStore.currentSelection.x]} ${dataStore.schema[dataStore.currentSelection.y]}`;
+        let result = {}, nominals, numerics;
+
+        switch (schema) {
+
+            case 'nominal numeric':
+                nominals = dataStore.subset.getNominalBoundaries(dataStore.currentSelection.x, false, 'x');
+                numerics = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, false, 'y');
+
+                Object.assign(result, nominals, numerics);
+                break;
+
+            case 'numeric nominal':
+                nominals = dataStore.subset.getNominalBoundaries(dataStore.currentSelection.y, false, 'y');
+                numerics = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, false, 'x');
+
+                Object.assign(result, nominals, numerics);
+                break;
+
+
+            case 'nominal nominal':
+                result = dataStore.subset.getNominalBoundaries(dataStore.currentSelection, true);
+
+                break;
+
+            case 'numeric numeric':
+                result = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, true);
+                break;
+
+            default:
+                throw new Error(`Schema not handled ("${schema}")`);
+        }
+
+        return {
+            schema: schema,
+            values: result
+        };
     }
 
     /**

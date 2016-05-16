@@ -11,31 +11,12 @@ export default class BarChart extends Chart {
      * @param title
      */
     constructor(container, dataset, features, title, useParticles) {
-        super(container, dataset, features, title);
+        super(container);
 
-        this.padding = 100;
-        this.width = container._width;
-        this.height = container._height;
-        this.heightVisualization = this.height - this.padding * 2;
-        this.widthVisualization = this.width - this.padding * 2;
-
-        this.stage = container;
-
-        this.labels = {
-            x: new PIXI.Text("X", {
-                font: "14px Arial"
-            }),
-            y: new PIXI.Text("Y", {
-                font: "14px Arial"
-            }),
-            title: new PIXI.Text("Title", {
-                font: "16px Arial"
-            })
-        };
-
-        let {uniqueValues, maxAppearance, amountUniqueValues} = this.createFeatureXSet(dataset, features.x);
         this.addAxes();
-        this.addLabels({"x": features.x, "y": "Amount"}, "Superstore");
+        this.addLabels({"x": features.x, "y": "Amount"}, title);
+
+        let {uniqueValues, maxAppearance, amountUniqueValues} = this.analyzeFeature(dataset, features.x);
         this.addTicks(uniqueValues, maxAppearance, amountUniqueValues);
 
         if (useParticles) {
@@ -47,14 +28,16 @@ export default class BarChart extends Chart {
 
     /**
      * Check how often a value threaten as nominal value does appear
-     * @param dataset
+     * @param data
      * @param feature
      * @returns {Object}
      */
-    createFeatureXSet(dataset, feature) {
+    analyzeFeature(data, feature) {
         let uniqueValues = {};
         let counter = 0;
-        for (var row of dataset) {
+
+        // Create a dictionary for the values of the current feature
+        for (var row of data) {
             if (typeof uniqueValues[row[feature]] === "undefined") {
                 uniqueValues[row[feature]] = {
                     "appearance": 1
@@ -76,7 +59,6 @@ export default class BarChart extends Chart {
         // Because more than ~ 130 unique values haven't enough space on the nominal axis
         // we show only the first 130 unique values
         let values = Object.keys(uniqueValues);
-
         if (values.length > 130) {
             let firstValues = values.splice(0, 130);
 
@@ -97,6 +79,7 @@ export default class BarChart extends Chart {
             counter = 131;
         }
 
+        // We need the most appeared value, because this value fills the complete visualization
         let maxAppearance = 0;
         for (let key in uniqueValues) {
             if (uniqueValues[key].appearance > maxAppearance) {
@@ -113,6 +96,9 @@ export default class BarChart extends Chart {
 
     /**
      * Add ticks along the axes
+     * @param uniqueValues
+     * @param maxAppearance
+     * @param amountOfBarsX
      */
     addTicks(uniqueValues, maxAppearance, amountOfBarsX) {
         const ticks = new PIXI.Graphics();
@@ -168,7 +154,7 @@ export default class BarChart extends Chart {
     }
 
     /**
-     * Adds the items to the diagram
+     * Adds bars to the diagram
      * @param {Object} uniqueValues
      */
     addBars(uniqueValues, maxAppearance) {
@@ -190,7 +176,14 @@ export default class BarChart extends Chart {
         this.stage.addChild(items);
     }
 
-    addItems(data, feature, uniqueValues, maxAppearance, amountOfBarsX) {
+    /**
+     * Add items to the diagram
+     * @param data
+     * @param feature
+     * @param uniqueValues
+     * @param maxAppearance
+     */
+    addItems(data, feature, uniqueValues, maxAppearance) {
         const items = new PIXI.Graphics();
         items.lineStyle(2, 0x5555AA, 1);
         items.beginFill(0x5555AA, 1);
@@ -246,6 +239,4 @@ export default class BarChart extends Chart {
 
         this.stage.addChild(items);
     }
-
-
 }

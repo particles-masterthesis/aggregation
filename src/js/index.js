@@ -39,7 +39,7 @@ window.onload = () => {
 
     // After import the dataset we now can update the dropboxes with the features
     ui.updateDropdown(dataStore.features, dataStore.currentSelection);
-    ui.disableDropdown();
+    ui.toggleYDropdown();
 
     $("select.feature-x").change(function () {
         dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
@@ -52,7 +52,7 @@ window.onload = () => {
     });
 
     $("select.visualization").change(function () {
-        ui.disableDropdown();
+        ui.toggleYDropdown();
         updateVisualization();
     });
 
@@ -68,10 +68,8 @@ function updateVisualization() {
 
     canvas.reset();
 
-    let visualization = $("select.visualization").val();
-    switch (visualization) {
-        case 'bar':
-
+    switch ($("select.visualization").val()) {
+        case "barChart":
             canvas.addBarChart(
                 dataStore.subset,
                 dataStore.currentSelection,

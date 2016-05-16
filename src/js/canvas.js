@@ -8,8 +8,10 @@ import BarChart from "./diagram/bar-chart";
 export default class Canvas {
 
     constructor() {
-        this.height = window.innerHeight - 90; //windowH height - menu height - css-paddings
-        this.width = window.innerWidth - 40; //windowH width - css-paddings
+        //windowH height - menu height - css-paddings
+        this.height = window.innerHeight - 90;
+        //windowH width - css-paddings
+        this.width = window.innerWidth - 40;
 
         this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
             backgroundColor: 0xF8F8F8,
@@ -56,19 +58,22 @@ export default class Canvas {
     }
 
     addVisualization(width, height, origin){
-        var container = new PIXI.Container();
+        let container = new PIXI.Container();
         container.width = width;
         container.height = height;
         container.x = origin.x;
         container.y = origin.y;
         this.stage.addChild(container);
-
         return container;
     }
 
-    addScatterPlot(dataset, features, title) {
-        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
-        new ScatterPlot(container, dataset, features, title);
+    addScatterPlot(dataStore, title) {
+        let container = this.addVisualization(
+            this.width,
+            this.height,
+            new PIXI.Point(0,0)
+        );
+        new ScatterPlot(container, dataStore, title);
     }
 
     addBarChart(dataset, features, title) {
@@ -78,7 +83,7 @@ export default class Canvas {
 
     render() {
         this.renderer.render(this.stage);
-        this.FPSMeter.tick();
-        this.requestFrameID = requestAnimationFrame(this.render.bind(this));
+        // this.FPSMeter.tick();
+        // this.requestFrameID = requestAnimationFrame(this.render.bind(this));
     }
 }

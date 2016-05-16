@@ -2,7 +2,7 @@
 import * as dat from "exdat";
 
 export default class UI {
-    constructor(){
+    constructor() {
         this.DatGui = new dat.GUI();
     }
 
@@ -21,13 +21,18 @@ export default class UI {
             }
         }
     }
-    
-    disableDropdown(){
+
+    toggleYDropdown() {
         let chosenVisualization = $("select.visualization option:selected")[0].innerHTML;
-        if(chosenVisualization == "Bar chart"){
-            $("select.feature-y").attr("disabled", true);
-        } else {
-            $("select.feature-y").attr("disabled", false);
+
+        switch ($("select.visualization").val()) {
+            case "barChart":
+                $("select.feature-y").attr("disabled", true);
+                break;
+
+            default:
+                $("select.feature-y").attr("disabled", false);
+                break;
         }
     }
 }

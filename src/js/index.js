@@ -1,6 +1,5 @@
 /* jshint esversion: 6 */
 
-//
 import "./helper";
 import $ from 'jquery';
 import jQuery from 'jquery';
@@ -40,7 +39,7 @@ window.onload = () => {
 
     // After import the dataset we now can update the dropboxes with the features
     ui.updateDropdown(dataStore.features, dataStore.currentSelection);
-    ui.disableDropdown();
+    ui.toggleYDropdown();
 
     $("select.feature-x").change(function () {
         dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
@@ -53,7 +52,7 @@ window.onload = () => {
     });
 
     $("select.visualization").change(function () {
-        ui.disableDropdown();
+        ui.toggleYDropdown();
         updateVisualization();
     });
 
@@ -66,15 +65,25 @@ window.onload = () => {
  */
 
 function updateVisualization() {
-    let chosenVisualization = $("select.visualization option:selected")[0].innerHTML;
+
     canvas.reset();
 
-    if(chosenVisualization === "Bar chart"){
-        canvas.addBarChart(dataStore.subset, dataStore.currentSelection, "Superstore");
-    } else if(chosenVisualization === "Scatter plot"){
-        canvas.addScatterPlot(dataStore.subset, dataStore.currentSelection, "Superstore");
-    }
+    switch ($("select.visualization").val()) {
+        case "barChart":
+            canvas.addBarChart(
+                dataStore.subset,
+                dataStore.currentSelection,
+                "Superstore"
+            );
+            break;
 
+        default:
+            canvas.addScatterPlot(
+                dataStore,
+                "Superstore"
+            );
+            break;
+    }
     canvas.render();
 }
 

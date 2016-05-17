@@ -6,6 +6,8 @@ import ScatterPlot from "./diagram/scatter-plot";
 import BarChart from "./diagram/bar-chart";
 import PhysicsJS from "./diagram/physics-js";
 
+var Physics = require("./../../node_modules/physicsjs/dist/physicsjs-full");
+
 export default class Canvas {
 
     constructor() {
@@ -14,24 +16,8 @@ export default class Canvas {
         //windowH width - css-paddings
         this.width = window.innerWidth - 40;
 
-        this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
-            backgroundColor: 0xF8F8F8,
-            clearBeforeRender: true
-        });
-
-        this.stage = new PIXI.Container();
-
-        this.labels = {
-            x: new PIXI.Text("X", {
-                font: "14px Arial"
-            }),
-            y: new PIXI.Text("Y", {
-                font: "14px Arial"
-            }),
-            title: new PIXI.Text("Title", {
-                font: "16px Arial"
-            })
-        };
+        this.requestFrameID = null;
+        this.barChartParticles = true;
 
         this.FPSMeter = new FPSMeter({
             "theme": "light",
@@ -44,52 +30,70 @@ export default class Canvas {
             "top": "6px"
         });
 
-        this.requestFrameID = null;
+        /**
+         * Init Physics JS
+         */
 
-        this.barChartParticles = true;
+        this.renderer = Physics.renderer("pixi", {
+            el: "canvas-container",
+            width: this.width,
+            height: this.height,
+            meta: true,
+            styles: {
+                "circle": {
+                    strokeStyle: "#351024",
+                    lineWidth: 1,
+                    fillStyle: "#d33682",
+                    angleIndicator: "#351024"
+                }
+            }
+        });
+
+        this.world = Physics();
+        this.world.add(this.renderer);
+        this.world.on("step", this.render.bind(this));
+        this.draw();
+    }
+
+    draw(){
+        var viewportBounds = Physics.aabb(0, 0, this.width, this.height);
+        this.world.add(Physics.behavior("edge-collision-detection", {
+            aabb: viewportBounds,
+            restitution: 0.99,
+            cof: 0.99
+        }));
+
+        // constrain objects to these bounds
+        this.world.add(
+            Physics.body("circle", {
+                x: 50,
+                y: 30,
+                vx: 1.6, // velocity in x-direction
+                vy: 0.08, // velocity in y-direction
+                radius: 20
+            })
+        );
+
+        // ensure objects bounce when edge collision is detected
+        this.world.add(Physics.behavior("body-impulse-response"));
+
+        // add some gravity
+        this.world.add(Physics.behavior("constant-acceleration"));
+
+        // subscribe to ticker to advance the simulation
+        Physics.util.ticker.on(function (time, dt) {
+            this.world.step(time);
+        }.bind(this));
+
+        Physics.util.ticker.start();
     }
 
     reset() {
-        this.stage.removeChildren();
-
-        if (this.requestFrameID) {
-            window.cancelAnimationFrame(this.requestFrameID);
-            this.requestFrameID = null;
-        }
-    }
-
-    addVisualization(width, height, origin){
-        let container = new PIXI.Container();
-        container.width = width;
-        container.height = height;
-        container.x = origin.x;
-        container.y = origin.y;
-        this.stage.addChild(container);
-        return container;
-    }
-
-    addScatterPlot(dataStore, title) {
-        let container = this.addVisualization(
-            this.width,
-            this.height,
-            new PIXI.Point(0,0)
-        );
-        new ScatterPlot(container, dataStore, title);
-    }
-
-    addBarChart(dataset, features, title) {
-        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
-        new BarChart(container, dataset, features, title, this.barChartParticles);
-    }
-
-    addPhysicsJSDiagram(dataset, features){
-        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
-        new PhysicsJS(container, dataset, features);
+        this.world.removeChildren();
+        this.world.on("step", null);
     }
 
     render() {
-        this.renderer.render(this.stage);
-        // this.FPSMeter.tick();
-        // this.requestFrameID = requestAnimationFrame(this.render.bind(this));
+        this.world.render();
     }
 }

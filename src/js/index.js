@@ -23,8 +23,6 @@ window.onload = () => {
     window.canvas = new Canvas();
     window.dataStore = new DataStore();
 
-    document.body.appendChild(canvas.renderer.view);
-
     ui.DatGui.add(dataStore, 'sizeOfSubset', 1, 6000).onChange(() => {
         dataStore.sizeOfSubset = Math.floor(dataStore.sizeOfSubset);
         dataStore.createSubset();
@@ -84,7 +82,8 @@ function updateVisualization() {
             break;
 
         default:
-            canvas.addPhysicsJSDiagram(dataStore.subset, dataStore.currentSelection);
+
+            canvas.draw(dataStore.subset);
             break;
     }
     canvas.render();

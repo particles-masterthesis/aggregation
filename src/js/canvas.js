@@ -12,7 +12,7 @@ export default class Canvas {
 
     constructor() {
         //windowH height - menu height - css-paddings
-        this.height = window.innerHeight - 90;
+        this.height = window.innerHeight - 10;
         //windowH width - css-paddings
         this.width = window.innerWidth - 40;
 
@@ -36,8 +36,8 @@ export default class Canvas {
 
         this.renderer = Physics.renderer("pixi", {
             el: "canvas-container",
-            width: this.width,
-            height: this.height,
+            width: 600,
+            height: 400,
             meta: true,
             styles: {
                 "circle": {
@@ -52,27 +52,32 @@ export default class Canvas {
         this.world = Physics();
         this.world.add(this.renderer);
         this.world.on("step", this.render.bind(this));
-        this.draw();
     }
 
-    draw(){
-        var viewportBounds = Physics.aabb(0, 0, this.width, this.height);
+    draw(dataset){
+        var viewportBounds = Physics.aabb(0, 0, 600, 400);
         this.world.add(Physics.behavior("edge-collision-detection", {
             aabb: viewportBounds,
             restitution: 0.99,
             cof: 0.99
         }));
 
-        // constrain objects to these bounds
-        this.world.add(
-            Physics.body("circle", {
-                x: 50,
-                y: 30,
-                vx: 1.6, // velocity in x-direction
-                vy: 0.08, // velocity in y-direction
-                radius: 20
-            })
-        );
+        var x = null, y = null;
+
+        for (let i = 0; i < dataset.length; i++) {
+            x = Math.abs(parseFloat(dataset[i].Longitude));
+            y = Math.abs(parseFloat(dataset[i].Latitude));
+
+            this.world.add(
+                Physics.body("circle", {
+                    x: x*2,
+                    y: y*2,
+                    vx: 0.01, // velocity in x-direction
+                    vy: 0.001, // velocity in y-direction
+                    radius: 5
+                })
+            );
+        }
 
         // ensure objects bounce when edge collision is detected
         this.world.add(Physics.behavior("body-impulse-response"));
@@ -89,8 +94,6 @@ export default class Canvas {
     }
 
     reset() {
-        this.world.removeChildren();
-        this.world.on("step", null);
     }
 
     render() {

@@ -6,7 +6,7 @@ export default class DataStore{
         this.features = [];
         this.schema = {};
 
-        this.sizeOfSubset = 3;
+        this.sizeOfSubset = 100;
 
         this.currentSelection = {
             x: null,
@@ -81,7 +81,7 @@ export default class DataStore{
                 this.createSubset();
                 this.classifyFeatures();
 
-                this.currentSelection.x = this.features[0];
+                this.currentSelection.x = this.features[8];
                 this.currentSelection.y = this.features[0];
             }
         });

@@ -4,6 +4,7 @@ import "pixi.js";
 import "fpsmeter";
 import ScatterPlot from "./diagram/scatter-plot";
 import BarChart from "./diagram/bar-chart";
+import PhysicsJS from "./diagram/physics-js";
 
 export default class Canvas {
 
@@ -79,6 +80,11 @@ export default class Canvas {
     addBarChart(dataset, features, title) {
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         new BarChart(container, dataset, features, title, this.barChartParticles);
+    }
+
+    addPhysicsJSDiagram(dataset, features){
+        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
+        new PhysicsJS(container, dataset, features);
     }
 
     render() {

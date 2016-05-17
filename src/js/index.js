@@ -65,7 +65,6 @@ window.onload = () => {
  */
 
 function updateVisualization() {
-
     canvas.reset();
 
     switch ($("select.visualization").val()) {
@@ -77,11 +76,15 @@ function updateVisualization() {
             );
             break;
 
-        default:
+        case "scatterPlot":
             canvas.addScatterPlot(
                 dataStore,
                 "Superstore"
             );
+            break;
+
+        default:
+            canvas.addPhysicsJSDiagram(dataStore.subset, dataStore.currentSelection);
             break;
     }
     canvas.render();

@@ -11,12 +11,6 @@ var Physics = require("./../../node_modules/physicsjs/dist/physicsjs-full");
 export default class Canvas {
 
     constructor() {
-        //windowH height - menu height - css-paddings
-        this.height = window.innerHeight - 10;
-        //windowH width - css-paddings
-        this.width = window.innerWidth - 40;
-
-        this.requestFrameID = null;
         this.barChartParticles = true;
 
         this.FPSMeter = new FPSMeter({
@@ -36,54 +30,71 @@ export default class Canvas {
 
         this.renderer = Physics.renderer("pixi", {
             el: "canvas-container",
-            width: 600,
-            height: 400,
-            meta: true,
+            meta: false,
             styles: {
                 "circle": {
-                    strokeStyle: "#351024",
+                    strokeStyle: "0x1d6b98",
                     lineWidth: 1,
-                    fillStyle: "#d33682",
-                    angleIndicator: "#351024"
+                    fillStyle: "0x14546f",
+                    angleIndicator: "0xa42222",
+                    alpha: 1
                 }
             }
         });
+
+        this.height = this.renderer.el.firstChild.clientHeight + 90;
+        this.width = this.renderer.el.firstChild.clientWidth + 40;
 
         this.world = Physics();
         this.world.add(this.renderer);
         this.world.on("step", this.render.bind(this));
     }
 
-    draw(dataset){
-        var viewportBounds = Physics.aabb(0, 0, 600, 400);
+    draw(dataset) {
+        var viewportBounds = Physics.aabb(0, 0, this.width, this.height);
         this.world.add(Physics.behavior("edge-collision-detection", {
             aabb: viewportBounds,
-            restitution: 0.99,
-            cof: 0.99
+            restitution: 0,         // How "bouncy" is the body
+            cof: 1                  // Coefficient of friction
         }));
 
         var x = null, y = null;
 
-        for (let i = 0; i < dataset.length; i++) {
+        for (let i = 0; i < 20; i++) {
             x = Math.abs(parseFloat(dataset[i].Longitude));
             y = Math.abs(parseFloat(dataset[i].Latitude));
 
             this.world.add(
                 Physics.body("circle", {
-                    x: x*2,
-                    y: y*2,
-                    vx: 0.01, // velocity in x-direction
-                    vy: 0.001, // velocity in y-direction
-                    radius: 5
+                    x: x * 10,
+                    y: y * 10,
+                    radius: 10,
+                    restitution: 0,
+                    cof: 1
                 })
             );
         }
 
-        // ensure objects bounce when edge collision is detected
+        // add some collision detection
+        this.world.add(Physics.behavior("body-collision-detection"));
+
+        // this massively improves the speed of collision detection
+        this.world.add(Physics.behavior("sweep-prune"));
+
+        // ensure objects bounce when collision is detected
         this.world.add(Physics.behavior("body-impulse-response"));
 
         // add some gravity
-        this.world.add(Physics.behavior("constant-acceleration"));
+        // this.world.add(Physics.behavior("constant-acceleration"));
+
+        // add some interactivity
+        this.world.add(Physics.behavior("interactive", {el: this.renderer.container}));
+
+        this.world.add(Physics.behavior("attractor", {
+            strength: 10,
+            min: 50,
+            pos: {"x": 700, "y": 450}
+        }));
 
         // subscribe to ticker to advance the simulation
         Physics.util.ticker.on(function (time, dt) {

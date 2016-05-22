@@ -13,6 +13,8 @@ export default class Chart {
         this.widthVisualization = this.width - this.padding*2;
         this.world = world;
         this.stage = stage;
+
+        console.log(this.width, this.height, this.stage, this.world);
     }
 
     /**

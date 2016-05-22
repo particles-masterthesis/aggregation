@@ -13,12 +13,7 @@ export default class Canvas {
 
         this.renderer = Physics.renderer("pixi", {
             el: "canvas-container",
-            width: 500,
-            height: 500,
             meta: true,
-            options: {  
-                antialias: true
-            },
             styles: {
                 "circle": {
                     strokeStyle: "0x5555AA",
@@ -33,21 +28,14 @@ export default class Canvas {
             }
         });
 
-        this.height = 600;
-        this.width = 800;
+        this.height = this.renderer.el.firstChild.clientHeight + 90;
+        this.width = this.renderer.el.firstChild.clientWidth + 40;
+
+        this.renderer.stage.width = this.width;
+        this.renderer.stage.height = this.height;
 
         this.world = Physics();
         this.world.add(this.renderer);
-
-        for(var i=0; i<100;i++) {
-            this.world.add(
-                Physics.body("circle", {
-                    x: Math.random() * 500,
-                    y: Math.random() * 500,
-                    radius: 3
-                })
-            );
-        }
 
         this.world.on("step", this.render.bind(this));
         Physics.util.ticker.on(function (time, dt) {

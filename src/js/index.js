@@ -23,7 +23,7 @@ window.onload = () => {
     dataStore.import(`${location.origin}/dist/superstore_preprocessed.csv`);
 
     window.ui = new UI();
-    window.canvas = new Canvas(dataStore.subset, dataStore.currentSelection);
+    window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
 
     let folderDataSet = ui.DatGui.addFolder('DataSet');
 

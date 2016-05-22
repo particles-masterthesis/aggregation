@@ -1,6 +1,7 @@
 /* jshint esversion: 6 */
 
 import Chart from "./chart";
+var Physics = require("./../../../node_modules/physicsjs/dist/physicsjs-full");
 
 export default class ScatterPlot extends Chart {
 
@@ -10,16 +11,15 @@ export default class ScatterPlot extends Chart {
      * @param features
      * @param title
      */
-    constructor(container, dataStore, title){
-
-        super(container);
+    constructor(world, stage, dataStore, title){
+        super(world, stage);
 
         let boundaries = this.getBoundaries(dataStore);
         this.nominalDict = {};
         this.addAxes();
         this.addLabels(dataStore.currentSelection, "Superstore");
         this.addTicks(boundaries);
-        this.addItems(dataStore.subset, dataStore.currentSelection, boundaries);
+        this.addItems(dataStore.data, dataStore.currentSelection, boundaries);
     }
 
     /**
@@ -181,12 +181,9 @@ export default class ScatterPlot extends Chart {
      * @param {Object} features
      */
     addItems(data, features, boundaries) {
-        let items = new PIXI.Graphics();
-        items.lineStyle(2, 0x5555AA, 1);
-        items.beginFill(0xF8F8F8, 1);
-
         let x = 0;
         let y = 0;
+        let particles = [];
 
         switch (boundaries.schema) {
 
@@ -196,7 +193,14 @@ export default class ScatterPlot extends Chart {
                     x = this.nominalDict[data[i][features.x]].x;
                     y = parseFloat(data[i][features.y]);
                     y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization);
-                    items.drawCircle(x + this.padding, this.height - this.padding - y, 3);
+
+                    particles.push(
+                        Physics.body("circle", {
+                            x: x + this.padding,
+                            y: this.height - this.padding - y,
+                            radius: 3
+                        })
+                    );
                 }
                 break;
 
@@ -206,7 +210,14 @@ export default class ScatterPlot extends Chart {
                     x = parseFloat(data[i][features.x]);
                     x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization);
                     y = this.nominalDict[data[i][features.y]].y;
-                    items.drawCircle(x + this.padding, y + this.padding, 3);
+
+                    particles.push(
+                        Physics.body("circle", {
+                            x: x + this.padding,
+                            y: y + this.padding,
+                            radius: 3
+                        })
+                    );
                 }
 
                 break;
@@ -216,7 +227,14 @@ export default class ScatterPlot extends Chart {
                 for (let i = 0; i < data.length; i++) {
                     x = this.nominalDict[data[i][features.x]].x;
                     y = this.nominalDict[data[i][features.y]].y;
-                    items.drawCircle(x + this.padding, y + this.padding, 3);
+
+                    particles.push(
+                            Physics.body("circle", {
+                            x: x + this.padding,
+                            y: y + this.padding,
+                            radius: 3
+                        })
+                    );
                 }
 
                 break;
@@ -231,7 +249,13 @@ export default class ScatterPlot extends Chart {
                     x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization);
                     y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization);
 
-                    items.drawCircle(x + this.padding, this.height - this.padding - y, 3);
+                    particles.push(
+                        Physics.body("circle", {
+                            x: x + this.padding,
+                            y: this.height - this.padding - y,
+                            radius: 3
+                        })
+                    );
                 }
 
                 break;
@@ -240,7 +264,7 @@ export default class ScatterPlot extends Chart {
                 throw new Error(`Schema not handled ("${schema}")`);
         }
 
-        this.stage.addChild(items);
+        this.world.add(particles);
     }
 
     /**
@@ -254,27 +278,27 @@ export default class ScatterPlot extends Chart {
         switch (schema) {
 
             case 'nominal numeric':
-                nominals = dataStore.subset.getNominalBoundaries(dataStore.currentSelection.x, false, 'x');
-                numerics = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, false, 'y');
+                nominals = dataStore.data.getNominalBoundaries(dataStore.currentSelection.x, false, 'x');
+                numerics = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, false, 'y');
 
                 Object.assign(result, nominals, numerics);
                 break;
 
             case 'numeric nominal':
-                nominals = dataStore.subset.getNominalBoundaries(dataStore.currentSelection.y, false, 'y');
-                numerics = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, false, 'x');
+                nominals = dataStore.data.getNominalBoundaries(dataStore.currentSelection.y, false, 'y');
+                numerics = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, false, 'x');
 
                 Object.assign(result, nominals, numerics);
                 break;
 
 
             case 'nominal nominal':
-                result = dataStore.subset.getNominalBoundaries(dataStore.currentSelection, true);
+                result = dataStore.data.getNominalBoundaries(dataStore.currentSelection, true);
 
                 break;
 
             case 'numeric numeric':
-                result = dataStore.subset.getNumericalBoundaries(dataStore.currentSelection, true);
+                result = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, true);
                 break;
 
             default:

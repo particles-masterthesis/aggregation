@@ -1,26 +1,27 @@
 /* jshint esversion: 6 */
 
 import Chart from "./chart";
+var Physics = require("./../../../node_modules/physicsjs/dist/physicsjs-full");
 
 export default class BarChart extends Chart {
 
     /**
      * @param container
-     * @param dataset
+     * @param dataSet
      * @param features
      * @param title
      */
-    constructor(container, dataset, features, title, useParticles) {
-        super(container);
+    constructor(world, stage, dataSet, features, title, useParticles) {
+        super(world, stage);
 
         this.addAxes();
         this.addLabels({"x": features.x, "y": "Amount"}, title);
 
-        let {uniqueValues, maxAppearance, amountUniqueValues} = this.analyzeFeature(dataset, features.x);
+        let {uniqueValues, maxAppearance, amountUniqueValues} = this.analyzeFeature(dataSet, features.x);
         this.addTicks(uniqueValues, maxAppearance, amountUniqueValues);
 
         if (useParticles) {
-            this.addItems(dataset, features.x, uniqueValues, maxAppearance, amountUniqueValues);
+            this.addItems(dataSet, features.x, uniqueValues, maxAppearance, amountUniqueValues);
         } else {
             this.addBars(uniqueValues, maxAppearance);
         }
@@ -159,7 +160,7 @@ export default class BarChart extends Chart {
      */
     addBars(uniqueValues, maxAppearance) {
         const items = new PIXI.Graphics();
-        items.lineStyle(2, 0x5555AA, 1);
+        items.lineStyle(0, 0x5555AA, 1);
         items.beginFill(0x5555AA, 1);
 
         const values = Object.keys(uniqueValues);
@@ -185,11 +186,12 @@ export default class BarChart extends Chart {
      */
     addItems(data, feature, uniqueValues, maxAppearance) {
         const items = new PIXI.Graphics();
-        items.lineStyle(2, 0x5555AA, 1);
+        items.lineStyle(0, 0x5555AA, 1);
         items.beginFill(0x5555AA, 1);
 
         let widthBar = this.widthVisualization / Object.keys(uniqueValues).length;
         this.marginBar = widthBar.map(1, this.widthVisualization, 1, 200);
+        this.marginParticle = 0.5;
         let widthBarExclusiveMargin = widthBar - this.marginBar * 2;
 
         // Calculate the size a particle
@@ -199,28 +201,25 @@ export default class BarChart extends Chart {
 
         // Except for integers we want to make the particles smaller
         // Example particlesPerRow = 3.5, so we need to create at least 4 particles per row
-        // Attention: Because of the smaller size it could happen that there is a empty row on the top
-        // but with bigger (width filling particles) there won't be, so a empty row on the top is okay
         let particlesPerRow = Math.floor(widthBarExclusiveMargin / sizeEveryParticle);
         particlesPerRow = maxAppearance === 1 ? 1 : ++particlesPerRow;
-        sizeEveryParticle = widthBarExclusiveMargin / particlesPerRow;
+        let width = widthBarExclusiveMargin / particlesPerRow;
+        width -= this.marginParticle * 2;
 
-        this.marginParticle = 1.5;//Math.max(1.5, particlesPerRow.map(1, 40, 8, 2));
-        let height = Math.max(-this.heightVisualization, -sizeEveryParticle + this.marginParticle * 2);
+        // now we want to fill the area of the highest bar
+        let maxParticleHighestBar = maxAppearance + particlesPerRow- ((maxAppearance%particlesPerRow) || particlesPerRow);
+        let height = this.heightVisualization / (maxParticleHighestBar / particlesPerRow) - this.marginParticle * 2;
+        height = Math.min(this.heightVisualization, height);
 
         const values = Object.keys(uniqueValues);
+        let x = null, y = null, uniqueValue = null;
+        let particles = [];
 
-        console.log(values);
-
-        let width = sizeEveryParticle - this.marginParticle * 2;
-        let x = null, y = null;
 
         for (let i = 0; i < data.length; i++) {
-
-            let uniqueValue = data[i][feature];
-
-            if(typeof uniqueValues[uniqueValue] === "undefined"){
-                uniqueValue = "other";
+            uniqueValue = data[i][feature];
+            if (typeof uniqueValues[uniqueValue] === "undefined") {
+                continue;
             }
 
             y = uniqueValues[uniqueValue].y || this.heightVisualization + this.padding;
@@ -228,15 +227,23 @@ export default class BarChart extends Chart {
             uniqueValues[uniqueValue].particlesRowCounter = ++uniqueValues[uniqueValue].particlesRowCounter || 0;
             uniqueValues[uniqueValue].particleNumberInRow = uniqueValues[uniqueValue].particlesRowCounter % particlesPerRow;
 
-            x = this.padding + this.marginBar + this.marginParticle + sizeEveryParticle * uniqueValues[uniqueValue].particleNumberInRow + values.indexOf(uniqueValue) * widthBar;
+            x = this.padding + this.marginBar + this.marginParticle + (width + this.marginParticle * 2) * uniqueValues[uniqueValue].particleNumberInRow + values.indexOf(uniqueValue) * widthBar;
 
-            items.drawRect(x, y, width, height);
+            particles.push(
+                Physics.body("rectangle", {
+                    x: x+width/2,
+                    y: y-height/2,
+                    width: width,
+                    height: height,
+                    data: data[i]
+                })
+            );
 
             if (uniqueValues[uniqueValue].particleNumberInRow === particlesPerRow - 1) {
-                uniqueValues[uniqueValue].y = y - sizeEveryParticle;
+                uniqueValues[uniqueValue].y = y - height - this.marginParticle * 2;
             }
         }
 
-        this.stage.addChild(items);
+        this.world.add(particles);
     }
 }

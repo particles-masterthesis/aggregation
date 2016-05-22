@@ -19,21 +19,32 @@ import DataStore from './data-store';
  */
 
 window.onload = () => {
-    window.ui = new UI();
-    window.canvas = new Canvas();
     window.dataStore = new DataStore();
+    dataStore.import(`${location.origin}/dist/superstore_preprocessed.csv`);
 
-    ui.DatGui.add(dataStore, 'sizeOfSubset', 1, 6000).onChange(() => {
+    window.ui = new UI();
+    window.canvas = new Canvas(dataStore.subset, dataStore.currentSelection);
+
+    let folderDataSet = ui.DatGui.addFolder('DataSet');
+
+    folderDataSet.add(dataStore, "useSubset").onChange(() => {
+        dataStore.createSubset();
+        updateVisualization();
+    });
+
+    folderDataSet.add(dataStore, 'sizeOfSubset', 1, 1500).onChange(() => {
         dataStore.sizeOfSubset = Math.floor(dataStore.sizeOfSubset);
         dataStore.createSubset();
         updateVisualization();
     });
 
-    ui.DatGui.add(canvas, "barChartParticles").onChange(() => {
+    folderDataSet.open();
+
+    let folderBarChart = ui.DatGui.addFolder('Bar Chart');
+    folderBarChart.add(canvas, "barChartParticles").onChange(() => {
         updateVisualization();
     });
-
-    dataStore.import(`${location.origin}/dist/superstore_preprocessed.csv`);
+    folderBarChart.open();
 
     // After import the dataset we now can update the dropboxes with the features
     ui.updateDropdown(dataStore.features, dataStore.currentSelection);
@@ -67,23 +78,14 @@ function updateVisualization() {
 
     switch ($("select.visualization").val()) {
         case "barChart":
-            canvas.addBarChart(
-                dataStore.subset,
-                dataStore.currentSelection,
-                "Superstore"
-            );
+            canvas.addBarChart(dataStore.data, dataStore.currentSelection, "Superstore");
             break;
 
         case "scatterPlot":
-            canvas.addScatterPlot(
-                dataStore,
-                "Superstore"
-            );
+            canvas.addScatterPlot(dataStore, "Superstore");
             break;
 
         default:
-
-            canvas.draw(dataStore.subset);
             break;
     }
     canvas.render();

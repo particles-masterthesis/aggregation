@@ -5,13 +5,14 @@ export default class Chart {
     /**
      * @param container
      */
-    constructor(container){
+    constructor(world, stage){
         this.padding = 70;
-        this.width = container._width;
-        this.height = container._height;
+        this.width = stage._width;
+        this.height = stage._height;
         this.heightVisualization = this.height - this.padding*2;
         this.widthVisualization = this.width - this.padding*2;
-        this.stage = container;
+        this.world = world;
+        this.stage = stage;
     }
 
     /**

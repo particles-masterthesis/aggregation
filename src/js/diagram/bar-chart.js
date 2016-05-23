@@ -20,6 +20,8 @@ export default class BarChart extends Chart {
         let {uniqueValues, maxAppearance, amountUniqueValues} = this.analyzeFeature(dataSet, features.x);
         this.addTicks(uniqueValues, maxAppearance, amountUniqueValues);
 
+        console.log(uniqueValues, maxAppearance, amountUniqueValues);
+
         if (useParticles) {
             this.addItems(dataSet, features.x, uniqueValues, maxAppearance, amountUniqueValues);
         } else {
@@ -57,11 +59,12 @@ export default class BarChart extends Chart {
         });
         uniqueValues = tmp;
 
-        // Because more than ~ 130 unique values haven't enough space on the nominal axis
-        // we show only the first 130 unique values
+        // Because more than ~ 50 unique values haven't enough space on the nominal axis
+        // we show only the first 50 unique values
         let values = Object.keys(uniqueValues);
-        if (values.length > 130) {
-            let firstValues = values.splice(0, 130);
+        let maxValues = 50;
+        if (values.length > maxValues) {
+            let firstValues = values.splice(0, maxValues);
 
             var newUniqueValues = {};
             var sumDeletedValues = 0;
@@ -69,15 +72,12 @@ export default class BarChart extends Chart {
             for (let key in uniqueValues) {
                 if (firstValues.indexOf(key) > -1) {
                     newUniqueValues[key] = uniqueValues[key];
-                } else {
-                    sumDeletedValues += uniqueValues[key].appearance;
                 }
             }
 
-            newUniqueValues.other = {};
-            newUniqueValues.other.appearance = sumDeletedValues;
+            newUniqueValues["..."] = {};
             uniqueValues = newUniqueValues;
-            counter = 131;
+            counter = ++maxValues;
         }
 
         // We need the most appeared value, because this value fills the complete visualization
@@ -137,14 +137,15 @@ export default class BarChart extends Chart {
         for (let i = 0; i < amountOfBarsX; i++) {
             let x = i * pxStepX + pxStepX / 2;
 
+            console.log(Object.keys(uniqueValues)[i], i);
             const tickLabel = new PIXI.Text(Object.keys(uniqueValues)[i], {
                 font: "12px Arial"
             });
             tickLabel.anchor = new PIXI.Point(0.5, 0.5);
             tickLabel.x = this.padding + x;
             tickLabel.y = this.padding + this.heightVisualization + 16;
-            tickLabel.anchor = new PIXI.Point(1, 0.5);
-            tickLabel.rotation = -Math.PI / 2;
+            tickLabel.anchor = new PIXI.Point(0, 0.5);
+            tickLabel.rotation = Math.PI/4;
             this.stage.addChild(tickLabel);
 
             ticks.moveTo(this.padding + x, this.padding + this.heightVisualization);
@@ -186,11 +187,10 @@ export default class BarChart extends Chart {
      */
     addItems(data, feature, uniqueValues, maxAppearance) {
         const items = new PIXI.Graphics();
-        items.lineStyle(0, 0x5555AA, 1);
-        items.beginFill(0x5555AA, 1);
+        const values = Object.keys(uniqueValues);
 
-        let widthBar = this.widthVisualization / Object.keys(uniqueValues).length;
-        this.marginBar = widthBar.map(1, this.widthVisualization, 1, 200);
+        let widthBar = this.widthVisualization / values.length;
+        this.marginBar = widthBar.map(1, this.widthVisualization, 1, 100);
         this.marginParticle = 0.5;
         let widthBarExclusiveMargin = widthBar - this.marginBar * 2;
 
@@ -207,11 +207,11 @@ export default class BarChart extends Chart {
         width -= this.marginParticle * 2;
 
         // now we want to fill the area of the highest bar
-        let maxParticleHighestBar = maxAppearance + particlesPerRow- ((maxAppearance%particlesPerRow) || particlesPerRow);
+        let maxParticleHighestBar = maxAppearance + particlesPerRow - ((maxAppearance % particlesPerRow) || particlesPerRow);
         let height = this.heightVisualization / (maxParticleHighestBar / particlesPerRow) - this.marginParticle * 2;
         height = Math.min(this.heightVisualization, height);
 
-        const values = Object.keys(uniqueValues);
+
         let x = null, y = null, uniqueValue = null;
         let particles = [];
 
@@ -231,8 +231,8 @@ export default class BarChart extends Chart {
 
             particles.push(
                 Physics.body("rectangle", {
-                    x: x+width/2,
-                    y: y-height/2,
+                    x: x + width / 2,
+                    y: y - height / 2,
                     width: width,
                     height: height,
                     data: data[i]
@@ -241,6 +241,20 @@ export default class BarChart extends Chart {
 
             if (uniqueValues[uniqueValue].particleNumberInRow === particlesPerRow - 1) {
                 uniqueValues[uniqueValue].y = y - height - this.marginParticle * 2;
+            }
+        }
+
+        if (values.length >= 51) {
+            let radius = 1;
+            for (let i = 0; i < 3; i++) {
+                particles.push(
+                    Physics.body("circle", {
+                        x: this.padding + this.widthVisualization - widthBar + this.marginBar + i * radius * 4,
+                        y: this.padding + this.heightVisualization/2,
+                        radius: radius,
+                        data: data[i]
+                    })
+                );
             }
         }
 

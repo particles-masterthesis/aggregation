@@ -30,24 +30,24 @@ export default class ScatterPlot extends Chart {
         ticks.lineStyle(1, 0x111111, 1);
 
         switch (boundaries.schema) {
-            case 'nominal numeric':
-                this.drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, 'x');
-                this.drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, 'y');
+            case "nominal numeric":
+                this.drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, "x");
+                this.drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, "y");
                 break;
 
-            case 'numeric nominal':
-                this.drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, 'x');
-                this.drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, 'y');
+            case "numeric nominal":
+                this.drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, "x");
+                this.drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, "y");
                 break;
 
-            case 'nominal nominal':
-                this.drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, 'x');
-                this.drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, 'y');
+            case "nominal nominal":
+                this.drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, "x");
+                this.drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, "y");
                 break;
 
-            case 'numeric numeric':
-                this.drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, 'x');
-                this.drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, 'y');
+            case "numeric numeric":
+                this.drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, "x");
+                this.drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, "y");
                 break;
 
             default:
@@ -73,8 +73,8 @@ export default class ScatterPlot extends Chart {
         tickLabel.y = this.padding + this.heightVisualization + 16;
 
         if(rotate){
-            tickLabel.anchor = new PIXI.Point(1, 0.5);
-            tickLabel.rotation = -Math.PI / 2;
+            tickLabel.anchor = new PIXI.Point(0, 0.5);
+            tickLabel.rotation = Math.PI/4;
         }
 
         this.stage.addChild(tickLabel);
@@ -96,6 +96,7 @@ export default class ScatterPlot extends Chart {
         tickLabel.anchor = new PIXI.Point(1, 0.5);
         tickLabel.x = this.padding - 10;
         tickLabel.y = this.padding + y;
+        tickLabel.rotation = Math.PI/4;
         this.stage.addChild(tickLabel);
 
         ticks.moveTo(this.padding, this.padding + y);
@@ -104,7 +105,7 @@ export default class ScatterPlot extends Chart {
 
     drawNominalTicks (ticks, maxValue, uniqueValues, axis){
         let iteration, addTickFnc;
-        if(axis === 'x'){
+        if(axis === "x"){
             iteration  = this.widthVisualization;
             addTickFnc = this.addTickX;
         }
@@ -127,7 +128,7 @@ export default class ScatterPlot extends Chart {
         const pxDistanceBetweenTicks = 100;
 
         let iteration, addTickFnc;
-        if(axis === 'x'){
+        if(axis === "x"){
             iteration  = this.widthVisualization;
             addTickFnc = this.addTickX;
         }
@@ -144,7 +145,7 @@ export default class ScatterPlot extends Chart {
         let val = valMapped;
 
         // this is only needed to turn x axis from left to right
-        if(axis === 'x'){
+        if(axis === "x"){
             let tmp = maxValue;
             maxValue = minValue;
             minValue = tmp;
@@ -187,7 +188,8 @@ export default class ScatterPlot extends Chart {
 
         switch (boundaries.schema) {
 
-            case 'nominal numeric':
+            case "date numeric":
+            case "nominal numeric":
 
                 for (let i = 0; i < data.length; i++) {
                     x = this.nominalDict[data[i][features.x]].x;
@@ -198,13 +200,14 @@ export default class ScatterPlot extends Chart {
                         Physics.body("circle", {
                             x: x + this.padding,
                             y: this.height - this.padding - y,
-                            radius: 3
+                            radius: 4
                         })
                     );
                 }
                 break;
 
-            case 'numeric nominal':
+            case "numeric data":
+            case "numeric nominal":
 
                 for (let i = 0; i < data.length; i++) {
                     x = parseFloat(data[i][features.x]);
@@ -222,7 +225,8 @@ export default class ScatterPlot extends Chart {
 
                 break;
 
-            case 'nominal nominal':
+            case "date date":
+            case "nominal nominal":
 
                 for (let i = 0; i < data.length; i++) {
                     x = this.nominalDict[data[i][features.x]].x;
@@ -239,7 +243,7 @@ export default class ScatterPlot extends Chart {
 
                 break;
 
-            case 'numeric numeric':
+            case "numeric numeric":
 
                 for (let i = 0; i < data.length; i++) {
 
@@ -277,27 +281,27 @@ export default class ScatterPlot extends Chart {
 
         switch (schema) {
 
-            case 'nominal numeric':
-                nominals = dataStore.data.getNominalBoundaries(dataStore.currentSelection.x, false, 'x');
-                numerics = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, false, 'y');
+            case "nominal numeric":
+                nominals = dataStore.data.getNominalBoundaries(dataStore.currentSelection.x, false, "x");
+                numerics = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, false, "y");
 
                 Object.assign(result, nominals, numerics);
                 break;
 
-            case 'numeric nominal':
-                nominals = dataStore.data.getNominalBoundaries(dataStore.currentSelection.y, false, 'y');
-                numerics = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, false, 'x');
+            case "numeric nominal":
+                nominals = dataStore.data.getNominalBoundaries(dataStore.currentSelection.y, false, "y");
+                numerics = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, false, "x");
 
                 Object.assign(result, nominals, numerics);
                 break;
 
 
-            case 'nominal nominal':
+            case "nominal nominal":
                 result = dataStore.data.getNominalBoundaries(dataStore.currentSelection, true);
 
                 break;
 
-            case 'numeric numeric':
+            case "numeric numeric":
                 result = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, true);
                 break;
 

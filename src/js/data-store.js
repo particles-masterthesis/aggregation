@@ -89,7 +89,7 @@ export default class DataStore {
                 this.createSubset();
                 this.classifyFeatures();
 
-                this.currentSelection.x = this.features[8];
+                this.currentSelection.x = this.features[1];
                 this.currentSelection.y = this.features[0];
             }
         });

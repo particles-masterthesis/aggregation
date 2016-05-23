@@ -18,7 +18,7 @@ export default class Canvas {
                 "circle": {
                     strokeStyle: "0x5555AA",
                     lineWidth: 0,
-                    fillStyle: "0x5555AA",
+                    fillStyle: "0x5555AA"
                 },
                 "rectangle": {
                     lineWidth: 0,

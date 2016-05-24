@@ -1,0 +1,29 @@
+doctype html
+html
+    head
+        title Particles
+        link(href="dist/main.css" rel="stylesheet" type="text/css")
+    body
+
+        nav.navbar.navbar-default
+            .container-fluid
+                .navbar-header
+                    a.navbar-brand(href='#') Particles
+                ul.nav.navbar-nav
+                    li
+                        | X
+                        select.selectpicker.feature.feature-x
+                    li
+                        | Y
+                        select.selectpicker.feature.feature-y
+                    li
+                        | Diagram
+                        select.selectpicker.visualization
+                            option(value='scatterPlot') Scatter plot
+                            option(value='barChart') Bar chart
+                    li
+                        | Transition
+                        select.selectpicker.transition
+                            option None
+
+    script(src="dist/main.js")

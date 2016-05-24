@@ -29,11 +29,11 @@ window.onload = () => {
         updateVisualization();
     });
 
-    ui.DatGui.add(canvas, "barChartParticles").onChange(() => {
-        updateVisualization();
-    });
+    // ui.DatGui.add(canvas, "barChartParticles").onChange(() => {
+    //     updateVisualization();
+    // });
 
-    dataStore.import(`${location.origin}/dist/superstore_preprocessed.csv`);
+    dataStore.import(`${location.origin}/dist/dataset/superstore_preprocessed.csv`);
 
     $("select.visualization").change(function () {
         // ui.toggleYDropdown();
@@ -51,12 +51,18 @@ window.onload = () => {
 function updateVisualization() {
 
     canvas.reset();
-
     switch ($("select.visualization").val()) {
         case "barChart":
             canvas.addBarChart(
                 dataStore.subset,
                 dataStore.currentSelection,
+                "Superstore"
+            );
+            break;
+
+        case "dot":
+            canvas.addDotMap(
+                dataStore,
                 "Superstore"
             );
             break;

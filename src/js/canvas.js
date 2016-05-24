@@ -1,7 +1,10 @@
 import "pixi.js";
 import "fpsmeter";
+
 import ScatterPlot from "./diagram/scatter-plot";
 import BarChart from "./diagram/bar-chart";
+import DotMap from "./diagram/dot-map";
+import { bbox } from './bbox';
 
 export default class Canvas {
 
@@ -13,7 +16,7 @@ export default class Canvas {
 
         // arguments: width, height, view, transparent, antialias
         this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
-            backgroundColor: 0xF8F8F8,
+            transparent: true,
             clearBeforeRender: true
         }, true, true);
 
@@ -78,6 +81,42 @@ export default class Canvas {
     addBarChart(dataset, features, title) {
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         new BarChart(container, dataset, features, title, this.barChartParticles);
+    }
+
+    addDotMap(dataStore, title){
+
+        let projection = d3.geo.albersUsa()
+            .scale(1400)
+            .translate([this.width / 2, this.height / 2]);
+
+        let path = d3.geo.path()
+            .projection(projection);
+
+        let svg = d3.select("body").append("svg")
+            .attr("width", this.width)
+            .attr("height", this.height);
+
+        d3.json(`${location.origin}/dist/dataset/topojson/us.json`, function(error, us) {
+          if (error) throw error;
+
+          svg.insert("path", ".graticule")
+              .datum(topojson.feature(us, us.objects.land))
+              .attr("class", "land")
+              .attr("d", path);
+
+          // svg.insert("path", ".graticule")
+          //     .datum(topojson.mesh(us, us.objects.counties, function(a, b) { return a !== b && !(a.id / 1000 ^ b.id / 1000); }))
+          //     .attr("class", "county-boundary")
+          //     .attr("d", path);
+
+          // svg.insert("path", ".graticule")
+          //     .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+          //     .attr("class", "state-boundary")
+          //     .attr("d", path);
+        });
+
+        d3.select(self.frameElement).style("height", this.height + "px");
+
     }
 
     render() {

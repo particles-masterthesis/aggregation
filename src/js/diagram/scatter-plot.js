@@ -237,7 +237,7 @@ export default class ScatterPlot extends Chart {
             default:
                 throw new Error(`Schema not handled ("${schema}")`);
         }
-
+        items.drawCircle(300, 300, 5);
         this.stage.addChild(items);
     }
 

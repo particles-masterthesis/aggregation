@@ -22,12 +22,11 @@
       "post-merge": "npm install"
     }
   },
-
   "scripts": {
     "build": "npm run build:css && npm run build:img && npm run build:js && browserify -v -t babelify src/js -o dist/main.js --debug --verbose && npm run build:dataset",
     "build:css": "stylus --include-css src/css/**.styl -o dist/main.css",
     "build:img": "cp -r src/img dist",
-    "build:dataset": "cp -r src/dataset/superstore_preprocessed.csv dist/superstore_preprocessed.csv",
+    "build:dataset": "cp -r src/dataset dist/",
     "build:js": "browserify -v -t babelify src/js -o dist/main.js --debug --verbose",
     "build:markup": "jade -P src/jade/**.jade -o .",
     "clean": "rm -rf dist/* lib/*",
@@ -86,5 +85,6 @@
     "sync-request": "^3.0.1",
     "watch": "latest",
     "watchify": "^3.7.0"
-  }
+  },
+  "dependencies": {}
 }

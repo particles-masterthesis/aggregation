@@ -207,7 +207,7 @@ export default class ScatterPlot extends Chart {
                 }
                 break;
 
-            case "numeric data":
+            case "numeric date":
             case "numeric nominal":
 
                 for (let i = 0; i < data.length; i++) {
@@ -268,7 +268,7 @@ export default class ScatterPlot extends Chart {
                 break;
 
             default:
-                throw new Error(`Schema not handled ("${schema}")`);
+                throw new Error(`Schema not handled ("${boundaries.schema}")`);
         }
 
         this.world.add(particles);

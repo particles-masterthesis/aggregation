@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-
 import Chart from "./chart";
 
 export default class BarChart extends Chart {

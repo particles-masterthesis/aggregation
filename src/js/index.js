@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-
 import "./helper";
 import $ from 'jquery';
 import jQuery from 'jquery';
@@ -37,22 +35,8 @@ window.onload = () => {
 
     dataStore.import(`${location.origin}/dist/superstore_preprocessed.csv`);
 
-    // After import the dataset we now can update the dropboxes with the features
-    ui.updateDropdown(dataStore.features, dataStore.currentSelection);
-    ui.toggleYDropdown();
-
-    $("select.feature-x").change(function () {
-        dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
-        updateVisualization();
-    });
-
-    $("select.feature-y").change(function () {
-        dataStore.currentSelection.y = $(this).children(":selected")[0].innerHTML;
-        updateVisualization();
-    });
-
     $("select.visualization").change(function () {
-        ui.toggleYDropdown();
+        // ui.toggleYDropdown();
         updateVisualization();
     });
 

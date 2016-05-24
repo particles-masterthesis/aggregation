@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-
 /**
  * @method Number.prototype.getRandomInt
  * @descriptions creates a random number between two boundaries

@@ -1,12 +1,10 @@
-/* jshint esversion: 6 */
-
 export default class DataStore{
     constructor(){
         this.subset = [];
         this.features = [];
         this.schema = {};
 
-        this.sizeOfSubset = 3;
+        this.sizeOfSubset = 300;
 
         this.currentSelection = {
             x: null,
@@ -81,8 +79,9 @@ export default class DataStore{
                 this.createSubset();
                 this.classifyFeatures();
 
-                this.currentSelection.x = this.features[0];
-                this.currentSelection.y = this.features[0];
+                this.currentSelection.x = this.features[this.features.indexOf("Longitude")];
+                this.currentSelection.y = this.features[this.features.indexOf("Latitude")];
+
             }
         });
 

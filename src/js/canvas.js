@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-
 import "pixi.js";
 import "fpsmeter";
 import ScatterPlot from "./diagram/scatter-plot";
@@ -13,10 +11,11 @@ export default class Canvas {
         //windowH width - css-paddings
         this.width = window.innerWidth - 40;
 
+        // arguments: width, height, view, transparent, antialias
         this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
             backgroundColor: 0xF8F8F8,
             clearBeforeRender: true
-        });
+        }, true, true);
 
         this.stage = new PIXI.Container();
 

@@ -22,6 +22,7 @@
       "post-merge": "npm install"
     }
   },
+
   "scripts": {
     "build": "npm run build:css && npm run build:img && npm run build:js && browserify -v -t babelify src/js -o dist/main.js --debug --verbose && npm run build:dataset",
     "build:css": "stylus --include-css src/css/**.styl -o dist/main.css",
@@ -31,13 +32,14 @@
     "build:markup": "jade -P src/jade/**.jade -o .",
     "clean": "rm -rf dist/* lib/*",
     "dev": "npm run build:css && npm run build:img && npm run build:markup && npm run build:dataset && npm run watch & npm run serve",
-    "lint": "jshint src/js",
-    "prebuild:js": "npm run lint",
+    "lint": "jshint --config .jshintrc --verbose --reporter=node_modules/jshint-summary/lib/summary src/js",
+    "prebuild:js": "npm run lint &> /dev/null",
     "postbuild:js": "npm test",
     "serve": "browser-sync start --server --port 3000 --index './index.html' --files './dist'",
     "test": "#karma start karma.conf.js --singleRun",
-    "watch": "npm run watch:js & npm run watch:css & npm run watch:img & npm run watch:markup",
-    "watch:js": "watchify -v -t babelify src/js -o dist/main.js --debug --verbose",
+    "watch": "npm run watch:js & npm run watch:lint:js & npm run watch:css & npm run watch:img & npm run watch:markup",
+    "watch:js": "watchify -v -t babelify 'src/js' -o dist/main.js --debug --verbose",
+    "watch:lint:js": "watch 'npm run lint' src/js",
     "watch:css": "npm run build:css -- -w",
     "watch:img": "watch 'npm run build:img' src/img/",
     "watch:markup": "npm run build:markup -- -w",
@@ -69,6 +71,7 @@
     "jquery": "^2.2.3",
     "jquery-csv": "^0.8.1",
     "jshint": "latest",
+    "jshint-summary": "^0.4.0",
     "karma": "latest",
     "karma-browserify": "^5.0.4",
     "karma-jasmine": "latest",

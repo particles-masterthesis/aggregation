@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-
 import fs from "fs";
 import csv from "fast-csv";
 import request from "sync-request";

@@ -7,6 +7,8 @@ export default class UI {
     }
 
     updateDropdown(features, currentSelection) {
+        features.sort();
+
         for (let feature of features) {
             if (feature === currentSelection.x) {
                 $(".feature-x").append(`<option selected>${feature}</option>`);

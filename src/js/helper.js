@@ -148,8 +148,8 @@ Array.prototype.getNumericalBoundaries = function (features, both, type = undefi
     let result;
     if(both){
 
-        let maxValueX = 0, minValueX = 0;
-        let maxValueY = 0, minValueY = 0;
+        let maxValueX = -Infinity, minValueX = Infinity;
+        let maxValueY = -Infinity, minValueY = Infinity;
 
         for (let i = 0; i < this.length; i++) {
             let x = parseFloat(this[i][features.x]);
@@ -177,7 +177,7 @@ Array.prototype.getNumericalBoundaries = function (features, both, type = undefi
 
     } else{
 
-        let maxValue = 0, minValue = 0, i, current;
+        let maxValue = -Infinity, minValue = Infinity, i, current;
 
         if(type === "x"){
 
@@ -185,7 +185,9 @@ Array.prototype.getNumericalBoundaries = function (features, both, type = undefi
                 current = parseFloat(this[i][features.x]);
                 if (current > maxValue) {
                     maxValue = current;
-                } else if (current < minValue) {
+                }
+
+                if (current < minValue) {
                     minValue = current;
                 }
             }
@@ -201,7 +203,8 @@ Array.prototype.getNumericalBoundaries = function (features, both, type = undefi
                 current = parseFloat(this[i][features.y]);
                 if (current > maxValue) {
                     maxValue = current;
-                } else if (current < minValue) {
+                }
+                if (current < minValue) {
                     minValue = current;
                 }
             }

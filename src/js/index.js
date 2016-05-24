@@ -78,7 +78,7 @@ function updateVisualization() {
 
     switch ($("select.visualization").val()) {
         case "barChart":
-            canvas.addBarChart(dataStore.data, dataStore.currentSelection, "Superstore");
+            canvas.addBarChart(dataStore.data, dataStore.schema, dataStore.currentSelection, "Superstore");
             break;
 
         case "scatterPlot":

@@ -48,8 +48,8 @@ export default class Canvas {
         new ScatterPlot(this.world, this.renderer.stage, dataStore, title);
     }
 
-    addBarChart(dataset, features, title) {
-        new BarChart(this.world, this.renderer.stage, dataset, features, title, this.barChartParticles);
+    addBarChart(dataset, schema, features, title) {
+        new BarChart(this.world, this.renderer.stage, dataset, schema, features, title, this.barChartParticles);
     }
 
     reset() {

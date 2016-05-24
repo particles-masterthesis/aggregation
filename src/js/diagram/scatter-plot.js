@@ -30,16 +30,19 @@ export default class ScatterPlot extends Chart {
         ticks.lineStyle(1, 0x111111, 1);
 
         switch (boundaries.schema) {
+            case "date numeric":
             case "nominal numeric":
                 this.drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, "x");
                 this.drawNumericalTicks.call(this, ticks, boundaries.values.minY, boundaries.values.maxY, "y");
                 break;
 
+            case "numeric date":
             case "numeric nominal":
                 this.drawNumericalTicks.call(this, ticks, boundaries.values.minX, boundaries.values.maxX, "x");
                 this.drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, "y");
                 break;
 
+            case "date date":
             case "nominal nominal":
                 this.drawNominalTicks.call(this, ticks, boundaries.values.maxX, boundaries.values.uniqueX, "x");
                 this.drawNominalTicks.call(this, ticks, boundaries.values.maxY, boundaries.values.uniqueY, "y");
@@ -72,10 +75,8 @@ export default class ScatterPlot extends Chart {
         tickLabel.x = this.padding + x;
         tickLabel.y = this.padding + this.heightVisualization + 16;
 
-        if(rotate){
-            tickLabel.anchor = new PIXI.Point(0, 0.5);
-            tickLabel.rotation = Math.PI/4;
-        }
+        tickLabel.anchor = new PIXI.Point(0, 0.5);
+        tickLabel.rotation = Math.PI/4;
 
         this.stage.addChild(tickLabel);
 
@@ -153,7 +154,7 @@ export default class ScatterPlot extends Chart {
 
         let labelText;
         while (val >= 0) {
-            labelText = Math.floor(val.map(
+            labelText = Math.round(val.map(
                         0,
                         iteration,
                         maxValue,
@@ -165,7 +166,7 @@ export default class ScatterPlot extends Chart {
 
         val = valMapped + pxStep;
         while (val < iteration) {
-            labelText = Math.floor(val.map(
+            labelText = Math.round(val.map(
                         0,
                         iteration,
                         maxValue,
@@ -226,6 +227,8 @@ export default class ScatterPlot extends Chart {
                 break;
 
             case "date date":
+            case "date nominal":
+            case "nominal date":
             case "nominal nominal":
 
                 for (let i = 0; i < data.length; i++) {
@@ -281,6 +284,7 @@ export default class ScatterPlot extends Chart {
 
         switch (schema) {
 
+            case "date numeric":
             case "nominal numeric":
                 nominals = dataStore.data.getNominalBoundaries(dataStore.currentSelection.x, false, "x");
                 numerics = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, false, "y");
@@ -288,6 +292,7 @@ export default class ScatterPlot extends Chart {
                 Object.assign(result, nominals, numerics);
                 break;
 
+            case "numeric date":
             case "numeric nominal":
                 nominals = dataStore.data.getNominalBoundaries(dataStore.currentSelection.y, false, "y");
                 numerics = dataStore.data.getNumericalBoundaries(dataStore.currentSelection, false, "x");
@@ -295,7 +300,7 @@ export default class ScatterPlot extends Chart {
                 Object.assign(result, nominals, numerics);
                 break;
 
-
+            case "date date":
             case "nominal nominal":
                 result = dataStore.data.getNominalBoundaries(dataStore.currentSelection, true);
 
@@ -312,41 +317,6 @@ export default class ScatterPlot extends Chart {
         return {
             schema: schema,
             values: result
-        };
-    }
-
-    /**
-     * Evaluates the max and the min value form a feature of the dataset
-     * @returns {{maxX: number, minX: number, maxY: number, minY: number}}
-     */
-
-    getMaxAndMinValuesFromSelectedFeatures(dataset, features) {
-        let maxValueX = 0, minValueX = 0;
-        let maxValueY = 0, minValueY = 0;
-        let x = 0, y = 0;
-
-        for (let i = 0; i < dataset.length; i++) {
-            x = parseFloat(dataset[i][features.x]);
-            y = parseFloat(dataset[i][features.y]);
-
-            if (x > maxValueX) {
-                maxValueX = x;
-            } else if (x < minValueX) {
-                minValueX = x;
-            }
-
-            if (y > maxValueY) {
-                maxValueY = y;
-            } else if (y < minValueY) {
-                minValueY = y;
-            }
-        }
-
-        return {
-            maxX: maxValueX,
-            minX: minValueX,
-            maxY: maxValueY,
-            minY: minValueY
         };
     }
 }

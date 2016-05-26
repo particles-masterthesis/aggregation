@@ -10,6 +10,7 @@ export default class Canvas {
 
     constructor(dataset, features) {
         this.barChartParticles = true;
+        this.usePhysicsJSBodies = true;
 
         this.renderer = Physics.renderer("pixi", {
             el: "canvas-container",
@@ -45,11 +46,11 @@ export default class Canvas {
     }
 
     addScatterPlot(dataStore, title) {
-        new ScatterPlot(this.world, this.renderer.stage, dataStore, title);
+        new ScatterPlot(this.world, this.renderer.stage, this.usePhysicsJSBodies, dataStore, title);
     }
 
     addBarChart(dataset, schema, features, title) {
-        new BarChart(this.world, this.renderer.stage, dataset, schema, features, title, this.barChartParticles);
+        new BarChart(this.world, this.renderer.stage, this.usePhysicsJSBodies, dataset, schema, features, title, this.barChartParticles);
     }
 
     reset() {

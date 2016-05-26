@@ -11,7 +11,7 @@ export default class BarChart extends Chart {
      * @param features
      * @param title
      */
-    constructor(world, stage, dataSet, schema, features, title, useParticles) {
+    constructor(world, stage, usePhysicsJSBodies, dataSet, schema, features, title, useParticles) {
         super(world, stage);
 
         this.marginParticle = 0.5;
@@ -22,7 +22,7 @@ export default class BarChart extends Chart {
         let {uniqueValues, maxAppearance} = this.analyzeFeature(dataSet, schema, features.x);
 
         if (useParticles) {
-            let height = this.addItems(dataSet, features.x, uniqueValues, maxAppearance);
+            let height = this.addItems(dataSet, features.x, usePhysicsJSBodies, uniqueValues, maxAppearance);
             this.addTicksY(height, maxAppearance);
             this.addTicksX(uniqueValues);
         } else {
@@ -225,7 +225,7 @@ export default class BarChart extends Chart {
      * @param uniqueValues
      * @param maxAppearance
      */
-    addItems(data, feature, uniqueValues, maxAppearance) {
+    addItems(data, feature, usePhysicsJSBodies, uniqueValues, maxAppearance) {
         const items = new PIXI.Graphics();
         const values = Object.keys(uniqueValues);
 
@@ -250,10 +250,8 @@ export default class BarChart extends Chart {
         let height = this.heightVisualization / (maxParticleHighestBar / particlesPerRow) - this.marginParticle * 2;
         height = Math.min(this.heightVisualization, height);
 
-
         let x = null, y = null, uniqueValue = null;
         let particles = [];
-
 
         for (let i = 0; i < data.length; i++) {
             uniqueValue = data[i][feature];
@@ -268,22 +266,31 @@ export default class BarChart extends Chart {
 
             x = this.padding + this.marginBar + this.marginParticle + (width + this.marginParticle * 2) * uniqueValues[uniqueValue].particleNumberInRow + values.indexOf(uniqueValue) * widthBar;
 
-            particles.push(
-                Physics.body("rectangle", {
-                    x: x + width / 2,
-                    y: y - height / 2,
-                    width: width,
-                    height: height,
-                    data: data[i]
-                })
-            );
+            if(usePhysicsJSBodies){
+                particles.push(
+                    Physics.body("rectangle", {
+                        x: x + width / 2,
+                        y: y - height / 2,
+                        width: width,
+                        height: height,
+                        data: data[i]
+                    })
+                );
+            } else {
+                items.drawRect(x, y, width, height);
+            }
+
 
             if (uniqueValues[uniqueValue].particleNumberInRow === particlesPerRow - 1) {
                 uniqueValues[uniqueValue].y = y - height - this.marginParticle * 2;
             }
         }
 
-        this.world.add(particles);
+        if(usePhysicsJSBodies) {
+            this.world.add(particles);
+        } else {
+            this.stage.addChild(items);
+        }
 
         return height;
     }

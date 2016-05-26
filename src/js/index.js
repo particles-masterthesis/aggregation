@@ -25,19 +25,22 @@ window.onload = () => {
     window.ui = new UI();
     window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
 
-    let folderDataSet = ui.DatGui.addFolder('DataSet');
+    let folderBodyType = ui.DatGui.addFolder('Body-Type');
+    folderBodyType.add(canvas, 'usePhysicsJSBodies', [ 'physicsjs', 'pixijs' ] ).onChange(() => {
+        updateVisualization();
+    });
+    folderBodyType.open();
 
+    let folderDataSet = ui.DatGui.addFolder('DataSet');
     folderDataSet.add(dataStore, "useSubset").onChange(() => {
         dataStore.createSubset();
         updateVisualization();
     });
-
     folderDataSet.add(dataStore, 'sizeOfSubset', 1, 1500).onChange(() => {
         dataStore.sizeOfSubset = Math.floor(dataStore.sizeOfSubset);
         dataStore.createSubset();
         updateVisualization();
     });
-
     folderDataSet.open();
 
     let folderBarChart = ui.DatGui.addFolder('Bar Chart');

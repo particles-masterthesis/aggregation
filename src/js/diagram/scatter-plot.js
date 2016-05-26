@@ -11,7 +11,7 @@ export default class ScatterPlot extends Chart {
      * @param features
      * @param title
      */
-    constructor(world, stage, dataStore, title){
+    constructor(world, stage, usePhysicsJSBodies, dataStore, title){
         super(world, stage);
 
         let boundaries = this.getBoundaries(dataStore);
@@ -19,7 +19,7 @@ export default class ScatterPlot extends Chart {
         this.addAxes();
         this.addLabels(dataStore.currentSelection, "Superstore");
         this.addTicks(boundaries);
-        this.addItems(dataStore.data, dataStore.currentSelection, boundaries);
+        this.addItems(dataStore.data, dataStore.currentSelection, usePhysicsJSBodies, boundaries);
     }
 
     /**
@@ -182,7 +182,8 @@ export default class ScatterPlot extends Chart {
      * @param {Array} data
      * @param {Object} features
      */
-    addItems(data, features, boundaries) {
+    addItems(data, features, usePhysicsJSBodies, boundaries) {
+        let items = new PIXI.Graphics();
         let x = 0;
         let y = 0;
         let particles = [];
@@ -197,13 +198,17 @@ export default class ScatterPlot extends Chart {
                     y = parseFloat(data[i][features.y]);
                     y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization);
 
-                    particles.push(
-                        Physics.body("circle", {
-                            x: x + this.padding,
-                            y: this.height - this.padding - y,
-                            radius: 4
-                        })
-                    );
+                    if(usePhysicsJSBodies){
+                        particles.push(
+                            Physics.body("circle", {
+                                x: x + this.padding,
+                                y: this.height - this.padding - y,
+                                radius: 4
+                            })
+                        );
+                    } else {
+                        items.drawCircle(x + this.padding, this.height - this.padding - y, 3);
+                    }
                 }
                 break;
 
@@ -215,13 +220,17 @@ export default class ScatterPlot extends Chart {
                     x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization);
                     y = this.nominalDict[data[i][features.y]].y;
 
-                    particles.push(
-                        Physics.body("circle", {
-                            x: x + this.padding,
-                            y: y + this.padding,
-                            radius: 3
-                        })
-                    );
+                    if(usePhysicsJSBodies){
+                        particles.push(
+                            Physics.body("circle", {
+                                x: x + this.padding,
+                                y: y + this.padding,
+                                radius: 3
+                            })
+                        );
+                    } else {
+                        items.drawCircle(x + this.padding, y + this.padding, 3);
+                    }
                 }
 
                 break;
@@ -235,13 +244,17 @@ export default class ScatterPlot extends Chart {
                     x = this.nominalDict[data[i][features.x]].x;
                     y = this.nominalDict[data[i][features.y]].y;
 
-                    particles.push(
-                            Physics.body("circle", {
-                            x: x + this.padding,
-                            y: y + this.padding,
-                            radius: 3
-                        })
-                    );
+                    if(usePhysicsJSBodies){
+                        particles.push(
+                                Physics.body("circle", {
+                                x: x + this.padding,
+                                y: y + this.padding,
+                                radius: 3
+                            })
+                        );
+                    } else {
+                        items.drawCircle(x + this.padding, y + this.padding, 3);
+                    }
                 }
 
                 break;
@@ -256,13 +269,17 @@ export default class ScatterPlot extends Chart {
                     x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization);
                     y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization);
 
-                    particles.push(
-                        Physics.body("circle", {
-                            x: x + this.padding,
-                            y: this.height - this.padding - y,
-                            radius: 3
-                        })
-                    );
+                    if(usePhysicsJSBodies){
+                        particles.push(
+                            Physics.body("circle", {
+                                x: x + this.padding,
+                                y: this.height - this.padding - y,
+                                radius: 3
+                            })
+                        );
+                    } else {
+                        items.drawCircle(x + this.padding, this.height - this.padding - y, 3);
+                    }
                 }
 
                 break;

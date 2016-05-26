@@ -4,60 +4,60 @@ import "pixi.js";
 import ScatterPlot from "./diagram/scatter-plot";
 import BarChart from "./diagram/bar-chart";
 
-var Physics = require("./../../node_modules/physicsjs/dist/physicsjs-full");
-
 export default class Canvas {
 
     constructor(dataset, features) {
         this.barChartParticles = true;
-        this.usePhysicsJSBodies = true;
+        this.requestFrameID = null;
 
-        this.renderer = Physics.renderer("pixi", {
-            el: "canvas-container",
-            meta: true,
-            styles: {
-                "circle": {
-                    strokeStyle: "0x5555AA",
-                    lineWidth: 0,
-                    fillStyle: "0x5555AA"
-                },
-                "rectangle": {
-                    lineWidth: 0,
-                    fillStyle: "0x5555AA",
-                    alpha: 1
-                }
-            }
+        this.height = window.innerHeight - 90; //windowH height - menu height - css-paddings
+        this.width = window.innerWidth - 40; //windowH width - css-paddings
+
+        this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
+            backgroundColor: 0xF8F8F8,
+            clearBeforeRender: true,
+            antialias: true
         });
+        document.body.appendChild(this.renderer.view);
 
-        this.height = this.renderer.el.firstChild.clientHeight + 90;
-        this.width = this.renderer.el.firstChild.clientWidth + 40;
+        console.log(this.renderer);
 
-        this.renderer.stage.width = this.width;
-        this.renderer.stage.height = this.height;
-
-        this.world = Physics();
-        this.world.add(this.renderer);
-
-        this.world.on("step", this.render.bind(this));
-        Physics.util.ticker.on(function (time, dt) {
-            this.world.step(time);
-        }.bind(this));
-        Physics.util.ticker.start();
+        this.stage = new PIXI.Container();
     }
 
     addScatterPlot(dataStore, title) {
-        new ScatterPlot(this.world, this.renderer.stage, this.usePhysicsJSBodies, dataStore, title);
+        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
+        new ScatterPlot(container, dataStore, title);
     }
 
     addBarChart(dataset, schema, features, title) {
-        new BarChart(this.world, this.renderer.stage, this.usePhysicsJSBodies, dataset, schema, features, title, this.barChartParticles);
+        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
+        new BarChart(container, dataset, schema, features, title, this.barChartParticles);
     }
 
     reset() {
-        this.renderer.stage.removeChildren();
+        this.stage.removeChildren();
+
+        if (this.requestFrameID) {
+            window.cancelAnimationFrame(this.requestFrameID);
+            this.requestFrameID = null;
+        }
+    }
+
+    addVisualization(width, height, origin){
+        var container = new PIXI.Container();
+        container.width = width;
+        container.height = height;
+        container.x = origin.x;
+        container.y = origin.y;
+
+        this.stage.addChild(container);
+
+        return container;
     }
 
     render() {
-        this.world.render();
+        this.renderer.render(this.stage);
+        //this.requestFrameID = requestAnimationFrame(this.render.bind(this));
     }
 }

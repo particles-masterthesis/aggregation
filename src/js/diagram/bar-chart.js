@@ -1,7 +1,6 @@
 /* jshint esversion: 6 */
 
 import Chart from "./chart";
-var Physics = require("./../../../node_modules/physicsjs/dist/physicsjs-full");
 
 export default class BarChart extends Chart {
 
@@ -11,10 +10,10 @@ export default class BarChart extends Chart {
      * @param features
      * @param title
      */
-    constructor(world, stage, usePhysicsJSBodies, dataSet, schema, features, title, useParticles) {
-        super(world, stage);
+    constructor(stage, dataSet, schema, features, title, useParticles) {
+        super(stage);
 
-        this.marginParticle = 0.5;
+        this.marginParticle = 2;
 
         this.addAxes();
         this.addLabels({"x": features.x, "y": "Amount"}, title);
@@ -22,7 +21,7 @@ export default class BarChart extends Chart {
         let {uniqueValues, maxAppearance} = this.analyzeFeature(dataSet, schema, features.x);
 
         if (useParticles) {
-            let height = this.addItems(dataSet, features.x, usePhysicsJSBodies, uniqueValues, maxAppearance);
+            let height = this.addItems(dataSet, features.x, uniqueValues, maxAppearance);
             this.addTicksY(height, maxAppearance);
             this.addTicksX(uniqueValues);
         } else {
@@ -33,12 +32,14 @@ export default class BarChart extends Chart {
     }
 
     addTicksY(height, maxAppearance) {
+
         const ticks = new PIXI.Graphics();
         ticks.lineStyle(1, 0x111111, 1);
 
         let pxStepY = this.heightVisualization / maxAppearance;
-
+        console.log(maxAppearance, pxStepY);
         while (pxStepY < 60) {
+            console.log(pxStepY);
             pxStepY += height;
         }
 
@@ -225,8 +226,11 @@ export default class BarChart extends Chart {
      * @param uniqueValues
      * @param maxAppearance
      */
-    addItems(data, feature, usePhysicsJSBodies, uniqueValues, maxAppearance) {
+    addItems(data, feature, uniqueValues, maxAppearance) {
         const items = new PIXI.Graphics();
+        items.lineStyle(2, 0x5555AA);
+        items.beginFill(0x5555AA);
+
         const values = Object.keys(uniqueValues);
 
         let widthBar = this.widthVisualization / values.length;
@@ -265,20 +269,7 @@ export default class BarChart extends Chart {
             uniqueValues[uniqueValue].particleNumberInRow = uniqueValues[uniqueValue].particlesRowCounter % particlesPerRow;
 
             x = this.padding + this.marginBar + this.marginParticle + (width + this.marginParticle * 2) * uniqueValues[uniqueValue].particleNumberInRow + values.indexOf(uniqueValue) * widthBar;
-
-            if(usePhysicsJSBodies){
-                particles.push(
-                    Physics.body("rectangle", {
-                        x: x + width / 2,
-                        y: y - height / 2,
-                        width: width,
-                        height: height,
-                        data: data[i]
-                    })
-                );
-            } else {
-                items.drawRect(x, y, width, height);
-            }
+            items.drawRect(x, y, width, -height);
 
 
             if (uniqueValues[uniqueValue].particleNumberInRow === particlesPerRow - 1) {
@@ -286,11 +277,7 @@ export default class BarChart extends Chart {
             }
         }
 
-        if(usePhysicsJSBodies) {
-            this.world.add(particles);
-        } else {
-            this.stage.addChild(items);
-        }
+        this.stage.addChild(items);
 
         return height;
     }

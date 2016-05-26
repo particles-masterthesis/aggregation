@@ -25,12 +25,6 @@ window.onload = () => {
     window.ui = new UI();
     window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
 
-    let folderBodyType = ui.DatGui.addFolder('Body-Type');
-    folderBodyType.add(canvas, 'usePhysicsJSBodies', [ 'physicsjs', 'pixijs' ] ).onChange(() => {
-        updateVisualization();
-    });
-    folderBodyType.open();
-
     let folderDataSet = ui.DatGui.addFolder('DataSet');
     folderDataSet.add(dataStore, "useSubset").onChange(() => {
         dataStore.createSubset();

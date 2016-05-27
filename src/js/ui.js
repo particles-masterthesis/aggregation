@@ -24,16 +24,21 @@ export default class UI {
         }
     }
 
-    toggleYDropdown() {
+    toggleFeatureDropdowns() {
         let chosenVisualization = $("select.visualization option:selected")[0].innerHTML;
 
         switch ($("select.visualization").val()) {
             case "barChart":
                 $("select.feature-y").attr("disabled", true);
+                $("select.feature-x").attr("disabled", false);
+                break;
+
+            case "scatterPlot":
+                $("select.feature").attr("disabled", false);
                 break;
 
             default:
-                $("select.feature-y").attr("disabled", false);
+                $("select.feature").attr("disabled", true);
                 break;
         }
     }

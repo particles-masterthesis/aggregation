@@ -1,7 +1,6 @@
 /* jshint esversion: 6 */
 
 import Chart from "./chart";
-var Physics = require("./../../../node_modules/physicsjs/dist/physicsjs-full");
 
 export default class ScatterPlot extends Chart {
 
@@ -11,7 +10,7 @@ export default class ScatterPlot extends Chart {
      * @param features
      * @param title
      */
-    constructor(stage, dataStore, title){
+    constructor(stage, particles, dataStore, newParticles, title) {
         super(stage);
 
         let boundaries = this.getBoundaries(dataStore);
@@ -19,7 +18,7 @@ export default class ScatterPlot extends Chart {
         this.addAxes();
         this.addLabels(dataStore.currentSelection, "Superstore");
         this.addTicks(boundaries);
-        this.addItems(dataStore.data, dataStore.currentSelection, boundaries);
+        this.addItems(particles, dataStore.currentSelection, boundaries, newParticles);
     }
 
     /**
@@ -76,7 +75,7 @@ export default class ScatterPlot extends Chart {
         tickLabel.y = this.padding + this.heightVisualization + 16;
 
         tickLabel.anchor = new PIXI.Point(0, 0.5);
-        tickLabel.rotation = Math.PI/4;
+        tickLabel.rotation = Math.PI / 4;
 
         this.stage.addChild(tickLabel);
 
@@ -97,27 +96,27 @@ export default class ScatterPlot extends Chart {
         tickLabel.anchor = new PIXI.Point(1, 0.5);
         tickLabel.x = this.padding - 10;
         tickLabel.y = this.padding + y;
-        tickLabel.rotation = Math.PI/4;
+        tickLabel.rotation = Math.PI / 4;
         this.stage.addChild(tickLabel);
 
         ticks.moveTo(this.padding, this.padding + y);
         ticks.lineTo(this.padding - 8, this.padding + y);
     }
 
-    drawNominalTicks (ticks, maxValue, uniqueValues, axis){
+    drawNominalTicks(ticks, maxValue, uniqueValues, axis) {
         let iteration, addTickFnc;
-        if(axis === "x"){
-            iteration  = this.widthVisualization;
+        if (axis === "x") {
+            iteration = this.widthVisualization;
             addTickFnc = this.addTickX;
         }
         else {
-            iteration  = this.heightVisualization;
+            iteration = this.heightVisualization;
             addTickFnc = this.addTickY;
         }
 
-        let pxStep  = iteration / maxValue;
+        let pxStep = iteration / maxValue;
         let counter = -1;
-        for(let key in uniqueValues){
+        for (let key in uniqueValues) {
             let val = (++counter) * pxStep + pxStep / 2;
             this.nominalDict[key] = this.nominalDict[key] || {};
             this.nominalDict[key][axis] = val;
@@ -125,28 +124,28 @@ export default class ScatterPlot extends Chart {
         }
     }
 
-    drawNumericalTicks (ticks, minValue, maxValue, axis){
+    drawNumericalTicks(ticks, minValue, maxValue, axis) {
         const pxDistanceBetweenTicks = 100;
 
         let iteration, addTickFnc;
-        if(axis === "x"){
-            iteration  = this.widthVisualization;
+        if (axis === "x") {
+            iteration = this.widthVisualization;
             addTickFnc = this.addTickX;
         }
         else {
-            iteration  = this.heightVisualization;
+            iteration = this.heightVisualization;
             addTickFnc = this.addTickY;
         }
 
         let amountMarker = Math.floor(iteration / pxDistanceBetweenTicks);
-        let pxStep       = iteration / amountMarker;
-        let range        = Math.abs(maxValue) + Math.abs(minValue);
-        let valMapped    = Math.abs(maxValue).map(0, range, 0, iteration);
+        let pxStep = iteration / amountMarker;
+        let range = Math.abs(maxValue) + Math.abs(minValue);
+        let valMapped = Math.abs(maxValue).map(0, range, 0, iteration);
 
         let val = valMapped;
 
         // this is only needed to turn x axis from left to right
-        if(axis === "x"){
+        if (axis === "x") {
             let tmp = maxValue;
             maxValue = minValue;
             minValue = tmp;
@@ -182,37 +181,51 @@ export default class ScatterPlot extends Chart {
      * @param {Array} data
      * @param {Object} features
      */
-    addItems(data, features, boundaries) {
+    addItems(particles, features, boundaries, newParticles) {
         let items = new PIXI.Graphics();
         items.lineStyle(2, 0x5555AA);
         items.beginFill(0x5555AA);
         let x = 0;
         let y = 0;
-        let particles = [];
+        let size = 5;
+
+        let transitionType = $("select.transition").val();
 
         switch (boundaries.schema) {
 
             case "date numeric":
             case "nominal numeric":
 
-                for (let i = 0; i < data.length; i++) {
-                    x = this.nominalDict[data[i][features.x]].x;
-                    y = parseFloat(data[i][features.y]);
+                for (let i = 0; i < particles.length; i++) {
+                    x = this.nominalDict[particles[i].data[features.x]].x;
+                    y = parseFloat(particles[i].data[features.y]);
                     y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization);
 
-                    items.drawCircle(x + this.padding, this.height - this.padding - y, 3);
+                    particles[i].visibility = true;
+
+                    if (newParticles) {
+                        particles[i].setPosition(x + this.padding, this.height - this.padding - y).setSize(size, size);
+                    } else {
+                        particles[i].transitionTo(x + this.padding, this.height - this.padding - y, size, size, transitionType);
+                    }
                 }
                 break;
 
             case "numeric date":
             case "numeric nominal":
 
-                for (let i = 0; i < data.length; i++) {
-                    x = parseFloat(data[i][features.x]);
+                for (let i = 0; i < particles.length; i++) {
+                    x = parseFloat(particles[i].data[features.x]);
                     x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization);
-                    y = this.nominalDict[data[i][features.y]].y;
+                    y = this.nominalDict[particles[i].data[features.y]].y;
 
-                    items.drawCircle(x + this.padding, y + this.padding, 3);
+                    particles[i].visibility = true;
+
+                    if (newParticles) {
+                        particles[i].setPosition(x + this.padding, y + this.padding).setSize(size, size);
+                    } else {
+                        particles[i].transitionTo(x + this.padding, y + this.padding, size, size, transitionType);
+                    }
                 }
                 break;
 
@@ -221,24 +234,36 @@ export default class ScatterPlot extends Chart {
             case "nominal date":
             case "nominal nominal":
 
-                for (let i = 0; i < data.length; i++) {
-                    x = this.nominalDict[data[i][features.x]].x;
-                    y = this.nominalDict[data[i][features.y]].y;
+                for (let i = 0; i < particles.length; i++) {
+                    x = this.nominalDict[particles[i].data[features.x]].x;
+                    y = this.nominalDict[particles[i].data[features.y]].y;
 
-                    items.drawCircle(x + this.padding, y + this.padding, 3);
+                    particles[i].visibility = true;
+
+                    if (newParticles) {
+                        particles[i].setPosition(x + this.padding, y + this.padding).setSize(size, size);
+                    } else {
+                        particles[i].transitionTo(x + this.padding, y + this.padding, size, size, transitionType);
+                    }
                 }
                 break;
 
             case "numeric numeric":
 
-                for (let i = 0; i < data.length; i++) {
-                    x = parseFloat(data[i][features.x]);
-                    y = parseFloat(data[i][features.y]);
+                for (let i = 0; i < particles.length; i++) {
+                    x = parseFloat(particles[i].data[features.x]);
+                    y = parseFloat(particles[i].data[features.y]);
 
-                    x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization);
-                    y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization);
+                    x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization) - size / 2;
+                    y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization) - size / 2;
 
-                    items.drawCircle(x + this.padding, this.height - this.padding - y, 3);
+                    particles[i].visibility = true;
+
+                    if (newParticles) {
+                        particles[i].setPosition(x + this.padding, this.height - this.padding - y).setSize(size, size);
+                    } else {
+                        particles[i].transitionTo(x + this.padding, this.height - this.padding - y, size, size, transitionType);
+                    }
                 }
                 break;
 
@@ -253,7 +278,7 @@ export default class ScatterPlot extends Chart {
      * @param dataStore
      * @returns {{schema: string, values: {}}}
      */
-    getBoundaries (dataStore) {
+    getBoundaries(dataStore) {
         let schema = `${dataStore.schema[dataStore.currentSelection.x]} ${dataStore.schema[dataStore.currentSelection.y]}`;
         let result = {}, nominals, numerics;
 

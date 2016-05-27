@@ -14,27 +14,6 @@ body
         height 30px
         margin 10px
 
-// canvas, svg
-//     position absolute
-//     margin-left 20px
-
-// canvas
-//     z-index 5
-
-// svg
-//     z-index 1
-
-//     .land
-//         fill lightgrey
-
-//     .county-boundary
-//         fill none
-//         stroke #fff
-//         stroke-width .5px
-
-//     .state-boundary
-//       fill none
-//       stroke #fff
 
 #canvas-container
     width 100%
@@ -46,8 +25,35 @@ body
         height 100%
         background #f8f8f8
 
+.dg
+    z-index 20 !important
+
 .dg.main.a
     margin 0
+    select
+        color black
 
 select[disabled]
     color grey
+
+canvas, svg
+    position absolute
+    margin-left 20px
+
+canvas
+    z-index 5
+
+svg
+    z-index 1
+
+    .land
+        fill lightgrey
+
+    .county-boundary
+        fill none
+        stroke #fff
+        stroke-width .5px
+
+    .state-boundary
+      fill none
+      stroke #fff

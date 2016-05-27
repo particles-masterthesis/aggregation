@@ -9,6 +9,7 @@ export default class Canvas {
 
     constructor(dataset, features) {
         this.barChartParticles = true;
+        this.levelOfDetail = 'country';
         this.requestFrameID = null;
 
         this.height = window.innerHeight - 90; //windowH height - menu height - css-paddings
@@ -31,12 +32,17 @@ export default class Canvas {
 
     addScatterPlot(dataStore, title) {
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
-        new ScatterPlot(container, dataStore, title);
+        return new ScatterPlot(container, dataStore, title);
     }
 
     addBarChart(dataset, schema, features, title) {
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
-        new BarChart(container, dataset, schema, features, title, this.barChartParticles);
+        return new BarChart(container, dataset, schema, features, title, this.barChartParticles);
+    }
+
+    addDotMap(dataStore, title){
+        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
+        return new DotMap(container, dataStore, title, this.levelOfDetail);
     }
 
     reset() {
@@ -58,42 +64,6 @@ export default class Canvas {
         this.stage.addChild(container);
 
         return container;
-    }
-
-    addDotMap(dataStore, title){
-
-        let projection = d3.geo.albersUsa()
-            .scale(1400)
-            .translate([this.width / 2, this.height / 2]);
-
-        let path = d3.geo.path()
-            .projection(projection);
-
-        let svg = d3.select("body").append("svg")
-            .attr("width", this.width)
-            .attr("height", this.height);
-
-        d3.json(`${location.origin}/dist/dataset/topojson/us.json`, function(error, us) {
-          if (error) throw error;
-
-          svg.insert("path", ".graticule")
-              .datum(topojson.feature(us, us.objects.land))
-              .attr("class", "land")
-              .attr("d", path);
-
-          // svg.insert("path", ".graticule")
-          //     .datum(topojson.mesh(us, us.objects.counties, function(a, b) { return a !== b && !(a.id / 1000 ^ b.id / 1000); }))
-          //     .attr("class", "county-boundary")
-          //     .attr("d", path);
-
-          // svg.insert("path", ".graticule")
-          //     .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
-          //     .attr("class", "state-boundary")
-          //     .attr("d", path);
-        });
-
-        d3.select(self.frameElement).style("height", this.height + "px");
-
     }
 
     render() {

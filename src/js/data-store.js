@@ -1,10 +1,12 @@
-export default class DataStore{
-    constructor(){
-        this.subset = [];
+export default class DataStore {
+    constructor() {
+        this.dataSet = [];
+        this.data = [];
         this.features = [];
         this.schema = {};
+        this.useSubset = true;
 
-        this.sizeOfSubset = 300;
+        this.sizeOfSubset = 50;
 
         this.currentSelection = {
             x: null,
@@ -28,7 +30,7 @@ export default class DataStore{
         let key = null, cell = null;
         for (let i = 0; i < this.features.length; i++) {
             key = this.features[i];
-            cell = this.subset[0][key];
+            cell = this.data[0][key];
 
             if (cell.isNumeric()) {
                 this.schema[key] = "numeric";
@@ -45,18 +47,24 @@ export default class DataStore{
         }
     }
 
-    createSubset(){
-        this.subset = [];
+    createSubset() {
 
-        let indices = [], idx = 0;
-        while (this.subset.length < this.sizeOfSubset) {
-            idx = Math.floor(Math.random() * this.dataset.length);
-            if (indices.indexOf(idx) < 0) {
-                indices.push(idx);
-                this.subset.push(this.dataset[idx]);
+        if (this.useSubset) {
+            this.data = [];
+            let indices = [], idx = 0;
+            while (this.data.length < this.sizeOfSubset) {
+                idx = Math.floor(Math.random() * this.dataSet.length);
+                if (indices.indexOf(idx) < 0) {
+                    indices.push(idx);
+                    this.data.push(this.dataSet[idx]);
+                }
             }
+            console.info(`Using data with ${this.sizeOfSubset} items.`);
+        } else {
+            this.data = JSON.parse(JSON.stringify(this.dataSet));
+            console.info(`Using data with ${this.dataSet.length} items.`);
         }
-        console.info(`Created subset with ${this.sizeOfSubset} items.`);
+
     }
 
     import(url) {
@@ -71,10 +79,10 @@ export default class DataStore{
                 console.error(XMLHttpRequest, textStatus, errorThrown);
             },
             success(data) {
-                this.dataset = $.csv.toObjects(data, {"separator": ";", "delimiter": ";"});
-                console.info("Imported dataset.");
+                this.dataSet = $.csv.toObjects(data, {"separator": ";"});
+                console.info("Imported Data Set.", this.dataSet);
 
-                const header = this.dataset.shift();
+                const header = this.dataSet.shift();
                 this.createFeatures(header);
                 this.createSubset();
                 this.classifyFeatures();
@@ -82,6 +90,8 @@ export default class DataStore{
                 this.currentSelection.x = this.features[this.features.indexOf("Longitude")];
                 this.currentSelection.y = this.features[this.features.indexOf("Latitude")];
 
+                // this.currentSelection.x = this.features[22];
+                // this.currentSelection.y = this.features[21];
             }
         });
 

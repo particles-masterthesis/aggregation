@@ -3,13 +3,13 @@ export default class Chart {
     /**
      * @param container
      */
-    constructor(container){
-        this.padding = 70;
-        this.width = container._width;
-        this.height = container._height;
+    constructor(stage){
+        this.padding = 120;
+        this.width = stage._width;
+        this.height = stage._height;
         this.heightVisualization = this.height - this.padding*2;
         this.widthVisualization = this.width - this.padding*2;
-        this.stage = container;
+        this.stage = stage;
     }
 
     /**
@@ -30,14 +30,14 @@ export default class Chart {
         });
         xLabel.anchor = new PIXI.Point(0.5, 0.5);
         xLabel.x = this.width/2;
-        xLabel.y = this.height - this.padding / 2;
+        xLabel.y = this.height - 20;
         this.stage.addChild(xLabel);
 
         const yLabel = new PIXI.Text(features.y, {
             font: "14px Arial"
         });
         yLabel.anchor = new PIXI.Point(0.5, 0.5);
-        yLabel.x = this.padding / 2;
+        yLabel.x = 20;
         yLabel.y = this.height / 2;
         yLabel.rotation = -Math.PI / 2;
         this.stage.addChild(yLabel);

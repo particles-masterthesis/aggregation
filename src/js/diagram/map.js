@@ -29,7 +29,7 @@ export default class Map {
 
     json(path, cb){
         d3.json(
-            `${location.origin}/dist/dataset/topojson/us.json`,
+            `${location.origin}${location.pathname}/dist/dataset/topojson/us.json`,
             function(error, us) {
                 if (error) throw error;
                 cb(us);

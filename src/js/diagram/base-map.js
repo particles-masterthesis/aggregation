@@ -50,7 +50,7 @@ export default class BaseMap {
             .attr("height", this.height);
 
         d3.json(
-            `${location.origin}/dist/dataset/topojson/us.json`,
+            `${location.origin}${location.pathname}/dist/dataset/topojson/us.json`,
             (error, us) => {
                 if (error) throw error;
                 this.data = us;

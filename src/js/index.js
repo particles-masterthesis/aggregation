@@ -19,7 +19,7 @@ import {update as updateVisualization, initDatGui} from './dat-gui';
 
 window.onload = () => {
     window.dataStore = new DataStore();
-    dataStore.import(`${location.origin}/dist/dataset/superstore_preprocessed.csv`);
+    dataStore.import(`${location.origin}${location.pathname}/dist/dataset/superstore_preprocessed.csv`);
 
     window.ui = new UI();
     window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);

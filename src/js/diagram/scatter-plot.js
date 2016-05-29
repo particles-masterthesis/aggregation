@@ -186,7 +186,6 @@ export default class ScatterPlot extends Chart {
         items.beginFill(0x5555AA);
         let x = 0;
         let y = 0;
-        let particles = [];
 
         switch (boundaries.schema) {
 
@@ -243,7 +242,6 @@ export default class ScatterPlot extends Chart {
             default:
                 throw new Error(`Schema not handled ("${boundaries.schema}")`);
         }
-        items.drawCircle(300, 300, 5);
         this.stage.addChild(items);
     }
 

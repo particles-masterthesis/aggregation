@@ -16,10 +16,6 @@ export default class Canvas {
         this.width = window.innerWidth - 40; //windowH width - css-paddings
 
         // arguments: width, height, view, transparent, antialias
-//         this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
-//             transparent: true,
-//             clearBeforeRender: true
-//         }, true, true);
         this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
             transparent: true,
             clearBeforeRender: true,

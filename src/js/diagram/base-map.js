@@ -7,8 +7,6 @@ function drawCountry(){
 }
 
 function drawStates(){
-    drawCountry.call(this);
-
     this.statesPath = this.svg.insert("path", ".graticule")
         .datum(topojson.mesh(this.data, this.data.objects.states,
             function(a, b) {
@@ -21,9 +19,6 @@ function drawStates(){
 }
 
 function drawCounties(){
-    drawCountry.call(this);
-    drawStates.call(this);
-
     this.countiesPath = this.svg.insert("path", ".graticule")
         .datum(topojson.mesh(this.data, this.data.objects.counties,
             function(a, b) {
@@ -63,15 +58,13 @@ export default class BaseMap {
     update(levelOfDetail) {
         switch (levelOfDetail) {
             case "country":
-                d3.select("#states").remove();
-                d3.select("#counties").remove();
                 drawCountry.call(this);
                 break;
             case "state":
-                d3.select("#counties").remove();
                 drawStates.call(this);
                 break;
             case "county":
+                drawStates.call(this);
                 drawCounties.call(this);
                 break;
             default:

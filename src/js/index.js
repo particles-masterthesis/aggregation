@@ -25,27 +25,41 @@ window.onload = () => {
     window.ui = new UI();
     window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
 
-    let folderDataSet = ui.DatGui.addFolder('DataSet');
+    // After import the dataset we now can update the dropboxes with the features
+    UI.updateDropdown(dataStore.features, dataStore.currentSelection);
+    UI.toggleFeatureDropdowns();
+
+    initDatGui();
+    addEventListener();
+    updateVisualization();
+};
+
+function initDatGui(){
+
+    let folderDataSet = window.ui.DatGui.addFolder('DataSet');
     folderDataSet.add(dataStore, "useSubset").onChange(() => {
         dataStore.createSubset();
+        canvas.reset();
         updateVisualization();
     });
-    folderDataSet.add(dataStore, 'sizeOfSubset', 1, 1500).onChange(() => {
+    folderDataSet.add(dataStore, 'sizeOfSubset', 1, 3000).onChange(() => {
         dataStore.sizeOfSubset = Math.floor(dataStore.sizeOfSubset);
         dataStore.createSubset();
+        canvas.reset();
         updateVisualization();
     });
     folderDataSet.open();
 
-    let folderBarChart = ui.DatGui.addFolder('Bar Chart');
+    let folderBarChart = window.ui.DatGui.addFolder('Bar Chart');
     folderBarChart.add(canvas, "barChartParticles").onChange(() => {
+        canvas.reset();
         updateVisualization();
     });
     folderBarChart.open();
 
-    // After import the dataset we now can update the dropboxes with the features
-    ui.updateDropdown(dataStore.features, dataStore.currentSelection);
-    ui.toggleYDropdown();
+}
+
+function addEventListener(){
 
     $("select.feature-x").change(function () {
         dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
@@ -58,12 +72,11 @@ window.onload = () => {
     });
 
     $("select.visualization").change(function () {
-        ui.toggleYDropdown();
+        UI.toggleFeatureDropdowns();
         updateVisualization();
     });
 
-    updateVisualization();
-};
+}
 
 /**
  * @method updateVisualization
@@ -71,21 +84,25 @@ window.onload = () => {
  */
 
 function updateVisualization() {
-    canvas.reset();
+
+    canvas.stop();
 
     switch ($("select.visualization").val()) {
         case "barChart":
-            canvas.addBarChart(dataStore.data, dataStore.schema, dataStore.currentSelection, "Superstore");
+            canvas.drawBarChart(dataStore.schema, dataStore.currentSelection, "Superstore");
             break;
 
         case "scatterPlot":
-            canvas.addScatterPlot(dataStore, "Superstore");
+            canvas.drawScatterPlot(dataStore, "Superstore");
             break;
 
         default:
+            canvas.drawParticles(dataStore.data);
             break;
     }
+
     canvas.render();
+
 }
 
 

@@ -18,11 +18,13 @@ html
                     li
                         | Diagram
                         select.selectpicker.visualization
+                            option None
                             option(value='barChart') Bar chart
                             option(value='scatterPlot') Scatter plot
                     li
                         | Transition
                         select.selectpicker.transition
-                            option None
+                            option(value="direct") Direct
+                            option(value="none") None
 
     script(src="dist/main.js")

@@ -8,9 +8,8 @@ var currentVisualization = {};
  * @description receive the range, reset the canvas, add axes, labels, ticks and items and render it
  */
 export function update(canvas) {
+
     canvas.reset();
-
-
     let visualizationType = $("select.visualization").val();
     if(
         currentVisualization.constructor.name === "DotMap" &&
@@ -18,6 +17,7 @@ export function update(canvas) {
     ){
         currentVisualization.hide();
     }
+
     switch (visualizationType) {
         case "barChart":
             currentVisualization = canvas.addBarChart(
@@ -36,16 +36,22 @@ export function update(canvas) {
             break;
 
         case "dot":
-            if(currentVisualization.constructor.name !== "DotMap" ){
+            // if(currentVisualization.constructor.name !== "DotMap" ){
 
-                currentVisualization = canvas.addDotMap(
-                    dataStore,
-                    "Superstore"
-                );
+            //     currentVisualization = canvas.addDotMap(
+            //         dataStore,
+            //         "Superstore"
+            //     );
 
-            } else {
-                currentVisualization.updateBaseMap(canvas.levelOfDetail);
-            }
+
+            // } else {
+            //     currentVisualization.updateBaseMap(canvas.levelOfDetail);
+            // }
+            currentVisualization = canvas.addDotMap(
+                dataStore,
+                "Superstore"
+            );
+            currentVisualization.show();
             break;
 
         default:

@@ -1,31 +1,16 @@
-import Chart from "./chart";
 import BaseMap from "./base-map";
-export default class DotMap extends Chart {
+
+export default class DotMap extends BaseMap {
 
     constructor(container, dataStore, title, levelOfDetail){
+        super(container, levelOfDetail);
+        this.data = dataStore.data;
 
-        super(container);
-        this.baseMap = new BaseMap(this.width, this.height, levelOfDetail);
-
-        this.data = dataStore.data.slice(0,3);
-        this.addItems();
-
+        let shape = 'rectangle';
+        this.addItems(shape);
     }
 
-    updateBaseMap(levelOfDetail){
-        this.baseMap.update(levelOfDetail);
-        this.addItems();
-    }
-
-    hide(levelOfDetail){
-        this.baseMap.hide();
-    }
-
-    show(){
-        this.baseMap.show();
-    }
-
-    addItems(){
+    addItems(shape){
         let items = new PIXI.Graphics();
         items.lineStyle(2, 0x5555AA);
         items.beginFill(0x5555AA);
@@ -34,8 +19,9 @@ export default class DotMap extends Chart {
         for(let item of this.data){
             point = [item.Longitude, item.Latitude];
             point = this.baseMap.projection(point);
-            console.log(item, point);
-            items.drawCircle(point[0], point[1], 3);
+
+            let size = 1;
+            items.drawRect(point[0]-(size/2), point[1]-(size/2), size, size);
         }
         this.stage.addChild(items);
     }

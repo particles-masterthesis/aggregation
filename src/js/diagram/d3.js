@@ -9,12 +9,17 @@ export default class D3 {
     }
 
     init(width, height, levelOfDetail){
-        console.log('init');
         this.width = width;
         this.height = height;
         this.projection = d3.geo.albersUsa()
             .scale(1400)
             .translate([this.width / 2, this.height / 2]);
+
+
+        // this.tmpScale = d3.scale.sqrt()
+        //     .domain([0, 2100])
+        //     .range([0, 30]);
+
 
         this.path = d3.geo.path().projection(this.projection);
         this.svg = d3.select("body > svg");

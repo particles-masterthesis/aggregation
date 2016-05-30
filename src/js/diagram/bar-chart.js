@@ -35,9 +35,7 @@ export default class BarChart extends Chart {
         ticks.lineStyle(1, 0x111111, 1);
 
         let pxStepY = this.heightVisualization / maxAppearance;
-        console.log(maxAppearance, pxStepY);
         while (pxStepY < 60) {
-            console.log(pxStepY);
             pxStepY += height;
         }
 

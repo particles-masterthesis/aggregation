@@ -30,7 +30,10 @@ export default class ProportionalSymbolMap extends BaseMap {
                     feature.geometry.coordinates[1]
                 ];
                 point = this.baseMap.projection(point);
-                items.drawCircle(point[0], point[1], dict[feature.properties.name]);
+
+                // let radius = this.baseMap.tmpScale(dict[feature.properties.name]);
+                let radius = dict[feature.properties.name];
+                items.drawCircle(point[0], point[1], radius);
             }
         }
         this.stage.addChild(items);

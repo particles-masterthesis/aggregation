@@ -8,6 +8,8 @@ export default class BaseMap extends Chart {
         this.baseMap = D3.instance;
         if(!this.baseMap.svg){
             this.baseMap.init(this.width, this.height, levelOfDetail);
+        } else {
+            this.updateBaseMap(levelOfDetail);
         }
     }
 

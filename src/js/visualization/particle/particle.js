@@ -14,7 +14,7 @@ export default class Particle {
         this.size = {
             width,
             height,
-            equals: function(width, height){
+            equals: function (width, height) {
                 return this.width === width && this.height === height;
             }
         };
@@ -26,11 +26,10 @@ export default class Particle {
         this.data = data;
         this.id = this.data["Row ID"];
         this.shouldAnimate = false;
-        this.visibility = true;
+        this.alpha = 1;
     }
 
     transitionTo(x, y, width, height, type) {
-
         switch (type) {
             case "none":
                 this.shouldAnimate = false;
@@ -47,51 +46,49 @@ export default class Particle {
             default:
                 throw new Error(`Transition type not handled: ${type}`);
         }
-
-        this.isAnimating = true;
     }
 
-    animate(){
-        if(!this.shouldAnimate){
+    animate() {
+        if (!this.shouldAnimate) {
             return;
         }
 
         //console.log("POSITION", this.position, "DESTINATION", this.destination);
 
-        if(!this.position.equals(this.destination)){
+        if (!this.position.equals(this.destination)) {
             let deltaX = this.destination.x - this.position.x;
             let deltaY = this.destination.y - this.position.y;
             let distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
 
             //console.log("DELTAX", deltaX, "DELTAY", deltaY, "DISTANCE", distance);
 
-            if(distance < this.speed){
+            if (distance <= this.speed) {
                 this.position.set(this.destination.x, this.destination.y);
             } else {
-                var ratio = this.speed/distance;
+                let ratio = this.speed / distance;
                 //console.log("SPEED", this.speed, "DISTANCE", distance, "RATIO", ratio);
-                this.position.set(this.position.x + deltaX*ratio, this.position.y + deltaY*ratio);
+                this.position.set(this.position.x + deltaX * ratio, this.position.y + deltaY * ratio);
+
+                //console.log("POSITION", this.position, "DESTINATION", this.destination);
             }
 
-            //console.log("POSITION", this.position, "DESTINATION", this.destination);
-        }
+            if (!this.size.equals(this.newSize.width, this.newSize.height)) {
+                this.setSize(this.newSize.width, this.newSize.height);
+            }
 
-        if(!this.size.equals(this.newSize.width, this.newSize.height)){
-            this.setSize(this.newSize.width, this.newSize.height);
-        }
-
-        if(this.position.equals(this.destination)){
-            this.shouldAnimate = false;
+            if (this.position.equals(this.destination)) {
+                this.shouldAnimate = false;
+            }
         }
     }
 
     setPosition(x, y) {
-        this.position.set(x,y);
+        this.position.set(x, y);
         return this;
     }
 
     setDestination(x, y) {
-        this.destination.set(x,y);
+        this.destination.set(x, y);
         return this;
     }
 
@@ -108,15 +105,8 @@ export default class Particle {
     }
 
     draw(graphics) {
-        if(this.visibility){
-            graphics.lineStyle(2, 0x5555AA);
-            graphics.beginFill(0x5555AA);
-            graphics.drawRect(this.position.x, this.position.y, this.size.width, this.size.height);
-        } else {
-            graphics.lineStyle(2, 0x5555AA, 0);
-            graphics.beginFill(0x5555AA, 0);
-            graphics.drawRect(this.position.x, this.position.y, this.size.width, this.size.height);
-        }
+        graphics.beginFill(0x5555AA, this.alpha);
+        graphics.drawRect(this.position.x, this.position.y, this.size.width, this.size.height);
     }
 
 }

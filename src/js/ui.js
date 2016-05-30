@@ -6,7 +6,7 @@ export default class UI {
         this.DatGui = new dat.GUI();
     }
 
-    updateDropdown(features, currentSelection) {
+    static updateDropdown(features, currentSelection) {
         features.sort();
 
         for (let feature of features) {
@@ -24,7 +24,7 @@ export default class UI {
         }
     }
 
-    toggleFeatureDropdowns() {
+    static toggleFeatureDropdowns() {
         let chosenVisualization = $("select.visualization option:selected")[0].innerHTML;
 
         switch ($("select.visualization").val()) {

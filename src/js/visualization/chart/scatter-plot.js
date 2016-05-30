@@ -201,7 +201,7 @@ export default class ScatterPlot extends Chart {
                     y = parseFloat(particles[i].data[features.y]);
                     y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization);
 
-                    particles[i].visibility = true;
+                    particles[i].alpha = 1;
 
                     if (newParticles) {
                         particles[i].setPosition(x + this.padding, this.height - this.padding - y).setSize(size, size);
@@ -219,7 +219,7 @@ export default class ScatterPlot extends Chart {
                     x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization);
                     y = this.nominalDict[particles[i].data[features.y]].y;
 
-                    particles[i].visibility = true;
+                    particles[i].alpha = 1;
 
                     if (newParticles) {
                         particles[i].setPosition(x + this.padding, y + this.padding).setSize(size, size);
@@ -238,7 +238,7 @@ export default class ScatterPlot extends Chart {
                     x = this.nominalDict[particles[i].data[features.x]].x;
                     y = this.nominalDict[particles[i].data[features.y]].y;
 
-                    particles[i].visibility = true;
+                    particles[i].alpha = 1;
 
                     if (newParticles) {
                         particles[i].setPosition(x + this.padding, y + this.padding).setSize(size, size);
@@ -257,7 +257,7 @@ export default class ScatterPlot extends Chart {
                     x = x.map(boundaries.values.minX, boundaries.values.maxX, 0, this.widthVisualization) - size / 2;
                     y = y.map(boundaries.values.minY, boundaries.values.maxY, 0, this.heightVisualization) - size / 2;
 
-                    particles[i].visibility = true;
+                    particles[i].alpha = 1;
 
                     if (newParticles) {
                         particles[i].setPosition(x + this.padding, this.height - this.padding - y).setSize(size, size);

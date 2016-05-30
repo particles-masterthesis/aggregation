@@ -16,7 +16,7 @@ export default class ParticlesContainer extends Visualization {
     createParticles(dataset){
         this.particles = [];
         for (let i = 0; i < dataset.length; i++) {
-            this.particles.push(new Particle(dataset[i], 0, 0, 5, 5));
+            this.particles.push(new Particle(dataset[i], 0, 0, 0, 0));
         }
     }
 
@@ -44,7 +44,7 @@ export default class ParticlesContainer extends Visualization {
             particleNumberInRow = particlesRowCounter++ % particlesPerRow;
             x = size * particleNumberInRow + this.padding;
 
-            this.particles[i].visibility = true;
+            this.particles[i].alpha = 1;
 
             if (newParticles) {
                 this.particles[i].setPosition(x, y).setSize(size-3, -size+3);

@@ -255,11 +255,13 @@ export default class BarChart extends Chart {
         for (let i = 0; i < particles.length; i++) {
             uniqueValue = particles[i].data[feature];
             if (typeof uniqueValues[uniqueValue] === "undefined") {
-                particles[i].visibility = false;
+                particles[i].alpha = 0;
                 continue;
             } else {
                 particles[i].visibility = true;
             }
+
+            particles[i].alpha = 1;
 
             y = uniqueValues[uniqueValue].y || this.heightVisualization + this.padding;
 

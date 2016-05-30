@@ -26,8 +26,8 @@ window.onload = () => {
     window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
 
     // After import the dataset we now can update the dropboxes with the features
-    ui.updateDropdown(dataStore.features, dataStore.currentSelection);
-    ui.toggleFeatureDropdowns();
+    UI.updateDropdown(dataStore.features, dataStore.currentSelection);
+    UI.toggleFeatureDropdowns();
 
     initDatGui();
     addEventListener();
@@ -42,7 +42,7 @@ function initDatGui(){
         canvas.reset();
         updateVisualization();
     });
-    folderDataSet.add(dataStore, 'sizeOfSubset', 1, 1500).onChange(() => {
+    folderDataSet.add(dataStore, 'sizeOfSubset', 1, 3000).onChange(() => {
         dataStore.sizeOfSubset = Math.floor(dataStore.sizeOfSubset);
         dataStore.createSubset();
         canvas.reset();
@@ -72,7 +72,7 @@ function addEventListener(){
     });
 
     $("select.visualization").change(function () {
-        ui.toggleFeatureDropdowns();
+        UI.toggleFeatureDropdowns();
         updateVisualization();
     });
 

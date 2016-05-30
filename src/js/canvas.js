@@ -16,6 +16,11 @@ export default class Canvas {
         this.height = window.innerHeight - 90; //windowH height - menu height - css-paddings
         this.width = window.innerWidth - 40; //windowH width - css-paddings
 
+        this.stats = new Stats();
+        this.stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+        document.body.appendChild( this.stats.dom );
+        this.stats.dom.style.cssText = "position:fixed;bottom:0;right:0;cursor:pointer;opacity:0.9;";
+
         this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
             backgroundColor: 0xF8F8F8,
             clearBeforeRender: true,
@@ -35,6 +40,7 @@ export default class Canvas {
         this.stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
         document.body.appendChild( this.stats.dom );
         this.stats.dom.style.cssText = "position:fixed;bottom:0;right:0;cursor:pointer;opacity:0.9;";
+
     }
 
     createParticles(dataset){
@@ -93,7 +99,7 @@ export default class Canvas {
 
         this.stage.removeChild(this.particlesGraphics);
         this.particlesGraphics = new PIXI.Graphics();
-        this.particlesGraphics.lineStyle(2, 0x5555AA);
+        this.particlesGraphics.lineStyle(0, 0x000000, 0);
         this.particlesGraphics.beginFill(0x5555AA);
 
         for(let i=0;i<this.particlesContainer.particles.length; i++){

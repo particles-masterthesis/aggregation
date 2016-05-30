@@ -36,18 +36,14 @@ export function update(canvas) {
             break;
 
         case "dot":
-            // if(currentVisualization.constructor.name !== "DotMap" ){
-
-            //     currentVisualization = canvas.addDotMap(
-            //         dataStore,
-            //         "Superstore"
-            //     );
-
-
-            // } else {
-            //     currentVisualization.updateBaseMap(canvas.levelOfDetail);
-            // }
             currentVisualization = canvas.addDotMap(
+                dataStore,
+                "Superstore"
+            );
+            currentVisualization.show();
+            break;
+        case "psm":
+            currentVisualization = canvas.addProportionalSymbolMap(
                 dataStore,
                 "Superstore"
             );

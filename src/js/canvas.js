@@ -3,6 +3,7 @@ import "pixi.js";
 import ScatterPlot from "./diagram/scatter-plot";
 import BarChart from "./diagram/bar-chart";
 import DotMap from "./diagram/dot-map";
+import ProportionalSymbolMap from "./diagram/proportional-symbol-map";
 import { bbox } from './bbox';
 
 export default class Canvas {
@@ -39,6 +40,11 @@ export default class Canvas {
     addDotMap(dataStore, title){
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         return new DotMap(container, dataStore, title, this.levelOfDetail);
+    }
+
+    addProportionalSymbolMap(dataStore, title){
+        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
+        return new ProportionalSymbolMap(container, dataStore, title, this.levelOfDetail);
     }
 
     reset() {

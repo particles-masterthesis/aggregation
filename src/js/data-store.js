@@ -90,8 +90,6 @@ export default class DataStore {
                 this.currentSelection.x = this.features[this.features.indexOf("Longitude")];
                 this.currentSelection.y = this.features[this.features.indexOf("Latitude")];
 
-                // this.currentSelection.x = this.features[22];
-                // this.currentSelection.y = this.features[21];
             }
         });
 

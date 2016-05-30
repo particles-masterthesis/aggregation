@@ -9,6 +9,7 @@ export default class D3 {
     }
 
     init(width, height, levelOfDetail){
+        console.log('init');
         this.width = width;
         this.height = height;
         this.projection = d3.geo.albersUsa()
@@ -25,16 +26,35 @@ export default class D3 {
 
         this.data = {};
 
-        queue()
-        .defer(d3.json, `${location.origin}${location.pathname}/dist/dataset/topojson/us.json`)
-        .defer(d3.json, `${location.origin}${location.pathname}/dist/dataset/topojson/us-state-centroids-preprocessed.json`)
-        .await( (error, us, centroids)  => {
-            if (error) throw error;
-            this.data.us = us;
-            this.data.centroids = centroids;
-            this.update(levelOfDetail);
+        // queue()
+        // .defer(d3.json, `${location.origin}${location.pathname}/dist/dataset/topojson/us.json`)
+        // .defer(d3.json, `${location.origin}${location.pathname}/dist/dataset/topojson/us-state-centroids-preprocessed.json`)
+        // .await( (error, us, centroids)  => {
+        //     if (error) throw error;
+        //     this.data.us = us;
+        //     this.data.centroids = centroids;
+        //     this.update(levelOfDetail);
+        // });
+
+        $.ajax({
+            dataType: "json",
+            url: `${location.origin}${location.pathname}/dist/dataset/topojson/us.json`,
+            async: false,
+            success: (us) => {
+                this.data.us = us;
+            }
         });
 
+        $.ajax({
+            dataType: "json",
+            url: `${location.origin}${location.pathname}/dist/dataset/topojson/us-state-centroids-preprocessed.json`,
+            async: false,
+            success: (centroids) => {
+                this.data.centroids = centroids;
+            }
+        });
+
+        this.update(levelOfDetail);
 
         d3.select(self.frameElement).style("height", this.height + "px");
     }

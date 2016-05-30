@@ -1,65 +1,39 @@
-import Chart from "./chart";
 import BaseMap from "./base-map";
 
-export default class ProportionalSymbolMap extends Chart {
+export default class ProportionalSymbolMap extends BaseMap {
 
     constructor(container, dataStore, title, levelOfDetail){
+        super(container, levelOfDetail);
+        this.dataStore = dataStore;
 
-        super(container);
-        this.baseMap = new BaseMap(this.width, this.height, levelOfDetail);
-
-        this.data = dataStore.data;
-
-        let shape = 'circle';
-        this.addItems(shape);
-
+        this.drawSymbols();
     }
 
-    updateBaseMap(levelOfDetail){
-        this.baseMap.update(levelOfDetail);
+    drawSymbols(){
+
+        let items = new PIXI.Graphics();
+        items.lineStyle(2, 0x5555AA);
+        items.beginFill(0x5555AA, 0.5);
+
+
+        let dict = {};
+        for(let item of this.dataStore.data){
+            dict[item.State] = ++dict[item.State] || 1;
+        }
+
+
+        let point;
+        for(let feature of this.baseMap.data.centroids.features){
+            if(dict.hasOwnProperty(feature.properties.name)){
+                point = [
+                    feature.geometry.coordinates[0],
+                    feature.geometry.coordinates[1]
+                ];
+                point = this.baseMap.projection(point);
+                items.drawCircle(point[0], point[1], dict[feature.properties.name]);
+            }
+        }
+        this.stage.addChild(items);
     }
 
-    hide(levelOfDetail){
-        this.baseMap.hide();
-    }
-
-    show(){
-        this.baseMap.show();
-    }
 }
-
-
-
-// var width = 960,
-//     height = 500;
-
-// var radius = d3.scale.sqrt()
-//     .domain([0, 1e6])
-//     .range([0, 10]);
-
-// var path = d3.geo.path();
-
-// var svg = d3.select("body").append("svg")
-//     .attr("width", width)
-//     .attr("height", height);
-
-// queue()
-//     .defer(d3.json, "/mbostock/raw/4090846/us.json")
-//     .defer(d3.json, "us-state-centroids.json")
-//     .await(ready);
-
-// function ready(error, us, centroid) {
-//   if (error) throw error;
-
-//   svg.append("path")
-//       .attr("class", "states")
-//       .datum(topojson.feature(us, us.objects.states))
-//       .attr("d", path);
-
-//   svg.selectAll(".symbol")
-//       .data(centroid.features.sort(function(a, b) { return b.properties.population - a.properties.population; }))
-//     .enter().append("path")
-//       .attr("class", "symbol")
-//       .attr("d", path.pointRadius(function(d) { return radius(d.properties.population); }));
-// }
-

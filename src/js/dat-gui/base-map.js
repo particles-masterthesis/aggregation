@@ -1,15 +1,14 @@
-export default function(ui, canvas, update){
+export default function (dataStore, ui, canvas, update) {
 
     let folderBaseMap = ui.DatGui.addFolder('Base Map');
 
     folderBaseMap.add(
         canvas,
         'levelOfDetail',
-        [ 'country', 'state', 'county' ]
+        ['country', 'state', 'county']
     ).onChange(() => {
-        update(canvas);
+        update(dataStore, canvas);
     });
 
     folderBaseMap.open();
-
 }

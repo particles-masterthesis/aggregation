@@ -83,6 +83,7 @@
     "pre-git": "^3.8.4",
     "pug": "^2.0.0-alpha6",
     "sleep": "^3.0.1",
+    "stats.js": "enthusiasmus/stats.js",
     "stylus": "latest",
     "sync-request": "^3.0.1",
     "watch": "latest",

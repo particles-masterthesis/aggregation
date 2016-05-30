@@ -2,25 +2,25 @@ import barChartGui from './bar-chart';
 import baseMapGui from './base-map';
 import datasetGui from './dataset';
 
-var currentVisualization = {};
+var currentVisualization = null;
 /**
  * @method updateVisualization
  * @description receive the range, reset the canvas, add axes, labels, ticks and items and render it
  */
-export function update(canvas) {
+export function update(dataStore, canvas) {
+    canvas.stop();
 
-    canvas.reset();
     let visualizationType = $("select.visualization").val();
-    if(
-        currentVisualization.constructor.name === "DotMap" &&
-        visualizationType !== "dot"
-    ){
+    if (currentVisualization &&
+        (currentVisualization.constructor.name === "DotMap" || currentVisualization.constructor.name === "ProportionalSymbolMap") &&
+        (visualizationType !== "dot" || visualizationType !== "psm")
+    ) {
         currentVisualization.hide();
     }
 
     switch (visualizationType) {
         case "barChart":
-            currentVisualization = canvas.addBarChart(
+            currentVisualization = canvas.drawBarChart(
                 dataStore.data,
                 dataStore.schema,
                 dataStore.currentSelection,
@@ -29,36 +29,42 @@ export function update(canvas) {
             break;
 
         case "scatterPlot":
-            currentVisualization = canvas.addScatterPlot(
+            currentVisualization = canvas.drawScatterPlot(
                 dataStore,
                 "Superstore"
             );
             break;
 
         case "dot":
-            currentVisualization = canvas.addDotMap(
-                dataStore,
+            currentVisualization = canvas.drawDotMap(
+                dataStore.data,
                 "Superstore"
             );
             currentVisualization.show();
             break;
+
         case "psm":
-            currentVisualization = canvas.addProportionalSymbolMap(
-                dataStore,
+            currentVisualization = canvas.drawProportionalSymbolMap(
+                dataStore.data,
                 "Superstore"
             );
             currentVisualization.show();
+            break;
+
+        case "overview":
+            currentVisualization = canvas.drawParticles(dataStore.data);
             break;
 
         default:
             throw new Error(`Visualizationtype not working ("${visualizationType}")`);
     }
+
     window.viz = currentVisualization;
     canvas.render();
 }
 
-export function initDatGui(ui, canvas) {
-    datasetGui(ui, canvas, update);
-    barChartGui(ui, canvas, update);
-    baseMapGui(ui, canvas, update);
+export function initDatGui(dataStore, ui, canvas) {
+    datasetGui(dataStore, ui, canvas, update);
+    barChartGui(dataStore, ui, canvas, update);
+    baseMapGui(dataStore, ui, canvas, update);
 }

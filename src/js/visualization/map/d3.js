@@ -15,11 +15,9 @@ export default class D3 {
             .scale(1400)
             .translate([this.width / 2, this.height / 2]);
 
-
         // this.tmpScale = d3.scale.sqrt()
         //     .domain([0, 2100])
         //     .range([0, 30]);
-
 
         this.path = d3.geo.path().projection(this.projection);
         this.svg = d3.select("body > svg");

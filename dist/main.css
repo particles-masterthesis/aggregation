@@ -6773,16 +6773,6 @@ body {
   height: 30px;
   margin: 10px;
 }
-#canvas-container {
-  width: 100%;
-  height: calc(100% - 90px);
-  padding: 0 20px;
-}
-#canvas-container canvas {
-  width: 100%;
-  height: 100%;
-  background: #f8f8f8;
-}
 .dg {
   z-index: 20 !important;
 }

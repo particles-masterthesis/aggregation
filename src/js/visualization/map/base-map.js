@@ -1,7 +1,7 @@
-import Chart from "./chart";
+import Visualization from "./../visualization";
 import D3 from "./d3";
 
-export default class BaseMap extends Chart {
+export default class BaseMap extends Visualization {
 
     constructor(container, levelOfDetail) {
         super(container);

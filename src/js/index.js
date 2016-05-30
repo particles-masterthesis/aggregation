@@ -12,40 +12,41 @@ import Canvas from './canvas';
 import DataStore from './data-store';
 
 import {update as updateVisualization, initDatGui} from './dat-gui';
+
 /**
  * @method window.onload
  * @description After loading all scripts initialize the instances, load dataset and update ui
  */
 
 window.onload = () => {
-    window.dataStore = new DataStore();
+    let dataStore = window.dataStore = new DataStore();
     dataStore.import(`${location.origin}${location.pathname}/dist/dataset/superstore_preprocessed.csv`);
 
-    window.ui = new UI();
-    window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
+    let ui = window.ui = new UI();
+    let canvas = window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
 
-    initDatGui(ui, canvas);
-
+    initDatGui(dataStore, ui, canvas);
     // After import the dataset we now can update the dropboxes with the features
-    ui.updateDropdown(dataStore.features, dataStore.currentSelection);
-    ui.toggleYDropdown();
+    UI.updateDropdown(dataStore.features, dataStore.currentSelection);
+    UI.toggleFeatureDropdowns();
 
+    addEventListener(dataStore, canvas);
+    updateVisualization(dataStore, canvas);
+};
+
+function addEventListener(dataStore, canvas){
     $("select.feature-x").change(function () {
         dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
-        updateVisualization(canvas);
+        updateVisualization(dataStore, canvas);
     });
 
     $("select.feature-y").change(function () {
         dataStore.currentSelection.y = $(this).children(":selected")[0].innerHTML;
-        updateVisualization(canvas);
+        updateVisualization(dataStore, canvas);
     });
 
     $("select.visualization").change(function () {
-        ui.toggleYDropdown();
-        updateVisualization(canvas);
+        UI.toggleFeatureDropdowns();
+        updateVisualization(dataStore, canvas);
     });
-
-    updateVisualization(canvas);
-};
-
-
+}

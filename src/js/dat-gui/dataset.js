@@ -1,15 +1,16 @@
-export default function(ui, canvas, update){
+export default function(dataStore, ui, canvas, update){
     let folderDataSet = ui.DatGui.addFolder('DataSet');
 
     folderDataSet.add(dataStore, "useSubset").onChange(() => {
         dataStore.createSubset();
-        update(canvas);
+        canvas.reset();
+        update(dataStore, canvas);
     });
-
-    folderDataSet.add(dataStore, 'sizeOfSubset', 1, 1500).onChange(() => {
+    folderDataSet.add(dataStore, 'sizeOfSubset', 1, 3000).onChange(() => {
         dataStore.sizeOfSubset = Math.floor(dataStore.sizeOfSubset);
         dataStore.createSubset();
-        update(canvas);
+        canvas.reset();
+        update(dataStore, canvas);
     });
 
     folderDataSet.open();

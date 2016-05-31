@@ -45,7 +45,7 @@ export function update(dataStore, canvas) {
 
         case "psm":
             currentVisualization = canvas.drawProportionalSymbolMap(
-                dataStore.data,
+                dataStore,
                 "Superstore"
             );
             currentVisualization.show();

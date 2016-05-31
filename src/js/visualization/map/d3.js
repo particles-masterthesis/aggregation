@@ -29,31 +29,22 @@ export default class D3 {
 
         this.data = {};
 
-        // queue()
-        // .defer(d3.json, `${location.origin}${location.pathname}/dist/dataset/topojson/us.json`)
-        // .defer(d3.json, `${location.origin}${location.pathname}/dist/dataset/topojson/us-state-centroids-preprocessed.json`)
-        // .await( (error, us, centroids)  => {
-        //     if (error) throw error;
-        //     this.data.us = us;
-        //     this.data.centroids = centroids;
-        //     this.update(levelOfDetail);
-        // });
-
         $.ajax({
             dataType: "json",
-            url: `${location.origin}${location.pathname}/dist/dataset/topojson/us.json`,
+            url: `${location.origin}${location.pathname}/dist/datasets/us-test.json`,
             async: false,
             success: (us) => {
-                this.data.us = us;
+                window.usTest = us;
             }
         });
 
         $.ajax({
             dataType: "json",
-            url: `${location.origin}${location.pathname}/dist/dataset/topojson/us-state-centroids-preprocessed.json`,
+            url: `${location.origin}${location.pathname}/dist/datasets/us.json`,
             async: false,
-            success: (centroids) => {
-                this.data.centroids = centroids;
+            success: (us) => {
+                this.data.us = us;
+                window.us = us;
             }
         });
 
@@ -90,10 +81,9 @@ export default class D3 {
     }
 
     drawCountry(){
-        this.svg.insert("path", ".graticule")
-        .datum(topojson.feature(this.data.us, this.data.us.objects.land))
-        .attr("id","country")
-        .attr("class", "land")
+        this.svg.append("path", ".graticule")
+        .datum(topojson.feature(this.data.us, this.data.us.objects.country))
+        .attr("class", "country")
         .attr("d", this.path);
     }
 

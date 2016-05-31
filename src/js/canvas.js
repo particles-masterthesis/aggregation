@@ -77,11 +77,11 @@ export default class Canvas {
         return new DotMap(container, this.particlesContainer.particles, title, this.levelOfDetail);
     }
 
-    drawProportionalSymbolMap(dataset, title){
+    drawProportionalSymbolMap(dataStore, title){
         this.reset();
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
-        this.createParticles(dataset);
-        return new ProportionalSymbolMap(container, this.particlesContainer.particles, title, this.levelOfDetail);
+        this.createParticles(dataStore.data);
+        return new ProportionalSymbolMap(container, dataStore, this.particlesContainer.particles, title, this.levelOfDetail);
     }
 
     clear(){

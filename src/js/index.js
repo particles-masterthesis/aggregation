@@ -20,13 +20,13 @@ import {update as updateVisualization, initDatGui} from './dat-gui';
 
 window.onload = () => {
     let dataStore = window.dataStore = new DataStore();
-    dataStore.import(`${location.origin}${location.pathname}/dist/dataset/superstore_preprocessed.csv`);
+    dataStore.import(`${location.origin}${location.pathname}/dist/datasets/superstore-preprocessed-coords-geoids.csv`);
 
     let ui = window.ui = new UI();
     let canvas = window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
 
     initDatGui(dataStore, ui, canvas);
-    // After import the dataset we now can update the dropboxes with the features
+
     UI.updateDropdown(dataStore.features, dataStore.currentSelection);
     UI.toggleFeatureDropdowns();
 

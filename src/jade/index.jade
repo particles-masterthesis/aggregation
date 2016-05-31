@@ -20,7 +20,7 @@ html
                         select.selectpicker.visualization
                             option(value="overview") Overview
                             option(value="dot") Dot map
-                            option(value="psm") Proportional symbol map
+                            option(value="psm" selected) Proportional symbol map
                             option(value="barChart") Bar chart
                             option(value="scatterPlot") Scatter plot
                     li
@@ -29,7 +29,6 @@ html
                             option(value="none") None
                             option(value="direct") Direct
 
-    script(src="//d3js.org/d3.v3.min.js")
-    script(src="//d3js.org/topojson.v1.min.js")
-    script(src="//d3js.org/queue.v1.min.js")
+    script(src="//d3js.org/d3.v3.js")
+    script(src="//d3js.org/topojson.v1.js")
     script(src="dist/main.js")

@@ -26,7 +26,7 @@
     "build": "npm run build:css && npm run build:img && npm run build:js && browserify -v -t babelify src/js -o dist/main.js --debug --verbose && npm run build:dataset",
     "build:css": "stylus --include-css src/css/**.styl -o dist/main.css",
     "build:img": "cp -r src/img dist",
-    "build:dataset": "cp -r src/dataset dist/",
+    "build:dataset": "cp -r src/datasets dist/",
     "build:js": "browserify -v -t babelify src/js -o dist/main.js --debug --verbose",
     "build:markup": "jade -P src/jade/**.jade -o .",
     "clean": "rm -rf dist/* lib/*",
@@ -86,6 +86,7 @@
     "stats.js": "enthusiasmus/stats.js",
     "stylus": "latest",
     "sync-request": "^3.0.1",
+    "topojson": "^1.6.26",
     "watch": "latest",
     "watchify": "^3.7.0"
   },

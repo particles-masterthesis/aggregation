@@ -115,12 +115,11 @@ export default class Canvas {
 
         this.stage.removeChild(this.particlesGraphics);
         this.particlesGraphics.clear();
-        this.particlesGraphics.lineStyle(0, 0x000000, 0);
-        this.particlesGraphics.beginFill(0x5555AA);
 
         for(let i=0;i<this.particlesContainer.particles.length; i++){
             this.particlesContainer.particles[i].animate();
             this.particlesContainer.particles[i].draw(this.particlesGraphics);
+            this.particlesContainer.particles[i].addClickListener(this.stage);
         }
 
         this.stage.addChild(this.particlesGraphics);

@@ -25,9 +25,10 @@ export default class Particle {
 
         this.data = data;
         this.id = this.data["Row ID"];
+
         this.shouldAnimate = false;
         this.alpha = 1;
-
+        this.hover = false;
         this.shape = "rect";
     }
 
@@ -107,13 +108,42 @@ export default class Particle {
     }
 
     draw(graphics) {
-        graphics.beginFill(0x5555AA, this.alpha);
+        graphics.lineStyle(2, 0x000000, 1);
+
+        if(this.hover){
+            graphics.beginFill(0x55AAAA, this.alpha);
+        } else {
+            graphics.beginFill(0x5555AA, this.alpha);
+        }
 
         if (this.shape === "rect") {
-            graphics.drawRect(this.position.x, this.position.y, this.size.width, this.size.height);
+            graphics.drawRect(this.position.x, this.position.y+this.size.height, this.size.width, Math.abs(this.size.height));
         } else {
             graphics.drawCircle(this.position.x, this.position.y, this.size.width / 2);
         }
+    }
+
+    addClickListener(stage) {
+        var shape = new PIXI.Graphics();
+        shape.interactive = true;
+        shape.buttonMode = true;
+        shape.hitArea = new PIXI.Rectangle(this.position.x, this.position.y+this.size.height, this.size.width, Math.abs(this.size.height));
+
+        shape.mouseover = function (ev) {
+            console.log("over", this.id);
+            this.hover = true;
+        }.bind(this);
+
+        shape.mouseout = function (ev) {
+            console.log("out", this.id);
+            this.hover = false;
+        }.bind(this);
+
+        shape.click = function (ev) {
+            console.log(this.id);
+        }.bind(this);
+
+        stage.addChild(shape);
     }
 
 }

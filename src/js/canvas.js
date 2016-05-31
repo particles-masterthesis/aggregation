@@ -27,15 +27,12 @@ export default class Canvas {
         document.body.appendChild(this.renderer.view);
 
         this.stage = new PIXI.Container();
+        this.stage.interactive = true;
 
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         this.particlesContainer = new ParticlesContainer(container, dataset);
 
         this.particlesGraphics = new PIXI.Graphics();
-        this.particlesGraphics.interactive=true;
-        this.particlesGraphics.on("click", ()=>{
-            console.log("click");
-        });
         this.stage.addChild(this.particlesGraphics);
 
         this.stats = new Stats();
@@ -54,41 +51,45 @@ export default class Canvas {
     }
 
     drawParticles(dataset){
-
-
+        this.clear();
         let newParticles = this.createParticles(dataset);
         this.particlesContainer.draw(newParticles);
     }
 
     drawScatterPlot(dataStore, title) {
-        this.stage.removeChildren();
+        this.clear();
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         let newParticles = this.createParticles(dataStore.data);
         return new ScatterPlot(container, this.particlesContainer.particles, dataStore, newParticles, title);
     }
 
     drawBarChart(dataset, schema, features, title) {
-        this.stage.removeChildren();
+        this.clear();
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         let newParticles = this.createParticles(dataset);
         new BarChart(container, this.particlesContainer.particles, schema, features, this.barChartParticles, newParticles, title);
     }
 
     drawDotMap(dataset, title){
-        this.stage.removeChildren();
+        this.clear();
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         this.createParticles(dataset);
         return new DotMap(container, this.particlesContainer.particles, title, this.levelOfDetail);
     }
 
     drawProportionalSymbolMap(dataset, title){
-        this.stage.removeChildren();
+        this.reset();
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         this.createParticles(dataset);
         return new ProportionalSymbolMap(container, this.particlesContainer.particles, title, this.levelOfDetail);
     }
 
+    clear(){
+        this.stage.removeChildren();
+    }
+
     reset() {
+        this.clear();
         this.particlesContainer.reset();
     }
 
@@ -112,6 +113,7 @@ export default class Canvas {
     render() {
         this.stats.begin();
 
+        this.stage.removeChild(this.particlesGraphics);
         this.particlesGraphics.clear();
         this.particlesGraphics.lineStyle(0, 0x000000, 0);
         this.particlesGraphics.beginFill(0x5555AA);
@@ -120,6 +122,8 @@ export default class Canvas {
             this.particlesContainer.particles[i].animate();
             this.particlesContainer.particles[i].draw(this.particlesGraphics);
         }
+
+        this.stage.addChild(this.particlesGraphics);
         this.renderer.render(this.stage);
 
         this.stats.end();

@@ -112,10 +112,8 @@ export default class Particle {
         if (this.shape === "rect") {
             graphics.drawRect(this.position.x, this.position.y, this.size.width, this.size.height);
         } else {
-            graphics.drawCircle(this.position.x, this.position.y, this.size.width/2);
+            graphics.drawCircle(this.position.x, this.position.y, this.size.width / 2);
         }
-
-        graphics.endFill();
     }
 
 }

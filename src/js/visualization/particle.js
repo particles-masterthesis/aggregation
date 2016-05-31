@@ -114,6 +114,8 @@ export default class Particle {
         } else {
             graphics.drawCircle(this.position.x, this.position.y, this.size.width/2);
         }
+
+        graphics.endFill();
     }
 
 }

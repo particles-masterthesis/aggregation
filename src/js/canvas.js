@@ -32,6 +32,10 @@ export default class Canvas {
         this.particlesContainer = new ParticlesContainer(container, dataset);
 
         this.particlesGraphics = new PIXI.Graphics();
+        this.particlesGraphics.interactive=true;
+        this.particlesGraphics.on("click", ()=>{
+            console.log("click");
+        });
         this.stage.addChild(this.particlesGraphics);
 
         this.stats = new Stats();
@@ -50,7 +54,8 @@ export default class Canvas {
     }
 
     drawParticles(dataset){
-        this.stage.removeChildren();
+
+
         let newParticles = this.createParticles(dataset);
         this.particlesContainer.draw(newParticles);
     }
@@ -84,7 +89,6 @@ export default class Canvas {
     }
 
     reset() {
-        this.stage.removeChildren();
         this.particlesContainer.reset();
     }
 
@@ -108,8 +112,7 @@ export default class Canvas {
     render() {
         this.stats.begin();
 
-        this.stage.removeChild(this.particlesGraphics);
-        this.particlesGraphics = new PIXI.Graphics();
+        this.particlesGraphics.clear();
         this.particlesGraphics.lineStyle(0, 0x000000, 0);
         this.particlesGraphics.beginFill(0x5555AA);
 
@@ -117,11 +120,9 @@ export default class Canvas {
             this.particlesContainer.particles[i].animate();
             this.particlesContainer.particles[i].draw(this.particlesGraphics);
         }
-        this.stage.addChild(this.particlesGraphics);
         this.renderer.render(this.stage);
 
         this.stats.end();
-
         this.requestFrameID = requestAnimationFrame(this.render.bind(this));
     }
 

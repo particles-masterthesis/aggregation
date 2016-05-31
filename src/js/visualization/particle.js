@@ -9,7 +9,7 @@ export default class Particle {
         this.destination = new PIXI.Point(x, y);
 
         // 2px every 1/60 second seem to be a good value
-        this.speed = 2;
+        this.speed = 3;
 
         this.size = {
             width,

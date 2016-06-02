@@ -6790,9 +6790,6 @@ svg {
   position: absolute;
   margin-left: 20px;
 }
-canvas {
-  z-index: 5;
-}
 svg {
   z-index: 1;
 }
@@ -6808,4 +6805,18 @@ svg .state-boundary {
 }
 svg .county-boundary {
   stroke-width: 0.5px;
+}
+svg .bubble {
+  fill-opacity: 0.5;
+  stroke: #fff;
+  stroke-width: 0.5px;
+}
+svg .legend circle {
+  fill: none;
+  stroke: #ccc;
+}
+svg .legend text {
+  fill: #777;
+  font: 10px sans-serif;
+  text-anchor: middle;
 }

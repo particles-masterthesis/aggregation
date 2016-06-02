@@ -2,7 +2,7 @@ import BaseMap from "./base-map";
 
 export default class DotMap extends BaseMap {
 
-    constructor(container, particles, title, levelOfDetail){
+    constructor(container, particles, levelOfDetail){
         super(container, levelOfDetail);
         this.particles = particles;
 

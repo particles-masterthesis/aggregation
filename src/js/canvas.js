@@ -54,34 +54,69 @@ export default class Canvas {
         this.clear();
         let newParticles = this.createParticles(dataset);
         this.particlesContainer.draw(newParticles);
+        // this is needed for the update function to determine current visualization type
+        return {};
     }
 
     drawScatterPlot(dataStore, title) {
         this.clear();
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         let newParticles = this.createParticles(dataStore.data);
-        return new ScatterPlot(container, this.particlesContainer.particles, dataStore, newParticles, title);
+        this.currentVisualization = new ScatterPlot(
+            container,
+            this.particlesContainer.particles,
+            dataStore,
+            newParticles,
+            title
+        );
+        return this.currentVisualization;
     }
 
     drawBarChart(dataset, schema, features, title) {
         this.clear();
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         let newParticles = this.createParticles(dataset);
-        new BarChart(container, this.particlesContainer.particles, schema, features, this.barChartParticles, newParticles, title);
+        this.currentVisualization = new BarChart(
+            container,
+            this.particlesContainer.particles,
+            schema,
+            features,
+            this.barChartParticles,
+            newParticles,
+            title
+        );
+        return this.currentVisualization;
     }
 
-    drawDotMap(dataset, title){
+    drawDotMap(dataset, isCurrentVisualization){
         this.clear();
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         this.createParticles(dataset);
-        return new DotMap(container, this.particlesContainer.particles, title, this.levelOfDetail);
+        this.currentVisualization = new DotMap(
+            container,
+            this.particlesContainer.particles,
+            this.levelOfDetail
+        );
+        return this.currentVisualization;
     }
 
-    drawProportionalSymbolMap(dataStore, title){
+    drawProportionalSymbolMap(dataStore, isCurrentVisualization){
+
+        if(isCurrentVisualization){
+            this.currentVisualization.update(this.levelOfDetail);
+            return this.currentVisualization;
+        }
+
         this.reset();
         let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         this.createParticles(dataStore.data);
-        return new ProportionalSymbolMap(container, dataStore, this.particlesContainer.particles, title, this.levelOfDetail);
+        this.currentVisualization = new ProportionalSymbolMap(
+            container,
+            dataStore,
+            this.particlesContainer.particles,
+            this.levelOfDetail
+        );
+        return this.currentVisualization;
     }
 
     clear(){

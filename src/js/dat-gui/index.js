@@ -2,7 +2,7 @@ import barChartGui from './bar-chart';
 import baseMapGui from './base-map';
 import datasetGui from './dataset';
 
-var currentVisualization = null;
+var currentVisualization = {};
 /**
  * @method updateVisualization
  * @description receive the range, reset the canvas, add axes, labels, ticks and items and render it
@@ -11,9 +11,19 @@ export function update(dataStore, canvas) {
     canvas.stop();
 
     let visualizationType = $("select.visualization").val();
-    if (currentVisualization &&
-        (currentVisualization.constructor.name === "DotMap" || currentVisualization.constructor.name === "ProportionalSymbolMap") &&
-        (visualizationType !== "dot" || visualizationType !== "psm")
+
+    let currentVisualizationIsEmpty = Object.keys(currentVisualization).length === 0;
+    let currentVisualizationIsMap = typeof ["DotMap", "ProportionalSymbolMap"].find(
+            name => name === currentVisualization.constructor.name
+        ) === 'string';
+    let visualizationTypeIsMap = typeof ["dot", "psm"].find(
+            type => type === visualizationType
+        ) === 'string';
+
+    if (
+        !currentVisualizationIsEmpty &&
+        !visualizationTypeIsMap &&
+        currentVisualizationIsMap
     ) {
         currentVisualization.hide();
     }
@@ -38,7 +48,7 @@ export function update(dataStore, canvas) {
         case "dot":
             currentVisualization = canvas.drawDotMap(
                 dataStore.data,
-                "Superstore"
+                currentVisualization.constructor.name === "DotMap"
             );
             currentVisualization.show();
             break;
@@ -46,7 +56,7 @@ export function update(dataStore, canvas) {
         case "psm":
             currentVisualization = canvas.drawProportionalSymbolMap(
                 dataStore,
-                "Superstore"
+                currentVisualization.constructor.name === "ProportionalSymbolMap"
             );
             currentVisualization.show();
             break;

@@ -15,9 +15,13 @@ export default class D3 {
             .scale(1400)
             .translate([this.width / 2, this.height / 2]);
 
-        // this.tmpScale = d3.scale.sqrt()
-        //     .domain([0, 2100])
-        //     .range([0, 30]);
+        // this.scale = d3.scale.sqrt()
+        // .domain([0, 500])
+        // .range([0, 15]);
+
+        this.scale = d3.scale.log()
+        .domain([1, 100])
+        .range([0, 20]);
 
         this.path = d3.geo.path().projection(this.projection);
         this.svg = d3.select("body > svg");
@@ -31,24 +35,35 @@ export default class D3 {
 
         $.ajax({
             dataType: "json",
-            url: `${location.origin}${location.pathname}/dist/datasets/us-test.json`,
-            async: false,
-            success: (us) => {
-                window.usTest = us;
-            }
-        });
-
-        $.ajax({
-            dataType: "json",
             url: `${location.origin}${location.pathname}/dist/datasets/us.json`,
             async: false,
             success: (us) => {
                 this.data.us = us;
                 window.us = us;
+
+                let counties = topojson.feature(us, us.objects.counties).features;
+                let states = topojson.feature(us, us.objects.states).features;
+
+                function filterFnc(obj){
+                    return obj.id === stateId;
+                }
+
+                // get orders aggregated on states object
+                for(let i = 0; i < counties.length; i++){
+                    var stateId = counties[i].properties.stateId;
+                    let state = states.filter(filterFnc)[0];
+
+                    if ('orders' in state.properties){
+                        state.properties.orders += Number((counties[i].properties.orders || 0));
+                    } else {
+                        state.properties.orders = Number((counties[i].properties.orders || 0));
+                    }
+                }
             }
         });
 
         this.update(levelOfDetail);
+
 
         d3.select(self.frameElement).style("height", this.height + "px");
     }
@@ -63,32 +78,37 @@ export default class D3 {
     update(levelOfDetail) {
         switch (levelOfDetail) {
             case "country":
-                d3.select("#states").remove();
-                d3.select("#counties").remove();
-                this.drawCountry();
+                if (typeof this.d3Counties !== 'undefined') this.removeSvgElement('d3Counties');
+                if (typeof this.d3States !== 'undefined') this.removeSvgElement('d3States');
+                if (typeof this.d3Country === 'undefined') this.drawCountry();
                 break;
             case "state":
-                d3.select("#counties").remove();
-                this.drawStates();
+                if (typeof this.d3Counties !== 'undefined') this.removeSvgElement('d3Counties');
+                if (typeof this.d3States === 'undefined') this.drawStates();
                 break;
             case "county":
-                this.drawStates();
-                this.drawCounties();
+                if (typeof this.d3States === 'undefined') this.drawStates();
+                if (typeof this.d3Counties == 'undefined') this.drawCounties();
                 break;
             default:
                 break;
         }
     }
 
+    removeSvgElement(element){
+        this[element].remove();
+        this[element] = undefined;
+    }
+
     drawCountry(){
-        this.svg.append("path", ".graticule")
+        this.d3Country = this.svg.append("path", ".graticule")
         .datum(topojson.feature(this.data.us, this.data.us.objects.country))
         .attr("class", "country")
         .attr("d", this.path);
     }
 
     drawStates(){
-        this.svg.insert("path", ".graticule")
+        this.d3States = this.svg.insert("svg:path", ".country + *")
         .datum(topojson.mesh(this.data.us, this.data.us.objects.states,
             function(a, b) {
                 return a !== b;
@@ -100,7 +120,7 @@ export default class D3 {
     }
 
     drawCounties(){
-        this.svg.insert("path", ".graticule")
+        this.d3Counties = this.svg.insert("svg:path", ".states + *")
         .datum(topojson.mesh(this.data.us, this.data.us.objects.counties,
             function(a, b) {
                 return a !== b && !(a.id / 1000 ^ b.id / 1000);

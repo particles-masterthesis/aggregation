@@ -1,46 +1,92 @@
 import BaseMap from "./base-map";
 
+
 export default class ProportionalSymbolMap extends BaseMap {
 
-    constructor(container, dataStore, particles, title, levelOfDetail){
+    constructor(container, dataStore, particles, levelOfDetail){
         super(container, levelOfDetail);
         this.particles = particles;
         this.levelOfDetail = levelOfDetail;
         this.data = dataStore.dataset;
 
-        // this.drawSymbols();
+        this.drawSymbols();
+        // this.drawLegend();
     }
 
     drawSymbols(){
         let map = this.baseMap;
-        let counter = 0;
-        map.svg.append('g')
-        .attr('class', 'bubble')
-        .selectAll('circle')
-        .data(topojson.feature(map.data.us, map.data.us.objects.counties).features)
-        .enter()
-        .append('circle')
-        .attr('transform', function(d) {
-            let x = map.path.centroid(d);
-            counter++;
-            console.log(counter, d);
-            return "translate(" + x + ")";
-            // return `translate('${x}')`;
-        })
-        .attr('r', 1.5);
+
         switch (this.levelOfDetail) {
             case "country":
-                // d3.select("#states").remove();
-                // d3.select("#counties").remove();
-                break;
             case "state":
-                // d3.select("#counties").remove();
+                if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
+                if (typeof this.states === 'undefined') this.draw("states");
                 break;
             case "county":
+                if (typeof this.states !== 'undefined') this.removeSvgElement('states');
+                if (typeof this.counties === 'undefined') this.draw("counties");
                 break;
             default:
                 break;
         }
+    }
+
+    draw(id){
+        let map = this.baseMap;
+
+        this[id] = map.svg.append("g")
+        .attr("id", `psm-${id}`)
+        .attr("class", "bubble");
+
+        console.log(this);
+
+        this[id].selectAll("circle")
+        .data(
+            topojson.feature(map.data.us, map.data.us.objects[id]).features
+            .sort(function(a, b) {
+                return (b.properties.orders || 0) - (a.properties.orders || 0);
+            })
+        )
+        .enter().append("circle")
+        .attr("transform", function(d) {
+            let coords = map.path.centroid(d);
+            if(isNaN(coords[0]) || isNaN(coords[1])) return;
+            return "translate(" + coords + ")";
+        })
+        .attr("r", function(d) {
+            return map.scale(d.properties.orders) || 0;
+        });
+    }
+
+
+    update(levelOfDetail){
+        this.levelOfDetail = levelOfDetail;
+        super.updateBaseMap(levelOfDetail);
+        this.drawSymbols();
+    }
+
+    removeSvgElement(element){
+        this[element].remove();
+        this[element] = undefined;
+    }
+
+    drawLegend(){
+        let map = this.baseMap;
+        let legend = map.svg.append("g")
+        .attr("class", "legend")
+        .attr("transform", "translate(50, 60)")
+        .selectAll("g")
+        .data([10, 100, 1000])
+        .enter().append("g");
+
+        legend.append("circle")
+        .attr("cy", function(d) { return -map.scale(d); })
+        .attr("r", map.scale);
+
+        legend.append("text")
+        .attr("y", function(d) { return -2 * map.scale(d); })
+        .attr("dy", "1.3em")
+        .text(d3.format(".1s"));
     }
 
 }

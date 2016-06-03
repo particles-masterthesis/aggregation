@@ -5,7 +5,7 @@ import BaseMap from "./base-map";
 export default class ProportionalSymbolMap extends BaseMap {
 
     constructor(container, dataStore, particles, levelOfDetail){
-        super(container, levelOfDetail);
+        super(container, levelOfDetail, true);
         this.particles = particles;
         this.levelOfDetail = levelOfDetail;
         this.data = dataStore.dataset;
@@ -15,8 +15,6 @@ export default class ProportionalSymbolMap extends BaseMap {
     }
 
     drawSymbols(){
-        let map = this.baseMap;
-
         switch (this.levelOfDetail) {
             case "country":
             case "state":

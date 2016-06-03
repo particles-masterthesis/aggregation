@@ -1,18 +1,22 @@
 import "pixi.js";
 
-import DotMap from "./visualization/map/dot-map";
-import ProportionalSymbolMap from "./visualization/map/proportional-symbol-map";
 import { Stats } from 'stats.js';
+
+import ParticlesContainer from "./visualization/overview/overview";
 
 import ScatterPlot from "./visualization/chart/scatter-plot";
 import BarChart from "./visualization/chart/bar-chart";
-import ParticlesContainer from "./visualization/overview/overview";
+
+import DotMap from "./visualization/map/dot-map";
+import ProportionalSymbolMap from "./visualization/map/proportional-symbol-map";
+import ChoroplethMap from "./visualization/map/choropleth-map";
 
 export default class Canvas {
 
     constructor(dataset, features) {
         this.barChartParticles = true;
         this.levelOfDetail = 'country';
+        this.colorScheme = 'Oranges';
         this.requestFrameID = null;
 
         this.height = window.innerHeight - 90; //windowH height - menu height - css-paddings
@@ -121,6 +125,24 @@ export default class Canvas {
             dataStore,
             this.particlesContainer.particles,
             this.levelOfDetail
+        );
+        return this.currentVisualization;
+    }
+
+    drawChoroplethMap(dataStore, isCurrentVisualization){
+        if(isCurrentVisualization){
+            this.currentVisualization.update(this.levelOfDetail, this.colorScheme);
+            return this.currentVisualization;
+        }
+
+        this.reset();
+        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
+        this.createParticles(dataStore.data);
+        this.currentVisualization = new ChoroplethMap(
+            container,
+            this.particlesContainer.particles,
+            this.levelOfDetail,
+            this.colorScheme
         );
         return this.currentVisualization;
     }

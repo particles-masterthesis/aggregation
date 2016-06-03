@@ -1,0 +1,63 @@
+@import "../../node_modules/bootstrap/dist/css/bootstrap.css"
+@import "./colorbrewer"
+html
+body
+    margin 0
+    padding 0
+    width 100%
+    height 100%
+
+.navbar-nav
+    li
+        margin-left 20px
+    select
+        height 30px
+        margin 10px
+
+.dg
+    z-index 20 !important
+
+.dg.main.a
+    margin 0
+    select
+        color black
+
+select[disabled]
+    color grey
+
+canvas, svg
+    position absolute
+    margin-left 20px
+
+canvas
+    z-index 5
+
+svg
+    z-index 1
+
+    .county-boundary
+    .state-boundary
+        fill none
+        stroke #fff
+        stroke-linejoin round
+        stroke-linecap round
+
+    .county-boundary
+        stroke-width .5px
+
+    .bubble
+        fill-opacity .5
+        stroke #fff
+        stroke-width .5px
+
+    .legend circle
+        fill none
+        stroke #ccc
+
+    .legend text
+        fill #777
+        font 10px sans-serif
+        text-anchor middle
+
+.Empty .country
+    fill lightgrey

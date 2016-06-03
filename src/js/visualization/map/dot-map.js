@@ -3,7 +3,7 @@ import BaseMap from "./base-map";
 export default class DotMap extends BaseMap {
 
     constructor(container, particles, levelOfDetail){
-        super(container, levelOfDetail);
+        super(container, levelOfDetail, true);
         this.particles = particles;
 
         this.drawDots(this.particles);

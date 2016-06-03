@@ -10,9 +10,10 @@ export default class D3 {
             throw "Cannot construct D3 singleton";
         }
         this._d3 = d3;
+        this._topojson = topojson;
     }
 
-    init(width, height, levelOfDetail){
+    init(width, height, levelOfDetail, drawMap){
         this.width = width;
         this.height = height;
         this.projection = this._d3.geo.albersUsa()
@@ -23,10 +24,15 @@ export default class D3 {
         .domain([1, 100])
         .range([0, 20]);
 
+        this.colorScale = this._d3.scale.quantile()
+        .domain(this._d3.range(10).map( i => i * 3 ))
+        .range(this._d3.range(9).map( i => `q${i}-9` ));
+
         this.path = this._d3.geo.path().projection(this.projection);
         this.svg = this._d3.select("body > svg");
         if (this.svg.empty()){
             this.svg = this._d3.select("body").append("svg")
+                .attr('class', 'Empty')
                 .attr("width", this.width)
                 .attr("height", this.height);
         }
@@ -62,7 +68,30 @@ export default class D3 {
             }
         });
 
-        this.update(levelOfDetail);
+        this.data.topojson = {};
+        this.data.topojson.country = topojson.feature(
+            this.data.us,
+            this.data.us.objects.country
+        );
+        this.data.topojson.states = topojson.mesh(
+            this.data.us,
+            this.data.us.objects.states,
+            (a, b) => {
+                return a !== b;
+            }
+        );
+        this.data.topojson.counties = topojson.mesh(
+            this.data.us,
+            this.data.us.objects.counties,
+            (a, b) => {
+                return (
+                    a !== b &&
+                    !(this.getCountyIdentifier(a) / 1000 ^ this.getCountyIdentifier(b) / 1000)
+                );
+            }
+        );
+
+        if(drawMap) this.update(levelOfDetail);
 
 
         this._d3.select(self.frameElement).style("height", this.height + "px");
@@ -84,9 +113,11 @@ export default class D3 {
                 break;
             case "state":
                 if (typeof this.d3Counties !== 'undefined') this.removeSvgElement('d3Counties');
+                if (typeof this.d3Country === 'undefined') this.drawCountry();
                 if (typeof this.d3States === 'undefined') this.drawStates();
                 break;
             case "county":
+                if (typeof this.d3Country === 'undefined') this.drawCountry();
                 if (typeof this.d3States === 'undefined') this.drawStates();
                 if (typeof this.d3Counties == 'undefined') this.drawCounties();
                 break;
@@ -102,18 +133,14 @@ export default class D3 {
 
     drawCountry(){
         this.d3Country = this.svg.append("path", ".graticule")
-        .datum(topojson.feature(this.data.us, this.data.us.objects.country))
+        .datum(this.data.topojson.country)
         .attr("class", "country")
         .attr("d", this.path);
     }
 
     drawStates(){
         this.d3States = this.svg.insert("svg:path", ".country + *")
-        .datum(topojson.mesh(this.data.us, this.data.us.objects.states,
-            function(a, b) {
-                return a !== b;
-            }
-        ))
+        .datum(this.data.topojson.states)
         .attr("id","states")
         .attr("class", "state-boundary")
         .attr("d", this.path);
@@ -121,11 +148,7 @@ export default class D3 {
 
     drawCounties(){
         this.d3Counties = this.svg.insert("svg:path", ".states + *")
-        .datum(topojson.mesh(this.data.us, this.data.us.objects.counties,
-            function(a, b) {
-                return a !== b && !(a.id / 1000 ^ b.id / 1000);
-            }
-        ))
+        .datum(this.data.topojson.counties)
         .attr("id","counties")
         .attr("class", "county-boundary")
         .attr("d", this.path);
@@ -137,6 +160,10 @@ export default class D3 {
 
     show(){
         this.svg.style('visibility', 'visible');
+    }
+
+    getCountyIdentifier(d){
+        return Number(d.id.substring(d.id.search("S")+1, d.id.search("S")+6));
     }
 
 }

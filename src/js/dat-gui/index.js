@@ -1,6 +1,7 @@
 import barChartGui from './bar-chart';
 import baseMapGui from './base-map';
 import datasetGui from './dataset';
+import choroplethMapGui from './choropleth-map';
 
 var currentVisualization = {};
 var visualizationHistory = [];
@@ -14,10 +15,10 @@ export function update(dataStore, canvas) {
     let visualizationType = $("select.visualization").val();
 
     let currentVisualizationIsEmpty = Object.keys(currentVisualization).length === 0;
-    let currentVisualizationIsMap = typeof ["DotMap", "ProportionalSymbolMap"].find(
+    let currentVisualizationIsMap = typeof ["DotMap", "ProportionalSymbolMap", "ChoroplethMap"].find(
             name => name === currentVisualization.constructor.name
         ) === 'string';
-    let visualizationTypeIsMap = typeof ["dot", "psm"].find(
+    let visualizationTypeIsMap = typeof ["dot", "psm", "choropleth"].find(
             type => type === visualizationType
         ) === 'string';
 
@@ -31,6 +32,10 @@ export function update(dataStore, canvas) {
             visualizationHistory[visualizationHistory.length-1].type === 'psm'
         ){
             currentVisualization.removeSymbols();
+        } else if (
+            visualizationHistory[visualizationHistory.length-1].type === 'choropleth'
+        ) {
+            currentVisualization.removeChoropleth();
         }
 
     } else if (
@@ -38,6 +43,11 @@ export function update(dataStore, canvas) {
         visualizationHistory[visualizationHistory.length-1].type === 'psm'
     ) {
         currentVisualization.removeSymbols();
+    } else if (
+        !currentVisualizationIsEmpty &&
+        visualizationHistory[visualizationHistory.length-1].type === 'choropleth'
+    ) {
+        currentVisualization.removeChoropleth();
     }
 
     switch (visualizationType) {
@@ -89,6 +99,18 @@ export function update(dataStore, canvas) {
             currentVisualization.show();
             break;
 
+        case "choropleth":
+            currentVisualization = canvas.drawChoroplethMap(
+                dataStore,
+                currentVisualization.constructor.name === "ChoroplethMap"
+            );
+            visualizationHistory.push({
+                'type': 'choropleth',
+                'obj': currentVisualization
+            });
+            currentVisualization.show();
+            break;
+
         case "overview":
             currentVisualization = canvas.drawParticles(dataStore.data);
             visualizationHistory.push({
@@ -109,4 +131,5 @@ export function initDatGui(dataStore, ui, canvas) {
     datasetGui(dataStore, ui, canvas, update);
     barChartGui(dataStore, ui, canvas, update);
     baseMapGui(dataStore, ui, canvas, update);
+    choroplethMapGui(dataStore, ui, canvas, update);
 }

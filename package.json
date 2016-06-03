@@ -90,5 +90,7 @@
     "watch": "latest",
     "watchify": "^3.7.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "d3": "^3.5.17"
+  }
 }

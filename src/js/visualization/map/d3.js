@@ -1,3 +1,6 @@
+import d3 from 'd3';
+import topojson from  'topojson';
+
 let singleton = Symbol();
 let singletonEnforcer = Symbol();
 
@@ -6,27 +9,24 @@ export default class D3 {
         if(enforcer != singletonEnforcer){
             throw "Cannot construct D3 singleton";
         }
+        this._d3 = d3;
     }
 
     init(width, height, levelOfDetail){
         this.width = width;
         this.height = height;
-        this.projection = d3.geo.albersUsa()
+        this.projection = this._d3.geo.albersUsa()
             .scale(1400)
             .translate([this.width / 2, this.height / 2]);
 
-        // this.scale = d3.scale.sqrt()
-        // .domain([0, 500])
-        // .range([0, 15]);
-
-        this.scale = d3.scale.log()
+        this.symbolScale = this._d3.scale.log()
         .domain([1, 100])
         .range([0, 20]);
 
-        this.path = d3.geo.path().projection(this.projection);
-        this.svg = d3.select("body > svg");
+        this.path = this._d3.geo.path().projection(this.projection);
+        this.svg = this._d3.select("body > svg");
         if (this.svg.empty()){
-            this.svg = d3.select("body").append("svg")
+            this.svg = this._d3.select("body").append("svg")
                 .attr("width", this.width)
                 .attr("height", this.height);
         }
@@ -65,7 +65,7 @@ export default class D3 {
         this.update(levelOfDetail);
 
 
-        d3.select(self.frameElement).style("height", this.height + "px");
+        this._d3.select(self.frameElement).style("height", this.height + "px");
     }
 
     static get instance() {

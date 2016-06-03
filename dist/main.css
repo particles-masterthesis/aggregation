@@ -6790,9 +6790,6 @@ svg {
   position: absolute;
   margin-left: 20px;
 }
-canvas {
-  z-index: 5;
-}
 svg {
   z-index: 1;
 }

@@ -1,3 +1,4 @@
+import topojson from  'topojson';
 import BaseMap from "./base-map";
 
 
@@ -51,7 +52,7 @@ export default class ProportionalSymbolMap extends BaseMap {
             return "translate(" + coords + ")";
         })
         .attr("r", function(d) {
-            return map.scale(d.properties.orders) || 0;
+            return map.symbolScale(d.properties.orders) || 0;
         });
     }
 
@@ -60,6 +61,7 @@ export default class ProportionalSymbolMap extends BaseMap {
         this.levelOfDetail = levelOfDetail;
         super.updateBaseMap(levelOfDetail);
         this.drawSymbols();
+        this.drawLegend();
     }
 
     removeSymbols(){
@@ -71,7 +73,7 @@ export default class ProportionalSymbolMap extends BaseMap {
     removeSvgElement(element){
         this[element].remove();
         this[element] = undefined;
-        d3.selectAll(`#psm-${element}`).remove();
+        this.baseMap._d3.selectAll(`#psm-${element}`).remove();
     }
 
     drawLegend(){
@@ -82,19 +84,34 @@ export default class ProportionalSymbolMap extends BaseMap {
         this.legend = map.svg.append("g")
         .attr("id", "psm-legend")
         .attr("class", "legend")
-        .attr("transform", "translate(50, 60)")
+        .attr("transform", "translate(50, 60)");
+
+        this.legend.append('circle')
+        .attr('class', 'info-bubble')
+        .attr('r', 5)
+        .attr('cx', 50)
+        .attr('cy', -25);
+
+        this.legend.append('text')
+        .attr('class', 'info-text')
+        .attr('x', 75)
+        .attr('y', -21)
+        .text('Orders');
+
+
+        this.legend = this.legend
         .selectAll("g")
         .data([10, 100, 1000])
         .enter().append("g");
 
         this.legend.append("circle")
-        .attr("cy", function(d) { return -map.scale(d); })
-        .attr("r", map.scale);
+        .attr("cy", function(d) { return -map.symbolScale(d); })
+        .attr("r", map.symbolScale);
 
         this.legend.append("text")
-        .attr("y", function(d) { return -2 * map.scale(d); })
+        .attr("y", function(d) { return -2 * map.symbolScale(d); })
         .attr("dy", "1.3em")
-        .text(d3.format(".1s"));
+        .text(this.baseMap._d3.format(".1s"));
     }
 
 }

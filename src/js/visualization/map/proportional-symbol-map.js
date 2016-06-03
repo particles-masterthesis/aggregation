@@ -10,7 +10,7 @@ export default class ProportionalSymbolMap extends BaseMap {
         this.data = dataStore.dataset;
 
         this.drawSymbols();
-        // this.drawLegend();
+        this.drawLegend();
     }
 
     drawSymbols(){
@@ -36,11 +36,8 @@ export default class ProportionalSymbolMap extends BaseMap {
 
         this[id] = map.svg.append("g")
         .attr("id", `psm-${id}`)
-        .attr("class", "bubble");
-
-        console.log(this);
-
-        this[id].selectAll("circle")
+        .attr("class", "bubble")
+        .selectAll("circle")
         .data(
             topojson.feature(map.data.us, map.data.us.objects[id]).features
             .sort(function(a, b) {
@@ -65,25 +62,36 @@ export default class ProportionalSymbolMap extends BaseMap {
         this.drawSymbols();
     }
 
+    removeSymbols(){
+        if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
+        if (typeof this.states !== 'undefined') this.removeSvgElement('states');
+        if (typeof this.legend !== 'undefined') this.removeSvgElement('legend');
+    }
+
     removeSvgElement(element){
         this[element].remove();
         this[element] = undefined;
+        d3.selectAll(`#psm-${element}`).remove();
     }
 
     drawLegend(){
         let map = this.baseMap;
-        let legend = map.svg.append("g")
+
+        if (typeof this.legend !== 'undefined') return;
+
+        this.legend = map.svg.append("g")
+        .attr("id", "psm-legend")
         .attr("class", "legend")
         .attr("transform", "translate(50, 60)")
         .selectAll("g")
         .data([10, 100, 1000])
         .enter().append("g");
 
-        legend.append("circle")
+        this.legend.append("circle")
         .attr("cy", function(d) { return -map.scale(d); })
         .attr("r", map.scale);
 
-        legend.append("text")
+        this.legend.append("text")
         .attr("y", function(d) { return -2 * map.scale(d); })
         .attr("dy", "1.3em")
         .text(d3.format(".1s"));

@@ -6,12 +6,12 @@ export default class DotMap extends BaseMap {
         super(container, levelOfDetail);
         this.particles = particles;
 
-        this.drawDots();
+        this.drawDots(this.particles);
     }
 
-    drawDots(){
+    drawDots(particles){
         let point, size = 3;
-        for(let particle of this.particles){
+        for(let particle of particles){
             point = [particle.data.Longitude, particle.data.Latitude];
             point = this.baseMap.projection(point);
 

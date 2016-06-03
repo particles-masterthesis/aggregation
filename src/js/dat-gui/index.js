@@ -3,6 +3,7 @@ import baseMapGui from './base-map';
 import datasetGui from './dataset';
 
 var currentVisualization = {};
+var visualizationHistory = [];
 /**
  * @method updateVisualization
  * @description receive the range, reset the canvas, add axes, labels, ticks and items and render it
@@ -26,6 +27,17 @@ export function update(dataStore, canvas) {
         currentVisualizationIsMap
     ) {
         currentVisualization.hide();
+        if(
+            visualizationHistory[visualizationHistory.length-1].type === 'psm'
+        ){
+            currentVisualization.removeSymbols();
+        }
+
+    } else if (
+        !currentVisualizationIsEmpty &&
+        visualizationHistory[visualizationHistory.length-1].type === 'psm'
+    ) {
+        currentVisualization.removeSymbols();
     }
 
     switch (visualizationType) {
@@ -36,6 +48,10 @@ export function update(dataStore, canvas) {
                 dataStore.currentSelection,
                 "Superstore"
             );
+            visualizationHistory.push({
+                'type': 'bar',
+                'obj': currentVisualization
+            });
             break;
 
         case "scatterPlot":
@@ -43,6 +59,10 @@ export function update(dataStore, canvas) {
                 dataStore,
                 "Superstore"
             );
+            visualizationHistory.push({
+                'type': 'scatter',
+                'obj': currentVisualization
+            });
             break;
 
         case "dot":
@@ -50,6 +70,10 @@ export function update(dataStore, canvas) {
                 dataStore.data,
                 currentVisualization.constructor.name === "DotMap"
             );
+            visualizationHistory.push({
+                'type': 'dot',
+                'obj': currentVisualization
+            });
             currentVisualization.show();
             break;
 
@@ -58,11 +82,19 @@ export function update(dataStore, canvas) {
                 dataStore,
                 currentVisualization.constructor.name === "ProportionalSymbolMap"
             );
+            visualizationHistory.push({
+                'type': 'psm',
+                'obj': currentVisualization
+            });
             currentVisualization.show();
             break;
 
         case "overview":
             currentVisualization = canvas.drawParticles(dataStore.data);
+            visualizationHistory.push({
+                'type': 'overview',
+                'obj': currentVisualization
+            });
             break;
 
         default:

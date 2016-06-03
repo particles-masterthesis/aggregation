@@ -90,8 +90,14 @@ export default class Canvas {
 
     drawDotMap(dataset, isCurrentVisualization){
         this.clear();
-        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         this.createParticles(dataset);
+        if(isCurrentVisualization){
+            this.currentVisualization.updateBaseMap(this.levelOfDetail);
+            this.currentVisualization.drawDots(this.particlesContainer.particles);
+            return this.currentVisualization;
+        }
+
+        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
         this.currentVisualization = new DotMap(
             container,
             this.particlesContainer.particles,

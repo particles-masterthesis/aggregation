@@ -1,24 +1,29 @@
-/* jshint esversion: 6 */
-
 import Visualization from "./visualization";
+import "pixi.js";
 
-export default class Particle {
+export default class Particle extends PIXI.Sprite {
 
-    constructor(data, x, y, width, height) {
+    // TODO: USE Particle-Container
+    // Use sprites as parent class for particles
+    // change function according to sprites
+    // set sprite via texture - for example use a small picture or a cat first
+    // don't remove anything while rendering, because we sprites gets updated in their position - thats enough
+    // draw sprites and not rectangles
+
+    constructor(texture, data, x, y, width, height) {
+        // call constructor of parent class
+        super(texture);
+
+        // Attributes of the parent class
         this.position = new PIXI.Point(x, y);
-        this.destination = new PIXI.Point(x, y);
+        this.width = width;
+        this.height = height;
 
+        // Attributes
         // 2px every 1/60 second seem to be a good value
         this.speed = 2;
-
-        this.size = {
-            width,
-            height,
-            equals: function (width, height) {
-                return this.width === width && this.height === height;
-            }
-        };
-        this.newSize = {
+        this.destination = new PIXI.Point(x, y);
+        this.aimedSize = {
             width,
             height
         };
@@ -27,9 +32,6 @@ export default class Particle {
         this.id = this.data["Row ID"];
 
         this.shouldAnimate = false;
-        this.alpha = 1;
-        this.hover = false;
-        this.shape = "rect";
     }
 
     transitionTo(x, y, width, height, type) {
@@ -96,31 +98,15 @@ export default class Particle {
     }
 
     setSize(width, height) {
-        this.size.width = width;
-        this.size.height = height;
+        this.width = width;
+        this.height = height;
         return this;
     }
 
     setNewSize(width, height) {
-        this.newSize.width = width;
-        this.newSize.height = height;
+        this.aimedSize.width = width;
+        this.aimedSize.height = height;
         return this;
-    }
-
-    draw(graphics) {
-        graphics.lineStyle(2, 0x000000, 1);
-
-        if(this.hover){
-            graphics.beginFill(0x55AAAA, this.alpha);
-        } else {
-            graphics.beginFill(0x5555AA, this.alpha);
-        }
-
-        if (this.shape === "rect") {
-            graphics.drawRect(this.position.x, this.position.y+this.size.height, this.size.width, Math.abs(this.size.height));
-        } else {
-            graphics.drawCircle(this.position.x, this.position.y, this.size.width / 2);
-        }
     }
 
     addClickListener(stage) {

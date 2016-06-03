@@ -11,7 +11,7 @@ import UI from './ui';
 import Canvas from './canvas';
 import DataStore from './data-store';
 
-import {update as updateVisualization, initDatGui} from './dat-gui';
+import initDatGui from './dat-gui';
 
 /**
  * @method window.onload
@@ -25,28 +25,83 @@ window.onload = () => {
     let ui = window.ui = new UI();
     let canvas = window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
 
-    initDatGui(dataStore, ui, canvas);
+    initDatGui(dataStore, ui, canvas, window.updateScreen);
     // After import the dataset we now can update the dropboxes with the features
     UI.updateDropdown(dataStore.features, dataStore.currentSelection);
     UI.toggleFeatureDropdowns();
 
     addEventListener(dataStore, canvas);
-    updateVisualization(dataStore, canvas);
+    window.updateScreen();
+};
+
+let currentVisualization;
+window.updateScreen = () => {
+    let visualizationType = $("select.visualization").val();
+    if (currentVisualization &&
+        (currentVisualization.constructor.name === "DotMap" || currentVisualization.constructor.name === "ProportionalSymbolMap") &&
+        (visualizationType !== "dot" || visualizationType !== "psm")
+    ) {
+        currentVisualization.hide();
+    }
+
+    switch (visualizationType) {
+        case "barChart":
+            currentVisualization = canvas.drawBarChart(
+                dataStore.data,
+                dataStore.schema,
+                dataStore.currentSelection,
+                "Superstore"
+            );
+            break;
+
+        case "scatterPlot":
+            currentVisualization = canvas.drawScatterPlot(
+                dataStore,
+                "Superstore"
+            );
+            break;
+
+        case "dot":
+            currentVisualization = canvas.drawDotMap(
+                dataStore.data,
+                "Superstore"
+            );
+            currentVisualization.show();
+            break;
+
+        case "psm":
+            currentVisualization = canvas.drawProportionalSymbolMap(
+                dataStore.data,
+                "Superstore"
+            );
+            currentVisualization.show();
+            break;
+
+        case "overview":
+            currentVisualization = canvas.drawParticles(dataStore.data);
+            break;
+
+        default:
+            throw new Error(`Visualizationtype not working ("${visualizationType}")`);
+    }
+
+    window.viz = currentVisualization;
+    canvas.render();
 };
 
 function addEventListener(dataStore, canvas){
     $("select.feature-x").change(function () {
         dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
-        updateVisualization(dataStore, canvas);
+        window.updateScreen(dataStore, canvas);
     });
 
     $("select.feature-y").change(function () {
         dataStore.currentSelection.y = $(this).children(":selected")[0].innerHTML;
-        updateVisualization(dataStore, canvas);
+        window.updateScreen(dataStore, canvas);
     });
 
     $("select.visualization").change(function () {
         UI.toggleFeatureDropdowns();
-        updateVisualization(dataStore, canvas);
+        window.updateScreen(dataStore, canvas);
     });
 }

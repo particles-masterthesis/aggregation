@@ -6,7 +6,7 @@ export default class DataStore {
         this.schema = {};
         this.useSubset = true;
 
-        this.sizeOfSubset = 1;
+        this.sizeOfSubset = 5;
 
         this.currentSelection = {
             x: null,

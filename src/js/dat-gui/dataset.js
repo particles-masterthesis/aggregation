@@ -3,14 +3,14 @@ export default function(dataStore, ui, canvas, update){
 
     folderDataSet.add(dataStore, "useSubset").onChange(() => {
         dataStore.createSubset();
-        canvas.reset();
-        update(dataStore, canvas);
+        canvas.removeParticles();
+        update();
     });
     folderDataSet.add(dataStore, 'sizeOfSubset', 1, 3000).onChange(() => {
         dataStore.sizeOfSubset = Math.floor(dataStore.sizeOfSubset);
         dataStore.createSubset();
-        canvas.reset();
-        update(dataStore, canvas);
+        canvas.removeParticles();
+        update();
     });
 
     folderDataSet.open();

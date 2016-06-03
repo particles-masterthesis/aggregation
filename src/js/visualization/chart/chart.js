@@ -5,8 +5,8 @@ export default class Chart extends Visualization {
     /**
      * @param container
      */
-    constructor(stage){
-        super(stage);
+    constructor(width, height){
+        super(width, height);
     }
 
     /**
@@ -21,7 +21,7 @@ export default class Chart extends Visualization {
         xLabel.anchor = new PIXI.Point(0.5, 0.5);
         xLabel.x = this.width/2;
         xLabel.y = this.height - 20;
-        this.stage.addChild(xLabel);
+        this.addChild(xLabel);
 
         const yLabel = new PIXI.Text(features.y, {
             font: "14px Arial"
@@ -30,7 +30,7 @@ export default class Chart extends Visualization {
         yLabel.x = 20;
         yLabel.y = this.height / 2;
         yLabel.rotation = -Math.PI / 2;
-        this.stage.addChild(yLabel);
+        this.addChild(yLabel);
 
         const titleLabel = new PIXI.Text(title, {
             font: "16px Arial"
@@ -38,7 +38,7 @@ export default class Chart extends Visualization {
         titleLabel.anchor = new PIXI.Point(0.5, 0.5);
         titleLabel.x = this.width / 2;
         titleLabel.y = this.padding / 2;
-        this.stage.addChild(titleLabel);
+        this.addChild(titleLabel);
     }
 
     /**
@@ -56,6 +56,6 @@ export default class Chart extends Visualization {
         axes.lineTo(this.width - this.padding, this.height - this.padding);
         axes.lineTo(this.width - this.padding, this.height - this.padding + 10);
 
-        this.stage.addChild(axes);
+        this.addChild(axes);
     }
 }

@@ -8,8 +8,8 @@ export default class ScatterPlot extends Chart {
      * @param features
      * @param title
      */
-    constructor(stage, particles, dataStore, newParticles, title) {
-        super(stage);
+    constructor(width, height, particles, dataStore, newParticles, title) {
+        super(width, height);
 
         let boundaries = this.getBoundaries(dataStore);
         this.nominalDict = {};
@@ -55,7 +55,7 @@ export default class ScatterPlot extends Chart {
 
         }
 
-        this.stage.addChild(ticks);
+        this.addChild(ticks);
     }
 
     /**
@@ -75,7 +75,7 @@ export default class ScatterPlot extends Chart {
         tickLabel.anchor = new PIXI.Point(0, 0.5);
         tickLabel.rotation = Math.PI / 4;
 
-        this.stage.addChild(tickLabel);
+        this.addChild(tickLabel);
 
         ticks.moveTo(this.padding + x, this.padding + this.heightVisualization);
         ticks.lineTo(this.padding + x, this.padding + this.heightVisualization + 8);
@@ -95,7 +95,7 @@ export default class ScatterPlot extends Chart {
         tickLabel.x = this.padding - 10;
         tickLabel.y = this.padding + y;
         tickLabel.rotation = Math.PI / 4;
-        this.stage.addChild(tickLabel);
+        this.addChild(tickLabel);
 
         ticks.moveTo(this.padding, this.padding + y);
         ticks.lineTo(this.padding - 8, this.padding + y);

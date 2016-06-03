@@ -8,8 +8,8 @@ export default class BarChart extends Chart {
      * @param features
      * @param title
      */
-    constructor(stage, particles, schema, xyFeatures, useParticles, newParticles, title) {
-        super(stage);
+    constructor(width, height, particles, schema, xyFeatures, useParticles, newParticles, title) {
+        super(width, height);
 
         this.marginParticle = 2;
 
@@ -138,13 +138,13 @@ export default class BarChart extends Chart {
             tickLabel.y = this.padding + this.heightVisualization + 16;
             tickLabel.anchor = new PIXI.Point(0, 0.5);
             tickLabel.rotation = Math.PI / 4;
-            this.stage.addChild(tickLabel);
+            this.addChild(tickLabel);
 
             ticks.moveTo(this.padding + x, this.padding + this.heightVisualization);
             ticks.lineTo(this.padding + x, this.padding + this.heightVisualization + 8);
         }
 
-        this.stage.addChild(ticks);
+        this.addChild(ticks);
     }
 
     addTicksY(height, maxAppearance) {
@@ -178,7 +178,7 @@ export default class BarChart extends Chart {
             tickLabel.anchor = new PIXI.Point(1, 0.5);
             tickLabel.x = this.padding - 10;
             tickLabel.y = this.padding + y;
-            this.stage.addChild(tickLabel);
+            this.addChild(tickLabel);
 
             ticks.moveTo(this.padding, this.padding + y);
             ticks.lineTo(this.padding - 8, this.padding + y);
@@ -186,7 +186,7 @@ export default class BarChart extends Chart {
             y -= pxStepY;
         }
 
-        this.stage.addChild(ticks);
+        this.addChild(ticks);
     }
 
     /**
@@ -212,7 +212,7 @@ export default class BarChart extends Chart {
             items.drawRect(this.padding + this.marginBar + widthBar * i, this.heightVisualization + this.padding, widthBarExlusiveMargin, -height);
         }
 
-        this.stage.addChild(items);
+        this.addChild(items);
     }
 
     /**

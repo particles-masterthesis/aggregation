@@ -9,6 +9,7 @@ export default class ChoroplethMap extends BaseMap {
         this.colorScheme = colorScheme;
 
         this.drawChoropleth();
+        this.drawLegend();
     }
 
     drawChoropleth(){
@@ -27,14 +28,45 @@ export default class ChoroplethMap extends BaseMap {
         }
     }
 
+    drawLegend(){
+
+        let map = this.baseMap;
+        let values = [0, 2, 4, 8, 16, 32, 64, 128, 256];
+        let width = 40, height = 20;
+
+        if (typeof this.legend !== 'undefined') return;
+
+        this.legend = map.svg.append("g")
+        .attr("id", "choropleth-legend");
+
+        let legend = this.legend.selectAll("g.legend")
+        .data(values)
+        .enter().append("g")
+        .attr("class", "legend");
+
+        legend.append("rect")
+        .attr("x", 20)
+        .attr("y", (d, i) => { return i * height; })
+        .attr("width", width)
+        .attr("height", height)
+        .attr('class', (d, i) => { return `q${i}-9`; });
+
+        legend.append("text")
+        .attr("x", width * 2.5)
+        .attr("y", (d, i) => { return (i * height) + height - 5; })
+        .text((d, i) => { return `${values[i]} Bestellungen`; });
+
+    }
+
     removeChoropleth(){
         if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
         if (typeof this.states !== 'undefined') this.removeSvgElement('states');
+        if (typeof this.legend !== 'undefined') this.removeSvgElement('legend');
+        this.baseMap.svg.attr('class', 'Empty');
     }
 
     removeSvgElement(element){
         this.baseMap._d3.selectAll(`#choropleth-${element}`).remove();
-        this.baseMap.svg.attr('class', 'Empty');
         this[element] = undefined;
     }
 
@@ -43,8 +75,9 @@ export default class ChoroplethMap extends BaseMap {
         this.levelOfDetail = levelOfDetail;
         this.colorScheme = colorScheme;
         super.updateBaseMap(levelOfDetail);
-        this.drawChoropleth();
         this.baseMap.svg.attr('class', this.colorScheme);
+        this.drawChoropleth();
+        this.drawLegend();
     }
 
     draw(id){
@@ -66,3 +99,13 @@ export default class ChoroplethMap extends BaseMap {
     }
 
 }
+
+// 0
+// 2
+// 4
+// 8
+// 16
+// 32
+// 64
+// 128
+// 256

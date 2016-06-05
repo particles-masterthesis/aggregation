@@ -8,6 +8,7 @@ export default class Overview extends Visualization {
      */
     constructor(width, height, particles, newParticles) {
         super(width, height);
+
         this.draw(particles, newParticles);
     }
 
@@ -24,7 +25,7 @@ export default class Overview extends Visualization {
         let size = this.widthVisualization / particlesPerRow;
         size = Math.min(this.heightVisualization, this.widthVisualization, size);
 
-        let x, y = this.heightVisualization + this.padding, particlesRowCounter = 0, particleNumberInRow = 0;
+        let x, y = this.heightVisualization + this.padding - size, particlesRowCounter = 0, particleNumberInRow = 0;
         let transitionType = $("select.transition").val();
 
         for (let i = 0; i < particles.length; i++) {
@@ -34,9 +35,9 @@ export default class Overview extends Visualization {
             particles[i].alpha = 1;
 
             if (newParticles) {
-                particles[i].setPosition(x, y).setSize(size-3, -size+3);
+                particles[i].setPosition(x, y).setSize(size, size);
             } else {
-                particles[i].transitionTo(x,y, size-3, -size+3, transitionType);
+                particles[i].transitionTo(x,y, size, size, transitionType);
             }
 
             if (particleNumberInRow === particlesPerRow - 1) {

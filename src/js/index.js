@@ -36,6 +36,8 @@ window.onload = () => {
 
 let currentVisualization;
 window.updateScreen = () => {
+    canvas.stop();
+
     let visualizationType = $("select.visualization").val();
     if (currentVisualization &&
         (currentVisualization.constructor.name === "DotMap" || currentVisualization.constructor.name === "ProportionalSymbolMap") &&
@@ -92,16 +94,19 @@ window.updateScreen = () => {
 function addEventListener(dataStore, canvas){
     $("select.feature-x").change(function () {
         dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
+        canvas.removeVisualization();
         window.updateScreen(dataStore, canvas);
     });
 
     $("select.feature-y").change(function () {
         dataStore.currentSelection.y = $(this).children(":selected")[0].innerHTML;
+        canvas.removeVisualization();
         window.updateScreen(dataStore, canvas);
     });
 
     $("select.visualization").change(function () {
         UI.toggleFeatureDropdowns();
+        canvas.removeVisualization();
         window.updateScreen(dataStore, canvas);
     });
 }

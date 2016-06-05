@@ -19,8 +19,8 @@ export default class Chart extends Visualization {
             font: "14px Arial"
         });
         xLabel.anchor = new PIXI.Point(0.5, 0.5);
-        xLabel.x = this.width/2;
-        xLabel.y = this.height - 20;
+        xLabel.x = this._width/2;
+        xLabel.y = this._height - 20;
         this.addChild(xLabel);
 
         const yLabel = new PIXI.Text(features.y, {
@@ -28,7 +28,7 @@ export default class Chart extends Visualization {
         });
         yLabel.anchor = new PIXI.Point(0.5, 0.5);
         yLabel.x = 20;
-        yLabel.y = this.height / 2;
+        yLabel.y = this._height / 2;
         yLabel.rotation = -Math.PI / 2;
         this.addChild(yLabel);
 
@@ -36,7 +36,7 @@ export default class Chart extends Visualization {
             font: "16px Arial"
         });
         titleLabel.anchor = new PIXI.Point(0.5, 0.5);
-        titleLabel.x = this.width / 2;
+        titleLabel.x = this._width / 2;
         titleLabel.y = this.padding / 2;
         this.addChild(titleLabel);
     }
@@ -50,11 +50,11 @@ export default class Chart extends Visualization {
 
         axes.moveTo(this.padding - 10, this.padding);
         axes.lineTo(this.padding, this.padding);
-        axes.lineTo(this.padding, this.height - this.padding + 10);
+        axes.lineTo(this.padding, this.heightVisualization + this.padding + 10);
 
-        axes.moveTo(this.padding - 10, this.height - this.padding);
-        axes.lineTo(this.width - this.padding, this.height - this.padding);
-        axes.lineTo(this.width - this.padding, this.height - this.padding + 10);
+        axes.moveTo(this.padding - 10, this.heightVisualization + this.padding);
+        axes.lineTo(this.widthVisualization + this.padding, this.heightVisualization + this.padding);
+        axes.lineTo(this.widthVisualization + this.padding, this.heightVisualization + this.padding + 10);
 
         this.addChild(axes);
     }

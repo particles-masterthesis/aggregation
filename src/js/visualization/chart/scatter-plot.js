@@ -196,9 +196,9 @@ export default class ScatterPlot extends Chart {
                     particles[i].alpha = 1;
 
                     if (newParticles) {
-                        particles[i].setPosition(x + this.padding, this.height - this.padding - y).setSize(size, size);
+                        particles[i].setPosition(x + this.padding, this.heightVisualization + this.padding - y).setSize(size, size);
                     } else {
-                        particles[i].transitionTo(x + this.padding, this.height - this.padding - y, size, size, transitionType);
+                        particles[i].transitionTo(x + this.padding, this.heightVisualization + this.padding - y, size, size, transitionType);
                     }
                 }
                 break;
@@ -252,9 +252,9 @@ export default class ScatterPlot extends Chart {
                     particles[i].alpha = 1;
 
                     if (newParticles) {
-                        particles[i].setPosition(x + this.padding, this.height - this.padding - y).setSize(size, size);
+                        particles[i].setPosition(x + this.padding, this.heightVisualization + this.padding - y).setSize(size, size);
                     } else {
-                        particles[i].transitionTo(x + this.padding, this.height - this.padding - y, size, size, transitionType);
+                        particles[i].transitionTo(x + this.padding, this.heightVisualization + this.padding - y, size, size, transitionType);
                     }
                 }
                 break;

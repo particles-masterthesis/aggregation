@@ -10,14 +10,18 @@ export default class Particle extends PIXI.Sprite {
     // don't remove anything while rendering, because we sprites gets updated in their position - thats enough
     // draw sprites and not rectangles
 
-    constructor(texture, data, x, y, width, height) {
+    constructor(texture, textureHover, data, x, y, width, height) {
         // call constructor of parent class
         super(texture);
+
+        this.textureDefault = texture;
+        this.textureHover = textureHover;
 
         // Attributes of the parent class
         this.position = new PIXI.Point(x, y);
         this.width = width;
         this.height = height;
+        this.margin = 1;
 
         // Attributes
         // 2px every 1/60 second seem to be a good value
@@ -32,6 +36,8 @@ export default class Particle extends PIXI.Sprite {
         this.id = this.data["Row ID"];
 
         this.shouldAnimate = false;
+
+        this.addClickListener();
     }
 
     transitionTo(x, y, width, height, type) {
@@ -77,8 +83,8 @@ export default class Particle extends PIXI.Sprite {
                 //console.log("POSITION", this.position, "DESTINATION", this.destination);
             }
 
-            if (!this.size.equals(this.newSize.width, this.newSize.height)) {
-                this.setSize(this.newSize.width, this.newSize.height);
+            if (this._width != this.aimedSize.width || this._height != this.aimedSize.height) {
+                this.setSize(this.aimedSize.width, this.aimedSize.height);
             }
 
             if (this.position.equals(this.destination)) {
@@ -98,8 +104,8 @@ export default class Particle extends PIXI.Sprite {
     }
 
     setSize(width, height) {
-        this.width = width;
-        this.height = height;
+        this.width = width-this.margin;
+        this.height = height-this.margin;
         return this;
     }
 
@@ -110,26 +116,16 @@ export default class Particle extends PIXI.Sprite {
     }
 
     addClickListener(stage) {
-        var shape = new PIXI.Graphics();
-        shape.interactive = true;
-        shape.buttonMode = true;
-        shape.hitArea = new PIXI.Rectangle(this.position.x, this.position.y+this.size.height, this.size.width, Math.abs(this.size.height));
+        this.interactive = true;
+        this.buttonMode = true;
 
-        shape.mouseover = function (ev) {
-            console.log("over", this.id);
-            this.hover = true;
-        }.bind(this);
+        this.on("mouseover", function (ev) {
+            this.texture = this.textureHover;
+        }.bind(this));
 
-        shape.mouseout = function (ev) {
-            console.log("out", this.id);
-            this.hover = false;
-        }.bind(this);
-
-        shape.click = function (ev) {
-            console.log(this.id);
-        }.bind(this);
-
-        stage.addChild(shape);
+        this.on("mouseout", function (ev) {
+            this.texture = this.textureDefault;
+        }.bind(this));
     }
 
 }

@@ -4,6 +4,7 @@ export default function(dataStore, ui, canvas, update){
 
     folderBarChart.add(canvas, "barChartParticles").onChange(() => {
         canvas.removeParticles();
+        canvas.removeVisualization();
         update(dataStore, canvas);
     });
 

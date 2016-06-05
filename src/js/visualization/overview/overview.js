@@ -1,55 +1,43 @@
-/* jshint esversion: 6 */
-
 import Visualization from "./../visualization";
 import Particle from "../particle";
 
-export default class ParticlesContainer extends Visualization {
+export default class Overview extends Visualization {
 
     /**
      * @param container
      */
-    constructor(stage) {
-        super(stage);
-        this.particles = [];
+    constructor(width, height, particles, newParticles) {
+        super(width, height);
+
+        this.draw(particles, newParticles);
     }
 
-    createParticles(dataset){
-        this.particles = [];
-        for (let i = 0; i < dataset.length; i++) {
-            this.particles.push(new Particle(dataset[i], 0, 0, 0, 0));
-        }
-    }
-
-    reset(){
-        this.particles = [];
-    }
-
-    draw(newParticles) {
+    draw(particles, newParticles) {
         // Calculate the size of a particle
         let availableAreaHighestBar = this.heightVisualization * this.widthVisualization;
-        let areaEveryParticle = availableAreaHighestBar / this.particles.length;
+        let areaEveryParticle = availableAreaHighestBar / particles.length;
         let sizeEveryParticle = Math.sqrt(areaEveryParticle);
 
         // Except for integers we want to make the particles smaller
         // Example particlesPerRow = 3.5, so we need to create at least 4 particles per row
         let particlesPerRow = Math.floor(this.widthVisualization / sizeEveryParticle);
-        particlesPerRow = this.particles.length === 1 ? 1 : ++particlesPerRow;
+        particlesPerRow = particles.length === 1 ? 1 : ++particlesPerRow;
         let size = this.widthVisualization / particlesPerRow;
         size = Math.min(this.heightVisualization, this.widthVisualization, size);
 
-        let x, y = this.heightVisualization + this.padding, particlesRowCounter = 0, particleNumberInRow = 0;
+        let x, y = this.heightVisualization + this.padding - size, particlesRowCounter = 0, particleNumberInRow = 0;
         let transitionType = $("select.transition").val();
 
-        for (let i = 0; i < this.particles.length; i++) {
+        for (let i = 0; i < particles.length; i++) {
             particleNumberInRow = particlesRowCounter++ % particlesPerRow;
             x = size * particleNumberInRow + this.padding;
 
-            this.particles[i].alpha = 1;
+            particles[i].alpha = 1;
 
             if (newParticles) {
-                this.particles[i].setPosition(x, y).setSize(size-3, -size+3);
+                particles[i].setPosition(x, y).setSize(size, size);
             } else {
-                this.particles[i].transitionTo(x,y, size-3, -size+3, transitionType);
+                particles[i].transitionTo(x,y, size, size, transitionType);
             }
 
             if (particleNumberInRow === particlesPerRow - 1) {

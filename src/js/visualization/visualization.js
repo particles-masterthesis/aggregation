@@ -1,24 +1,15 @@
-/* jshint esversion: 6 */
+import "pixi.js";
 
-export default class Visualization {
+export default class Visualization extends PIXI.Container{
 
-    /**
-     * @param container
-     */
-    constructor(stage){
+    constructor(width, height){
+        super();
+
         this.padding = 120;
-        this.width = stage._width;
-        this.height = stage._height;
-        this.heightVisualization = this.height - this.padding*2;
-        this.widthVisualization = this.width - this.padding*2;
-        this.stage = stage;
-    }
-
-    /**
-     * Resets the drawn diagram
-     */
-    reset() {
-        this.stage.removeChildren();
+        this.width = width;
+        this.height = height;
+        this.heightVisualization = this._height - this.padding*2;
+        this.widthVisualization = this._width - this.padding*2;
     }
 
 }

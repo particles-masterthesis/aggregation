@@ -34,7 +34,7 @@
     "lint": "jshint --config .jshintrc --verbose --reporter=node_modules/jshint-summary/lib/summary src/js",
     "prebuild:js": "npm run lint &> /dev/null",
     "postbuild:js": "npm test",
-    "serve": "browser-sync start --server --port 3000 --index './index.html' --files './dist'",
+    "serve": "browser-sync start --server --port 3000 --index './index.html' --files './dist' --browser 'chromium-browser'",
     "test": "#karma start karma.conf.js --singleRun",
     "watch": "npm run watch:js & npm run watch:lint:js & npm run watch:css & npm run watch:img & npm run watch:markup",
     "watch:js": "watchify -v -t babelify 'src/js' -o dist/main.js --debug --verbose",

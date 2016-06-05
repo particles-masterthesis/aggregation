@@ -1,34 +1,36 @@
-/* jshint esversion: 6 */
-
 import Visualization from "./visualization";
+import "pixi.js";
 
-export default class Particle {
+export default class Particle extends PIXI.Sprite {
 
-    constructor(data, x, y, width, height) {
+    constructor(texture, textureHover, data, x, y, width, height) {
+        // call constructor of parent class
+        super(texture);
+
+        this.textureDefault = texture;
+        this.textureHover = textureHover;
+
+        // Attributes of the parent class
         this.position = new PIXI.Point(x, y);
-        this.destination = new PIXI.Point(x, y);
+        this.width = width;
+        this.height = height;
+        this.margin = 1;
 
+        // Attributes
         // 2px every 1/60 second seem to be a good value
-        this.speed = 3;
-
-        this.size = {
-            width,
-            height,
-            equals: function (width, height) {
-                return this.width === width && this.height === height;
-            }
-        };
-        this.newSize = {
+        this.speed = 2;
+        this.destination = new PIXI.Point(x, y);
+        this.aimedSize = {
             width,
             height
         };
 
         this.data = data;
         this.id = this.data["Row ID"];
-        this.shouldAnimate = false;
-        this.alpha = 1;
 
-        this.shape = "rect";
+        this.shouldAnimate = false;
+
+        this.addClickListener();
     }
 
     transitionTo(x, y, width, height, type) {
@@ -74,8 +76,8 @@ export default class Particle {
                 //console.log("POSITION", this.position, "DESTINATION", this.destination);
             }
 
-            if (!this.size.equals(this.newSize.width, this.newSize.height)) {
-                this.setSize(this.newSize.width, this.newSize.height);
+            if (this._width != this.aimedSize.width || this._height != this.aimedSize.height) {
+                this.setSize(this.aimedSize.width, this.aimedSize.height);
             }
 
             if (this.position.equals(this.destination)) {
@@ -95,25 +97,28 @@ export default class Particle {
     }
 
     setSize(width, height) {
-        this.size.width = width;
-        this.size.height = height;
+        this.width = width-this.margin;
+        this.height = height-this.margin;
         return this;
     }
 
     setNewSize(width, height) {
-        this.newSize.width = width;
-        this.newSize.height = height;
+        this.aimedSize.width = width;
+        this.aimedSize.height = height;
         return this;
     }
 
-    draw(graphics) {
-        graphics.beginFill(0x5555AA, this.alpha);
+    addClickListener(stage) {
+        this.interactive = true;
+        this.buttonMode = true;
 
-        if (this.shape === "rect") {
-            graphics.drawRect(this.position.x, this.position.y, this.size.width, this.size.height);
-        } else {
-            graphics.drawCircle(this.position.x, this.position.y, this.size.width / 2);
-        }
+        this.on("mouseover", function (ev) {
+            this.texture = this.textureHover;
+        }.bind(this));
+
+        this.on("mouseout", function (ev) {
+            this.texture = this.textureDefault;
+        }.bind(this));
     }
 
 }

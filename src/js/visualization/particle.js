@@ -34,6 +34,9 @@ export default class Particle extends PIXI.Sprite {
     }
 
     transitionTo(x, y, width, height, type) {
+
+        console.log(arguments);
+
         switch (type) {
             case "none":
                 this.shouldAnimate = false;
@@ -41,10 +44,10 @@ export default class Particle extends PIXI.Sprite {
                 this.setSize(width, height);
                 break;
 
-            case "direct":
+            case "linear":
                 this.shouldAnimate = true;
                 this.setDestination(x, y);
-                this.setNewSize(width, height);
+                this.setAimedSize(width, height);
                 break;
 
             default:
@@ -63,7 +66,6 @@ export default class Particle extends PIXI.Sprite {
             let deltaX = this.destination.x - this.position.x;
             let deltaY = this.destination.y - this.position.y;
             let distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
-
             //console.log("DELTAX", deltaX, "DELTAY", deltaY, "DISTANCE", distance);
 
             if (distance <= this.speed) {
@@ -71,17 +73,22 @@ export default class Particle extends PIXI.Sprite {
             } else {
                 let ratio = this.speed / distance;
                 //console.log("SPEED", this.speed, "DISTANCE", distance, "RATIO", ratio);
-                this.position.set(this.position.x + deltaX * ratio, this.position.y + deltaY * ratio);
 
+                this.position.set(this.position.x + deltaX * ratio, this.position.y + deltaY * ratio);
                 //console.log("POSITION", this.position, "DESTINATION", this.destination);
             }
+        }
 
-            if (this._width != this.aimedSize.width || this._height != this.aimedSize.height) {
+
+        if (this._width != this.aimedSize.width || this._height != this.aimedSize.height) {
+            if (Math.abs(this._width - this.aimedSize.width) < this.speed*3/4) {
                 this.setSize(this.aimedSize.width, this.aimedSize.height);
             }
-
-            if (this.position.equals(this.destination)) {
-                this.shouldAnimate = false;
+            else if (this.aimedSize.width > this._width) {
+                this.setSize(this._width + this.speed*3/4, this._height + this.speed*3/4);
+            }
+            else {
+                this.setSize(this._width - this.speed*3/4, this._height - this.speed*3/4);
             }
         }
     }
@@ -97,12 +104,17 @@ export default class Particle extends PIXI.Sprite {
     }
 
     setSize(width, height) {
-        this.width = width-this.margin;
-        this.height = height-this.margin;
+        this.width = width;
+        this.height = height;
+
+        //because we want to have always a margin around the particle
+        this.width = this._width - this.margin;
+        this.height = this._height - this.margin;
+
         return this;
     }
 
-    setNewSize(width, height) {
+    setAimedSize(width, height) {
         this.aimedSize.width = width;
         this.aimedSize.height = height;
         return this;

@@ -15,10 +15,12 @@ export default class BarChart extends Chart {
 
         if (useParticles) {
             let {size, particlesPerRow} = this.addItems(particles, xyFeatures.x, uniqueValues, maxAppearance, newParticles);
-            this.addTicksY(size, maxAppearance, particlesPerRow);
+
 
             let itemsToAdd = maxAppearance % particlesPerRow > 0 ? particlesPerRow-maxAppearance % particlesPerRow : 0;
             let heightYAxis = this.padding + this.heightVisualization - size * (maxAppearance + itemsToAdd) / particlesPerRow;
+
+            this.addTicksY(size, maxAppearance+itemsToAdd, particlesPerRow);
             this.addAxes("barChart", heightYAxis);
             this.addLabels({"x": xyFeatures.x, "y": "Amount"}, title, heightYAxis);
         } else {
@@ -149,19 +151,20 @@ export default class BarChart extends Chart {
         this.addChild(ticks);
     }
 
-    addTicksY(height, maxAppearance, particlesPerRow) {
+    addTicksY(size, maxAppearance, particlesPerRow) {
         const ticks = new PIXI.Graphics();
         ticks.lineStyle(1, 0x111111, 1);
 
         let y = this.heightVisualization + this.padding;
-        let pxStepY = height;
-        while (pxStepY < 60) {
-            pxStepY += height;
+        let pxStepY = size;
+        while (pxStepY < 50) {
+            pxStepY += size;
         }
 
-        while (y >= this.heightVisualization + this.padding - height * maxAppearance / particlesPerRow) {
-            const text = Math.abs(this.heightVisualization + this.padding - y) / height * particlesPerRow;
-            const tickLabel = new PIXI.Text(Math.round(text), {
+        let endPointTicksY = this.heightVisualization + this.padding - size * maxAppearance / particlesPerRow;
+        while (y >= endPointTicksY) {
+            const text = Math.round(Math.abs(this.heightVisualization + this.padding - y) / size * particlesPerRow);
+            const tickLabel = new PIXI.Text(text, {
                 font: "12px Arial"
             });
             tickLabel.anchor = new PIXI.Point(1, 0.5);

@@ -8,6 +8,8 @@ export default class ChoroplethMap extends BaseMap {
         this.levelOfDetail = levelOfDetail;
         this.colorScheme = colorScheme;
 
+        super.show(true, true);
+
         this.drawChoropleth();
         this.drawLegend();
     }
@@ -58,11 +60,11 @@ export default class ChoroplethMap extends BaseMap {
 
     }
 
-    removeChoropleth(){
+    removeAllDomNodes(){
         if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
         if (typeof this.states !== 'undefined') this.removeSvgElement('states');
         if (typeof this.legend !== 'undefined') this.removeSvgElement('legend');
-        this.baseMap.svg.attr('class', 'Empty');
+        this.baseMap.reset();
     }
 
     removeSvgElement(element){

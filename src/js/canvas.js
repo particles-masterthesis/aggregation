@@ -10,6 +10,7 @@ import BarChart from "./visualization/chart/bar-chart";
 import DotMap from "./visualization/map/dot-map";
 import ProportionalSymbolMap from "./visualization/map/proportional-symbol-map";
 import ChoroplethMap from "./visualization/map/choropleth-map";
+import Cartogram from "./visualization/map/cartogram";
 
 export default class Canvas {
 
@@ -143,6 +144,23 @@ export default class Canvas {
             this.particlesContainer.particles,
             this.levelOfDetail,
             this.colorScheme
+        );
+        return this.currentVisualization;
+    }
+
+    drawCartogram(dataStore, isCurrentVisualization){
+        if(isCurrentVisualization){
+            this.currentVisualization.update(this.levelOfDetail);
+            return this.currentVisualization;
+        }
+
+        this.reset();
+        let container = this.addVisualization(this.width, this.height, new PIXI.Point(0,0));
+        this.createParticles(dataStore.data);
+        this.currentVisualization = new Cartogram(
+            container,
+            this.particlesContainer.particles,
+            this.levelOfDetail
         );
         return this.currentVisualization;
     }

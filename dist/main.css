@@ -10780,6 +10780,11 @@ svg .bubble {
   stroke: #fff;
   stroke-width: 0.5px;
 }
+svg .rect {
+  fill: #d3d3d3;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
 svg .legend circle {
   fill: none;
   stroke: #ccc;
@@ -10789,6 +10794,11 @@ svg .legend text {
   font: 10px sans-serif;
   text-anchor: middle;
 }
-.Empty .country {
+svg.default .country {
   fill: #d3d3d3;
+}
+svg.hideMap .country,
+svg.hideMap #states,
+svg.hideMap #counties {
+  visibility: hidden;
 }

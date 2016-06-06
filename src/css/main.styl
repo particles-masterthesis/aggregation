@@ -50,6 +50,11 @@ svg
         stroke #fff
         stroke-width .5px
 
+    .rect
+        fill lightgrey
+        stroke #000
+        stroke-width 1.5px
+
     .legend circle
         fill none
         stroke #ccc
@@ -59,5 +64,10 @@ svg
         font 10px sans-serif
         text-anchor middle
 
-.Empty .country
+svg.default .country
     fill lightgrey
+
+svg.hideMap .country
+svg.hideMap #states
+svg.hideMap #counties
+    visibility hidden

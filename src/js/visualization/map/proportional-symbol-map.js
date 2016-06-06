@@ -1,4 +1,3 @@
-import topojson from  'topojson';
 import BaseMap from "./base-map";
 
 
@@ -9,6 +8,8 @@ export default class ProportionalSymbolMap extends BaseMap {
         this.particles = particles;
         this.levelOfDetail = levelOfDetail;
         this.data = dataStore.dataset;
+
+        super.show(true, true);
 
         this.drawSymbols();
         this.drawLegend();
@@ -38,7 +39,7 @@ export default class ProportionalSymbolMap extends BaseMap {
         .attr("class", "bubble")
         .selectAll("circle")
         .data(
-            topojson.feature(map.data.us, map.data.us.objects[id]).features
+            map._topojson.feature(map.data.us, map.data.us.objects[id]).features
             .sort(function(a, b) {
                 return (b.properties.orders || 0) - (a.properties.orders || 0);
             })
@@ -62,7 +63,7 @@ export default class ProportionalSymbolMap extends BaseMap {
         this.drawLegend();
     }
 
-    removeSymbols(){
+    removeAllDomNodes(){
         if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
         if (typeof this.states !== 'undefined') this.removeSvgElement('states');
         if (typeof this.legend !== 'undefined') this.removeSvgElement('legend');

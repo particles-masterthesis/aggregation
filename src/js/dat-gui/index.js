@@ -3,8 +3,9 @@ import baseMapGui from './base-map';
 import datasetGui from './dataset';
 import choroplethMapGui from './choropleth-map';
 
-var currentVisualization = {};
+// latest visualization in [0]
 var visualizationHistory = [];
+var currentVisualization = {};
 /**
  * @method updateVisualization
  * @description receive the range, reset the canvas, add axes, labels, ticks and items and render it
@@ -12,45 +13,26 @@ var visualizationHistory = [];
 export function update(dataStore, canvas) {
     canvas.stop();
 
-    let visualizationType = $("select.visualization").val();
+    let upcomingVisualizationType = $("select.visualization").val();
 
-    let currentVisualizationIsEmpty = Object.keys(currentVisualization).length === 0;
-    let currentVisualizationIsMap = typeof ["DotMap", "ProportionalSymbolMap", "ChoroplethMap"].find(
-            name => name === currentVisualization.constructor.name
-        ) === 'string';
-    let visualizationTypeIsMap = typeof ["dot", "psm", "choropleth"].find(
-            type => type === visualizationType
-        ) === 'string';
 
-    if (
-        !currentVisualizationIsEmpty &&
-        !visualizationTypeIsMap &&
-        currentVisualizationIsMap
-    ) {
-        currentVisualization.hide();
+    // if there was previous visualization
+    if(visualizationHistory.length){
+        // check if it was anything with maps
+        // and if the new visualization is another type than the last one
+        let mapTypesWithDomNodes = ['dot', 'psm', 'choropleth', 'cartogram'];
         if(
-            visualizationHistory[visualizationHistory.length-1].type === 'psm'
+            mapTypesWithDomNodes.indexOf(visualizationHistory[0].type) > -1 &&
+            visualizationHistory[0].type !== upcomingVisualizationType
         ){
-            currentVisualization.removeSymbols();
-        } else if (
-            visualizationHistory[visualizationHistory.length-1].type === 'choropleth'
-        ) {
-            currentVisualization.removeChoropleth();
+            // remove all dom nodes
+            visualizationHistory[0].obj.removeAllDomNodes();
+            // hide svg and map
+            visualizationHistory[0].obj.hide(true, true);
         }
-
-    } else if (
-        !currentVisualizationIsEmpty &&
-        visualizationHistory[visualizationHistory.length-1].type === 'psm'
-    ) {
-        currentVisualization.removeSymbols();
-    } else if (
-        !currentVisualizationIsEmpty &&
-        visualizationHistory[visualizationHistory.length-1].type === 'choropleth'
-    ) {
-        currentVisualization.removeChoropleth();
     }
 
-    switch (visualizationType) {
+    switch (upcomingVisualizationType) {
         case "barChart":
             currentVisualization = canvas.drawBarChart(
                 dataStore.data,
@@ -58,7 +40,7 @@ export function update(dataStore, canvas) {
                 dataStore.currentSelection,
                 "Superstore"
             );
-            visualizationHistory.push({
+            visualizationHistory.unshift({
                 'type': 'bar',
                 'obj': currentVisualization
             });
@@ -69,7 +51,7 @@ export function update(dataStore, canvas) {
                 dataStore,
                 "Superstore"
             );
-            visualizationHistory.push({
+            visualizationHistory.unshift({
                 'type': 'scatter',
                 'obj': currentVisualization
             });
@@ -80,11 +62,10 @@ export function update(dataStore, canvas) {
                 dataStore.data,
                 currentVisualization.constructor.name === "DotMap"
             );
-            visualizationHistory.push({
+            visualizationHistory.unshift({
                 'type': 'dot',
                 'obj': currentVisualization
             });
-            currentVisualization.show();
             break;
 
         case "psm":
@@ -92,11 +73,10 @@ export function update(dataStore, canvas) {
                 dataStore,
                 currentVisualization.constructor.name === "ProportionalSymbolMap"
             );
-            visualizationHistory.push({
+            visualizationHistory.unshift({
                 'type': 'psm',
                 'obj': currentVisualization
             });
-            currentVisualization.show();
             break;
 
         case "choropleth":
@@ -104,16 +84,26 @@ export function update(dataStore, canvas) {
                 dataStore,
                 currentVisualization.constructor.name === "ChoroplethMap"
             );
-            visualizationHistory.push({
+            visualizationHistory.unshift({
                 'type': 'choropleth',
                 'obj': currentVisualization
             });
-            currentVisualization.show();
+            break;
+
+        case "cartogram":
+            currentVisualization = canvas.drawCartogram(
+                dataStore,
+                currentVisualization.constructor.name === "Cartogram"
+            );
+            visualizationHistory.unshift({
+                'type': 'cartogram',
+                'obj': currentVisualization
+            });
             break;
 
         case "overview":
             currentVisualization = canvas.drawParticles(dataStore.data);
-            visualizationHistory.push({
+            visualizationHistory.unshift({
                 'type': 'overview',
                 'obj': currentVisualization
             });
@@ -123,7 +113,6 @@ export function update(dataStore, canvas) {
             throw new Error(`Visualizationtype not working ("${visualizationType}")`);
     }
 
-    window.viz = currentVisualization;
     canvas.render();
 }
 

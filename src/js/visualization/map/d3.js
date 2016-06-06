@@ -32,7 +32,7 @@ export default class D3 {
         this.svg = this._d3.select("body > svg");
         if (this.svg.empty()){
             this.svg = this._d3.select("body").append("svg")
-                .attr('class', 'Empty')
+                .attr('class', 'default')
                 .attr("width", this.width)
                 .attr("height", this.height);
         }
@@ -45,7 +45,6 @@ export default class D3 {
             async: false,
             success: (us) => {
                 this.data.us = us;
-                window.us = us;
 
                 let counties = topojson.feature(us, us.objects.counties).features;
                 let states = topojson.feature(us, us.objects.states).features;
@@ -154,12 +153,18 @@ export default class D3 {
         .attr("d", this.path);
     }
 
-    hide(){
-        this.svg.style('visibility', 'hidden');
+    hide(hideSvg, hideMap){
+        if(hideSvg) this.svg.style('visibility', 'hidden');
+        if(hideMap) this.svg.classed('hideMap', true);
     }
 
-    show(){
-        this.svg.style('visibility', 'visible');
+    show(showSvg, showMap){
+        if(showSvg) this.svg.style('visibility', 'visible');
+        if(showMap) this.svg.classed('hideMap', false);
+    }
+
+    reset(){
+        this.svg.attr('class', 'default');
     }
 
     getCountyIdentifier(d){

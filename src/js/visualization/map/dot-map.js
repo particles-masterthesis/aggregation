@@ -6,6 +6,7 @@ export default class DotMap extends BaseMap {
         super(container, levelOfDetail, true);
         this.particles = particles;
 
+        super.show(true, true);
         this.drawDots(this.particles);
     }
 
@@ -19,4 +20,6 @@ export default class DotMap extends BaseMap {
             particle.setPosition(point[0]-(size/2), point[1]-(size/2)).setSize(size, size);
         }
     }
+
+    removeAllDomNodes(){}
 }

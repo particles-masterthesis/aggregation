@@ -14,7 +14,7 @@ export default class Chart extends Visualization {
      * @param features
      * @param title
      */
-    addLabels(features, title = "Title") {
+    addLabels(features, title, heightYAxis) {
         const xLabel = new PIXI.Text(features.x, {
             font: "14px Arial"
         });
@@ -28,7 +28,7 @@ export default class Chart extends Visualization {
         });
         yLabel.anchor = new PIXI.Point(0.5, 0.5);
         yLabel.x = 20;
-        yLabel.y = this._height / 2;
+        yLabel.y = this.padding + this.heightVisualization - (this.padding + this.heightVisualization - heightYAxis) / 2;
         yLabel.rotation = -Math.PI / 2;
         this.addChild(yLabel);
 
@@ -44,14 +44,22 @@ export default class Chart extends Visualization {
     /**
      * Add the axes to the diagram
      */
-    addAxes() {
+    addAxes(type, heightYAxis) {
         const axes = new PIXI.Graphics();
         axes.lineStyle(1, 0x111111, 1);
 
-        axes.moveTo(this.padding - 10, this.padding);
-        axes.lineTo(this.padding, this.padding);
-        axes.lineTo(this.padding, this.heightVisualization + this.padding + 10);
+        // y axis
+        if(type === "barChart"){
+            axes.moveTo(this.padding, this.padding + this.heightVisualization);
+            axes.lineTo(this.padding, heightYAxis);
+            axes.lineTo(this.padding-10, heightYAxis);
+        } else {
+            axes.moveTo(this.padding - 10, this.padding);
+            axes.lineTo(this.padding, this.padding);
+            axes.lineTo(this.padding, this.heightVisualization + this.padding + 10);
+        }
 
+        // x axis
         axes.moveTo(this.padding - 10, this.heightVisualization + this.padding);
         axes.lineTo(this.widthVisualization + this.padding, this.heightVisualization + this.padding);
         axes.lineTo(this.widthVisualization + this.padding, this.heightVisualization + this.padding + 10);

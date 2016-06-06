@@ -16,6 +16,10 @@ export default class Canvas {
         this.levelOfDetail = 'country';
         this.requestFrameID = null;
 
+        this.particles = {
+            shape: "rectangle"
+        };
+
         this.height = window.innerHeight - 90; //windowH height - menu height - css-paddings
         this.width = window.innerWidth - 40; //windowH width - css-paddings
 
@@ -43,8 +47,17 @@ export default class Canvas {
 
     createParticles(dataset) {
         if (this.particlesContainer.children.length === 0) {
-            let texture = PIXI.Texture.fromImage("dist/img/particle.png");
-            let textureHover = PIXI.Texture.fromImage("dist/img/particle_hover.png");
+
+            let texture, textureHover;
+
+            if(this.particles.shape === "rectangle"){
+                texture = PIXI.Texture.fromImage("dist/img/particle.png");
+                textureHover = PIXI.Texture.fromImage("dist/img/particle_hover.png");
+            }else{
+                texture = PIXI.Texture.fromImage("dist/img/particle_circle.png");
+                textureHover = PIXI.Texture.fromImage("dist/img/particle_circle_hover.png");
+            }
+
             let callback = data => () => this.toggleDataRow(data);
 
             for (let i = 0; i < dataset.length; i++) {
@@ -94,7 +107,6 @@ export default class Canvas {
     }
 
     removeVisualization(){
-        console.log("remove", this.visualization);
         this.stage.removeChild(this.visualization);
     }
 

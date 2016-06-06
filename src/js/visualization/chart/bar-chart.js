@@ -11,20 +11,24 @@ export default class BarChart extends Chart {
     constructor(width, height, particles, schema, xyFeatures, useParticles, newParticles, title) {
         super(width, height);
 
-        this.addAxes();
-        this.addLabels({"x": xyFeatures.x, "y": "Amount"}, title);
-
         let {uniqueValues, maxAppearance} = this.analyzeFeature(particles, schema, xyFeatures.x);
 
         if (useParticles) {
-            let height = this.addItems(particles, xyFeatures.x, uniqueValues, maxAppearance, newParticles);
-            this.addTicksY(height, maxAppearance);
-            this.addTicksX(uniqueValues);
+            let {size, particlesPerRow} = this.addItems(particles, xyFeatures.x, uniqueValues, maxAppearance, newParticles);
+            this.addTicksY(size, maxAppearance, particlesPerRow);
+
+            let itemsToAdd = maxAppearance % particlesPerRow > 0 ? particlesPerRow-maxAppearance % particlesPerRow : 0;
+            let heightYAxis = this.padding + this.heightVisualization - size * (maxAppearance + itemsToAdd) / particlesPerRow;
+            this.addAxes("barChart", heightYAxis);
+            this.addLabels({"x": xyFeatures.x, "y": "Amount"}, title, heightYAxis);
         } else {
             this.addBars(particles, uniqueValues, maxAppearance);
             this.addTicksY(60, maxAppearance);
-            this.addTicksX(uniqueValues);
+            this.addAxes();
+            this.addLabels({"x": xyFeatures.x, "y": "Amount"}, title);
         }
+
+        this.addTicksX(uniqueValues);
     }
 
     /**
@@ -145,41 +149,28 @@ export default class BarChart extends Chart {
         this.addChild(ticks);
     }
 
-    addTicksY(height, maxAppearance) {
-
+    addTicksY(height, maxAppearance, particlesPerRow) {
         const ticks = new PIXI.Graphics();
         ticks.lineStyle(1, 0x111111, 1);
 
-        let pxStepY = this.heightVisualization / maxAppearance;
+        let y = this.heightVisualization + this.padding;
+        let pxStepY = height;
         while (pxStepY < 60) {
             pxStepY += height;
         }
 
-        if (pxStepY > 120) {
-            pxStepY = 120;
-        }
-
-        // We only need integer on the y axis
-        // Sometimes we don't need every 100 px a tick, because we have less
-        // appearances per unique nominal then possible ticks space available
-        if (maxAppearance < this.heightVisualization / pxStepY) {
-            pxStepY = this.heightVisualization / maxAppearance;
-        }
-
-        // Print ticks to the y axis
-        let y = maxAppearance.map(0, maxAppearance, 0, this.heightVisualization);
-        while (y >= 0) {
-            const text = y.map(0, this.heightVisualization, maxAppearance, 0);
+        while (y >= this.heightVisualization + this.padding - height * maxAppearance / particlesPerRow) {
+            const text = Math.abs(this.heightVisualization + this.padding - y) / height * particlesPerRow;
             const tickLabel = new PIXI.Text(Math.round(text), {
                 font: "12px Arial"
             });
             tickLabel.anchor = new PIXI.Point(1, 0.5);
             tickLabel.x = this.padding - 10;
-            tickLabel.y = this.padding + y;
+            tickLabel.y = y;
             this.addChild(tickLabel);
 
-            ticks.moveTo(this.padding, this.padding + y);
-            ticks.lineTo(this.padding - 8, this.padding + y);
+            ticks.moveTo(this.padding, y);
+            ticks.lineTo(this.padding - 8, y);
 
             y -= pxStepY;
         }
@@ -237,12 +228,7 @@ export default class BarChart extends Chart {
         // Example particlesPerRow = 3.5, so we need to create at least 4 particles per row
         let particlesPerRow = Math.floor(widthBarExclusiveMargin / sizeEveryParticle);
         particlesPerRow = maxAppearance === 1 ? 1 : ++particlesPerRow;
-        let width = widthBarExclusiveMargin / particlesPerRow;
-
-        // now we want to fill the area of the highest bar
-        let maxParticleHighestBar = maxAppearance + particlesPerRow - ((maxAppearance % particlesPerRow) || particlesPerRow);
-        let height = this.heightVisualization / (maxParticleHighestBar / particlesPerRow);
-        height = Math.min(this.heightVisualization, height);
+        let size = Math.min(widthBarExclusiveMargin / particlesPerRow, this.heightVisualization, this.widthVisualization);
 
         let x = null, y = null, uniqueValue = null;
         let transitionType = $("select.transition").val();
@@ -258,27 +244,29 @@ export default class BarChart extends Chart {
 
             particles[i].alpha = 1;
 
-            y = uniqueValues[uniqueValue].y || this.heightVisualization + this.padding - height;
+            y = uniqueValues[uniqueValue].y || this.heightVisualization + this.padding - size;
 
             uniqueValues[uniqueValue].particlesRowCounter = ++uniqueValues[uniqueValue].particlesRowCounter || 0;
             uniqueValues[uniqueValue].particleNumberInRow = uniqueValues[uniqueValue].particlesRowCounter % particlesPerRow;
 
-            x = this.padding + marginBar + width * uniqueValues[uniqueValue].particleNumberInRow + values.indexOf(uniqueValue) * widthAreaPerValue;
+            x = this.padding + marginBar + size * uniqueValues[uniqueValue].particleNumberInRow + values.indexOf(uniqueValue) * widthAreaPerValue;
 
-            let heightToDraw = height - particles[i].margin;
-            let widthToDraw = width - particles[i].margin;
+            let sizeToDraw = size - particles[i].margin;
 
             if (newParticles) {
-                particles[i].setPosition(x, y).setSize(widthToDraw, heightToDraw);
+                particles[i].setPosition(x, y).setSize(sizeToDraw, sizeToDraw);
             } else {
-                particles[i].transitionTo(x, y, widthToDraw, heightToDraw, transitionType);
+                particles[i].transitionTo(x, y, sizeToDraw, sizeToDraw, transitionType);
             }
 
             if (uniqueValues[uniqueValue].particleNumberInRow === particlesPerRow - 1) {
-                uniqueValues[uniqueValue].y = y - height;
+                uniqueValues[uniqueValue].y = y - size;
             }
         }
 
-        return height;
+        return {
+            size,
+            particlesPerRow
+        };
     }
 }

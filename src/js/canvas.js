@@ -1,19 +1,26 @@
 import "pixi.js";
 
-import DotMap from "./visualization/map/dot-map";
-import ProportionalSymbolMap from "./visualization/map/proportional-symbol-map";
 import {Stats} from 'stats.js';
+
+import ParticlesContainer from "./visualization/overview/overview";
+
+import Overview from "./visualization/overview/overview";
+import Particle from "./visualization/particle";
 
 import ScatterPlot from "./visualization/chart/scatter-plot";
 import BarChart from "./visualization/chart/bar-chart";
-import Overview from "./visualization/overview/overview";
-import Particle from "./visualization/particle";
+
+import DotMap from "./visualization/map/dot-map";
+import ProportionalSymbolMap from "./visualization/map/proportional-symbol-map";
+import ChoroplethMap from "./visualization/map/choropleth-map";
+import Cartogram from "./visualization/map/cartogram";
 
 export default class Canvas {
 
     constructor(dataset, features) {
         this.barChartParticles = true;
         this.levelOfDetail = 'country';
+        this.colorScheme = 'Oranges';
         this.requestFrameID = null;
 
         this.particles = {
@@ -77,6 +84,7 @@ export default class Canvas {
         }
     }
 
+
     toggleDataRow(data) {
         var table = document.getElementById("dataRow");
         table = table ? document.body.removeChild(table) : document.createElement('table');
@@ -130,13 +138,6 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawScatterPlot(dataStore, title) {
-        let placeParticlesDirectly = this.createParticles(dataStore.data);
-        this.visualization = new ScatterPlot(this.width, this.height, this.particlesContainer.children, dataStore, placeParticlesDirectly, title);
-        this.stage.addChild(this.visualization);
-        return this.visualization;
-    }
-
     drawBarChart(dataset, schema, features, title) {
         let placeParticlesDirectly = this.createParticles(dataset);
         this.visualization = new BarChart(this.width, this.height, this.particlesContainer.children, schema, features, this.barChartParticles, placeParticlesDirectly, title);
@@ -144,17 +145,86 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawDotMap(dataset, title) {
-        this.createParticles(dataset);
-        this.visualization = new DotMap(this.width, this.height, this.particlesContainer.children, title, this.levelOfDetail);
+    drawScatterPlot(dataStore, title) {
+        let placeParticlesDirectly = this.createParticles(dataStore.data);
+        this.visualization = new ScatterPlot(this.width, this.height, this.particlesContainer.children, dataStore, placeParticlesDirectly, title);
         this.stage.addChild(this.visualization);
         return this.visualization;
     }
 
-    drawProportionalSymbolMap(dataset, title) {
+    drawDotMap(dataset, isCurrentVisualization) {
+        this.reset();
         this.createParticles(dataset);
-        this.visualization = new ProportionalSymbolMap(this.width, this.height, this.particlesContainer.children, title, this.levelOfDetail);
+
+        if(isCurrentVisualization){
+            this.visualization.updateBaseMap(this.levelOfDetail);
+            this.visualization.drawDots(this.particlesContainer.children);
+            return this.visualization;
+        }
+
+        this.visualization = new DotMap(
+            this.width,
+            this.height,
+            this.particlesContainer.children,
+            this.levelOfDetail
+        );
         this.stage.addChild(this.visualization);
+        return this.visualization;
+    }
+
+    drawProportionalSymbolMap(dataset, isCurrentVisualization) {
+        this.reset();
+        this.createParticles(dataset);
+
+        if(isCurrentVisualization){
+            this.visualization.update(this.levelOfDetail);
+            return this.visualization;
+        }
+
+        this.visualization = new ProportionalSymbolMap(
+            this.width,
+            this.height,
+            this.particlesContainer.children,
+            this.levelOfDetail
+        );
+        this.stage.addChild(this.visualization);
+        return this.visualization;
+    }
+
+    drawChoroplethMap(dataset, isCurrentVisualization){
+        this.reset();
+        this.createParticles(dataset);
+
+        if(isCurrentVisualization){
+            this.visualization.update(this.levelOfDetail, this.colorScheme);
+            return this.visualization;
+        }
+
+        this.visualization = new ChoroplethMap(
+            this.width,
+            this.height,
+            this.particlesContainer.children,
+            this.levelOfDetail,
+            this.colorScheme
+        );
+        return this.visualization;
+    }
+
+    drawCartogram(dataset, isCurrentVisualization){
+        this.reset();
+        this.createParticles(dataset);
+
+        if(isCurrentVisualization){
+            this.visualization.update(this.levelOfDetail);
+            return this.visualization;
+        }
+
+        this.visualization = new Cartogram(
+            this.width,
+            this.height,
+            this.particlesContainer.children,
+            this.levelOfDetail
+        );
         return this.visualization;
     }
 

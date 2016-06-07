@@ -20,12 +20,13 @@ import initDatGui from './dat-gui';
 
 window.onload = () => {
     let dataStore = window.dataStore = new DataStore();
-    dataStore.import(`${location.origin}${location.pathname}/dist/dataset/superstore_preprocessed.csv`);
+    dataStore.import(`${location.origin}${location.pathname}/dist/datasets/superstore-preprocessed-coords-geoids.csv`);
 
     let ui = window.ui = new UI();
     let canvas = window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
 
     initDatGui(dataStore, ui, canvas, window.updateScreen);
+
     // After import the dataset we now can update the dropboxes with the features
     UI.updateDropdown(dataStore.features, dataStore.currentSelection);
     UI.toggleFeatureDropdowns();
@@ -34,19 +35,34 @@ window.onload = () => {
     window.updateScreen();
 };
 
-let currentVisualization;
+// latest visualization in [0]
+var visualizationHistory = [];
+var currentVisualization = {};
+
 window.updateScreen = () => {
     canvas.stop();
 
-    let visualizationType = $("select.visualization").val();
-    if (currentVisualization &&
-        (currentVisualization.constructor.name === "DotMap" || currentVisualization.constructor.name === "ProportionalSymbolMap") &&
-        (visualizationType !== "dot" || visualizationType !== "psm")
-    ) {
-        currentVisualization.hide();
+    let upcomingVisualizationType = $("select.visualization").val();
+
+    // if there was previous visualization
+    if(visualizationHistory.length){
+        // check if it was anything with maps
+        // and if the new visualization is another type than the last one
+        let mapTypesWithDomNodes = ['dot', 'psm', 'choropleth', 'cartogram'];
+        if(
+            mapTypesWithDomNodes.indexOf(visualizationHistory[0].type) > -1 &&
+            visualizationHistory[0].type !== upcomingVisualizationType
+        ){
+            // remove all dom nodes
+            visualizationHistory[0].obj.removeAllDomNodes();
+            // hide svg and map
+            visualizationHistory[0].obj.hide(true, true);
+        }
     }
 
-    switch (visualizationType) {
+
+
+    switch (upcomingVisualizationType) {
         case "barChart":
             currentVisualization = canvas.drawBarChart(
                 dataStore.data,
@@ -54,33 +70,73 @@ window.updateScreen = () => {
                 dataStore.currentSelection,
                 "Superstore"
             );
+            visualizationHistory.unshift({
+                'type': 'bar',
+                'obj': currentVisualization
+            });
             break;
-
         case "scatterPlot":
             currentVisualization = canvas.drawScatterPlot(
                 dataStore,
                 "Superstore"
             );
+            visualizationHistory.unshift({
+                'type': 'scatter',
+                'obj': currentVisualization
+            });
             break;
 
         case "dot":
             currentVisualization = canvas.drawDotMap(
                 dataStore.data,
-                "Superstore"
+                currentVisualization.constructor.name === "DotMap"
             );
-            currentVisualization.show();
+            visualizationHistory.unshift({
+                'type': 'dot',
+                'obj': currentVisualization
+            });
             break;
 
         case "psm":
             currentVisualization = canvas.drawProportionalSymbolMap(
                 dataStore.data,
-                "Superstore"
+                currentVisualization.constructor.name === "ProportionalSymbolMap"
             );
-            currentVisualization.show();
+            visualizationHistory.unshift({
+                'type': 'psm',
+                'obj': currentVisualization
+            });
             break;
+
+        case "choropleth":
+            currentVisualization = canvas.drawChoroplethMap(
+                dataStore.data,
+                currentVisualization.constructor.name === "ChoroplethMap"
+            );
+            visualizationHistory.unshift({
+                'type': 'choropleth',
+                'obj': currentVisualization
+            });
+            break;
+
+        case "cartogram":
+            currentVisualization = canvas.drawCartogram(
+                dataStore.data,
+                currentVisualization.constructor.name === "Cartogram"
+            );
+            visualizationHistory.unshift({
+                'type': 'cartogram',
+                'obj': currentVisualization
+            });
+            break;
+
 
         case "overview":
             currentVisualization = canvas.drawParticles(dataStore.data);
+            visualizationHistory.unshift({
+                'type': 'overview',
+                'obj': currentVisualization
+            });
             break;
 
         default:

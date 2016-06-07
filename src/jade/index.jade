@@ -19,17 +19,16 @@ html
                         | Diagram
                         select.selectpicker.visualization
                             option(value="overview") Overview
-                            option(value="dot") Dot map
-                            option(value="psm") Proportional symbol map
-                            option(value="barChart" selected) Bar chart
+                            option(value="barChart") Bar chart
                             option(value="scatterPlot") Scatter plot
+                            option(value="dot" selected) Dot map
+                            option(value="psm") Proportional symbol map
+                            option(value="choropleth") Choropleth map
+                            option(value="cartogram") Cartogram
                     li
                         | Transition
                         select.selectpicker.transition
                             option(value="none") None
                             option(value="linear") Linear
 
-    script(src="//d3js.org/d3.v3.min.js")
-    script(src="//d3js.org/topojson.v1.min.js")
-    script(src="//d3js.org/queue.v1.min.js")
     script(src="dist/main.js")

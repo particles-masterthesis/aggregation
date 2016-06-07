@@ -39,4 +39,7 @@ particle-aggregation.js
 *.sublime-workspace
 
 # ignore config files
-src/config.json
+config.json
+
+# ignore build files for topojson
+data-acquisition/build

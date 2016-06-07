@@ -3,26 +3,31 @@ import D3 from "./d3";
 
 export default class BaseMap extends Visualization {
 
-    constructor(width, height, levelOfDetail) {
+    constructor(width, height, levelOfDetail, drawMap) {
         super(width, height);
-        
         this.baseMap = D3.instance;
+
         if(!this.baseMap.svg){
-            this.baseMap.init(this.width, this.height, levelOfDetail);
-        } else {
-            this.updateBaseMap(levelOfDetail);
+            this.baseMap.init(width, height, levelOfDetail, drawMap);
         }
+
+        if(drawMap) this.updateBaseMap(levelOfDetail);
     }
 
     updateBaseMap(levelOfDetail){
         this.baseMap.update(levelOfDetail);
     }
 
-    hide(){
-        this.baseMap.hide();
+    resetSvg(){
+        this.baseMap.reset();
     }
 
-    show(){
-        this.baseMap.show();
+    hide(hideSvg, hideMap){
+        this.baseMap.hide(hideSvg, hideMap);
     }
+
+    show(showSvg, showMap){
+        this.baseMap.show(showSvg, showMap);
+    }
+
 }

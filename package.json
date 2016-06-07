@@ -24,9 +24,9 @@
   },
   "scripts": {
     "build": "npm run build:css && npm run build:img && npm run build:js && browserify -v -t babelify src/js -o dist/main.js --debug --verbose && npm run build:dataset",
-    "build:css": "stylus --include-css src/css/**.styl -o dist/main.css",
+    "build:css": "stylus --include-css src/css/main.styl -o dist/main.css",
     "build:img": "cp -r src/img dist",
-    "build:dataset": "cp -r src/dataset dist/",
+    "build:dataset": "cp -r src/datasets dist/",
     "build:js": "browserify -v -t babelify src/js -o dist/main.js --debug --verbose",
     "build:markup": "jade -P src/jade/**.jade -o .",
     "clean": "rm -rf dist/* lib/*",
@@ -34,7 +34,7 @@
     "lint": "jshint --config .jshintrc --verbose --reporter=node_modules/jshint-summary/lib/summary src/js",
     "prebuild:js": "npm run lint &> /dev/null",
     "postbuild:js": "npm test",
-    "serve": "browser-sync start --server --port 3000 --index './index.html' --files './dist' --browser 'chromium-browser'",
+    "serve": "browser-sync start --server --port 3000 --index './index.html' --files './dist'",
     "test": "#karma start karma.conf.js --singleRun",
     "watch": "npm run watch:js & npm run watch:lint:js & npm run watch:css & npm run watch:img & npm run watch:markup",
     "watch:js": "watchify -v -t babelify 'src/js' -o dist/main.js --debug --verbose",
@@ -87,8 +87,11 @@
     "stats.js": "enthusiasmus/stats.js",
     "stylus": "latest",
     "sync-request": "^3.0.1",
+    "topojson": "^1.6.26",
     "watch": "latest",
     "watchify": "^3.7.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "d3": "^3.5.17"
+  }
 }

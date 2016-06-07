@@ -78,8 +78,6 @@
     "karma-jasmine": "latest",
     "karma-phantomjs-launcher": "latest",
     "phantomjs-prebuilt": "latest",
-    "physicsjs": "^0.7.0",
-    "pixi-multistyle-text": "^0.2.2",
     "pixi.js": "github:pixijs/pixi.js",
     "pre-git": "^3.8.4",
     "pug": "^2.0.0-alpha6",

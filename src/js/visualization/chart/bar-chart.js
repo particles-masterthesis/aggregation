@@ -182,6 +182,38 @@ export default class BarChart extends Chart {
     }
 
     /**
+     * Add Labels to the diagram
+     * @param features
+     * @param title
+     */
+    addLabels(features, title, heightYAxis) {
+        const xLabel = new PIXI.Text(features.x, {
+            font: "14px Arial"
+        });
+        xLabel.anchor = new PIXI.Point(0.5, 0.5);
+        xLabel.x = this._width/2;
+        xLabel.y = this._height - 20;
+        this.addChild(xLabel);
+
+        const yLabel = new PIXI.Text(features.y, {
+            font: "14px Arial"
+        });
+        yLabel.anchor = new PIXI.Point(0.5, 0.5);
+        yLabel.x = 20;
+        yLabel.y = this.padding + this.heightVisualization - (this.padding + this.heightVisualization - heightYAxis) / 2;
+        yLabel.rotation = -Math.PI / 2;
+        this.addChild(yLabel);
+
+        const titleLabel = new PIXI.Text(title, {
+            font: "16px Arial"
+        });
+        titleLabel.anchor = new PIXI.Point(0.5, 0.5);
+        titleLabel.x = this._width / 2;
+        titleLabel.y = this.padding / 2;
+        this.addChild(titleLabel);
+    }
+    
+    /**
      * Adds bars to the diagram
      * @param {Object} uniqueValues
      */

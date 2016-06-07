@@ -50,19 +50,21 @@ export default class Canvas {
 
             let texture, textureHover;
 
-            if(this.particles.shape === "rectangle"){
+            if (this.particles.shape === "rectangle") {
                 texture = PIXI.Texture.fromImage("dist/img/particle.png");
                 textureHover = PIXI.Texture.fromImage("dist/img/particle_hover.png");
-            }else{
+            } else {
                 texture = PIXI.Texture.fromImage("dist/img/particle_circle.png");
                 textureHover = PIXI.Texture.fromImage("dist/img/particle_circle_hover.png");
             }
 
-            let callback = data => () => this.toggleDataRow(data);
+            let callbackAdd  = data => () => this.toggleDataRow(data);
+            let callbackRemove = () => () => document.body.removeChild(document.getElementById("dataRow"));
 
             for (let i = 0; i < dataset.length; i++) {
                 let sprite = new Particle(texture, textureHover, dataset[i], 0, 0, 3, 3);
-                sprite.on("click", callback(sprite.data));
+                sprite.on("mouseover", callbackAdd(sprite.data));
+                sprite.on("mouseout", callbackRemove());
                 this.particlesContainer.addChild(sprite);
             }
 
@@ -76,38 +78,49 @@ export default class Canvas {
     }
 
     toggleDataRow(data) {
-        if (this.dataRow.id === data["Row ID"]) {
-            this.stage.removeChild(this.dataRow);
-            this.dataRow = new PIXI.Text("");
-            return;
-        } else if(this.dataRow.id){
-            this.stage.removeChild(this.dataRow);
-        }
+        var table = document.getElementById("dataRow");
+        table = table ? document.body.removeChild(table) : document.createElement('table');
 
-        let text = "";
+        var features = Object.keys(data);
 
-        Object.keys(data).forEach(function (key) {
-            text += key + ": " + data[key] + "\n";
+        let tmp = features.splice(0, Math.round(features.length/2));
+        let tmp2 = features.splice(0, features.length);
+
+        var text = "<tr>";
+        tmp.forEach(function (key) {
+            text += `<th>${key}</th>`;
         });
-
-        this.dataRow = new PIXI.Text(text, {
-            font: '13px Arial',
-            wordWrap: true,
-            wordWrapWidth: 100,
+        text += "</tr><tr>";
+        tmp.forEach(function (key) {
+            text += `<td>${data[key]}</td>`;
         });
-        this.dataRow.x = 0;
-        this.dataRow.y = 0;
-        this.dataRow.id = data["Row ID"];
+        text += "</tr><tr>";
 
-        this.stage.addChild(this.dataRow);
+        tmp2.forEach(function (key) {
+            text += `<th>${key}</th>`;
+        });
+        text += "</tr><tr>";
+        tmp2.forEach(function (key) {
+            text += `<td>${data[key]}</td>`;
+        });
+        text += "</tr>";
+
+        table.innerHTML = text;
+        table.id = "dataRow";
+        document.body.appendChild(table);
     }
 
-    removeParticles(){
+    removeParticles() {
         this.particlesContainer.removeChildren();
     }
 
-    removeVisualization(){
+    removeVisualization() {
         this.stage.removeChild(this.visualization);
+    }
+
+    reset() {
+        this.removeParticles();
+        this.removeVisualization();
     }
 
     drawParticles(dataset) {

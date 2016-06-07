@@ -6808,3 +6808,16 @@ svg .state-boundary {
   fill: none;
   stroke: #fff;
 }
+table {
+  border: 1px solid #e7e7e7;
+  background: #f8f8f8;
+  color: #000;
+  font-size: 11px;
+  margin: auto;
+  position: relative;
+  z-index: 6;
+}
+th,
+td {
+  padding: 10px;
+}

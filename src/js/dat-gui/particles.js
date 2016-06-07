@@ -6,7 +6,7 @@ export default function (dataStore, ui, canvas, update) {
         'shape',
         ['rectangle', 'circle']
     ).onChange(() => {
-        canvas.removeParticles();
+        canvas.reset();
         update(dataStore, canvas);
     });
 

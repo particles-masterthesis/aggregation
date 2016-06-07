@@ -28,7 +28,7 @@ export default class Chart extends Visualization {
         });
         yLabel.anchor = new PIXI.Point(0.5, 0.5);
         yLabel.x = 20;
-        yLabel.y = this.padding + this.heightVisualization - (this.padding + this.heightVisualization - heightYAxis) / 2;
+        yLabel.y = this.padding + this.heightVisualization/2;
         yLabel.rotation = -Math.PI / 2;
         this.addChild(yLabel);
 

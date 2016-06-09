@@ -3,7 +3,7 @@ import BaseMap from "./base-map";
 
 export default class ProportionalSymbolMap extends BaseMap {
 
-    constructor(width, height, particles, levelOfDetail){
+    constructor(width, height, particles, levelOfDetail, animated, animationCb){
         super(width, height, levelOfDetail, true);
 
         this.particles = particles;
@@ -11,27 +11,27 @@ export default class ProportionalSymbolMap extends BaseMap {
 
         super.show(true, true);
 
-        this.drawSymbols();
+        this.drawSymbols(animated, animationCb);
         this.drawLegend();
     }
 
-    drawSymbols(){
+    drawSymbols(animated, animationCb){
         switch (this.levelOfDetail) {
             case "country":
             case "state":
                 if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
-                if (typeof this.states === 'undefined') this.draw("states");
+                if (typeof this.states === 'undefined') this.draw("states", animated, animationCb);
                 break;
             case "county":
                 if (typeof this.states !== 'undefined') this.removeSvgElement('states');
-                if (typeof this.counties === 'undefined') this.draw("counties");
+                if (typeof this.counties === 'undefined') this.draw("counties", animated, animationCb);
                 break;
             default:
                 break;
         }
     }
 
-    draw(id){
+    draw(id, animated, animationCb){
         let map = this.baseMap;
 
         this[id] = map.svg.append("g")
@@ -44,15 +44,31 @@ export default class ProportionalSymbolMap extends BaseMap {
                 return (b.properties.orders || 0) - (a.properties.orders || 0);
             })
         )
-        .enter().append("circle")
+        .enter()
+        .append("circle")
         .attr("transform", function(d) {
             let coords = map.path.centroid(d);
             if(isNaN(coords[0]) || isNaN(coords[1])) return;
             return "translate(" + coords + ")";
-        })
-        .attr("r", function(d) {
-            return map.symbolScale(d.properties.orders) || 0;
         });
+
+        if(animated){
+            this[id]
+            .attr("r", 0)
+            .transition()
+            .delay(300)
+            .attr("r", function(d) {
+                return map.symbolScale(d.properties.orders) || 0;
+            })
+            .each("end", animationCb);
+        } else {
+            this[id]
+            .attr("r", function(d) {
+                return map.symbolScale(d.properties.orders) || 0;
+            });
+        }
+
+
     }
 
 

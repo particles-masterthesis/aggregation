@@ -24,7 +24,7 @@ export default class Canvas {
         this.requestFrameID = null;
 
         this.particles = {
-            shape: "rectangle"
+            shape: "circle"
         };
 
         this.height = window.innerHeight - 90; //windowH height - menu height - css-paddings
@@ -172,9 +172,11 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawProportionalSymbolMap(dataset, isCurrentVisualization) {
-        this.reset();
-        this.createParticles(dataset);
+    drawProportionalSymbolMap(dataset, isCurrentVisualization, animated, animationCb) {
+        if(!animated){
+            this.reset();
+            this.createParticles(dataset);
+        }
 
         if(isCurrentVisualization){
             this.visualization.update(this.levelOfDetail);
@@ -185,7 +187,9 @@ export default class Canvas {
             this.width,
             this.height,
             this.particlesContainer.children,
-            this.levelOfDetail
+            this.levelOfDetail,
+            animated,
+            animationCb
         );
         this.stage.addChild(this.visualization);
         return this.visualization;

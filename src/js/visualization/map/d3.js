@@ -94,6 +94,11 @@ export default class D3 {
 
 
         this._d3.select(self.frameElement).style("height", this.height + "px");
+
+        this.centroids = {};
+        this.calculateCentroids('states');
+        this.calculateCentroids('counties');
+
     }
 
     static get instance() {
@@ -169,6 +174,18 @@ export default class D3 {
 
     getCountyIdentifier(d){
         return Number(d.id.substring(d.id.search("S")+1, d.id.search("S")+6));
+    }
+
+    calculateCentroids(levelOfDetail){
+        const boundaries = this._topojson.feature(
+            this.data.us,
+            this.data.us.objects[levelOfDetail]
+        ).features;
+
+        this.centroids[levelOfDetail] = {};
+        for(let boundary of boundaries){
+            this.centroids[levelOfDetail][boundary.id] = this.path.centroid(boundary);
+        }
     }
 
 }

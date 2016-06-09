@@ -30,4 +30,20 @@ export default class BaseMap extends Visualization {
         this.baseMap.show(showSvg, showMap);
     }
 
+    getCentroidOfParticle(particle, levelOfDetail){
+
+        const map = this.baseMap;
+        let identifierId;
+
+        if(levelOfDetail === 'country' || levelOfDetail === 'state'){
+            levelOfDetail = 'states';
+            identifierId = particle.data.StateId;
+        } else {
+            levelOfDetail = 'counties';
+            identifierId = `0500000US${particle.data.StateId}${particle.data.CountyId}`;
+        }
+
+        return map.centroids[levelOfDetail][identifierId];
+    }
+
 }

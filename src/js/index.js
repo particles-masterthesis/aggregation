@@ -2,7 +2,7 @@ import "./helper";
 import $ from 'jquery';
 import jQuery from 'jquery';
 // export for others scripts to use
-window.$ = $;
+window.$      = $;
 window.jQuery = jQuery;
 
 require("./../../node_modules/jquery-csv/src/jquery.csv.js");
@@ -43,6 +43,7 @@ window.updateScreen = () => {
     canvas.stop();
 
     let upcomingVisualizationType = $("select.visualization").val();
+    let transitionType            = $("select.transition").val();
 
     // if there was previous visualization
     if(visualizationHistory.length){
@@ -53,10 +54,26 @@ window.updateScreen = () => {
             mapTypesWithDomNodes.indexOf(visualizationHistory[0].type) > -1 &&
             visualizationHistory[0].type !== upcomingVisualizationType
         ){
-            // remove all dom nodes
-            visualizationHistory[0].obj.removeAllDomNodes();
-            // hide svg and map
-            visualizationHistory[0].obj.hide(true, true);
+
+            if(transitionType === 'maps'){
+                currentVisualization = visualizationHistory[0].obj.transitionTo(
+                    upcomingVisualizationType,
+                    canvas
+                );
+                visualizationHistory.unshift({
+                    'type': 'psm',
+                    'obj': currentVisualization
+                });
+
+                canvas.render();
+                return;
+            } else {
+                // remove all dom nodes
+                visualizationHistory[0].obj.removeAllDomNodes();
+
+                // hide svg and map
+                visualizationHistory[0].obj.hide(true, true);
+            }
         }
     }
 
@@ -100,7 +117,8 @@ window.updateScreen = () => {
         case "psm":
             currentVisualization = canvas.drawProportionalSymbolMap(
                 dataStore.data,
-                currentVisualization.constructor.name === "ProportionalSymbolMap"
+                currentVisualization.constructor.name === "ProportionalSymbolMap",
+                false
             );
             visualizationHistory.unshift({
                 'type': 'psm',

@@ -34,9 +34,6 @@ export default class Particle extends PIXI.Sprite {
     }
 
     transitionTo(x, y, width, height, type) {
-
-        console.log(arguments);
-
         switch (type) {
             case "none":
                 this.shouldAnimate = false;

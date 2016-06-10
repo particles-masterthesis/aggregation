@@ -1,4 +1,5 @@
 import Visualization from "./../visualization";
+var d3 = require("d3");
 
 export default class Chart extends Visualization {
 
@@ -45,7 +46,37 @@ export default class Chart extends Visualization {
      * Add the axes to the diagram
      */
     addAxes(type, heightYAxis) {
-        const axes = new PIXI.Graphics();
+        var x = d3.scale.ordinal()
+            .rangeRoundBands([0, this.widthVisualization], 0.1);
+
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", this._width)
+            .attr("height", this._height)
+            .append("g")
+            .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+
+        var data = [{
+            frequency: 10,
+            letter: "A"
+        },{
+            frequency: 20,
+            letter: "B"
+        }];
+
+        x.domain(data.map(function (d) {
+            return d.letter;
+        }));
+
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + this.heightVisualization + ")")
+            .call(xAxis);
+
+        /*const axes = new PIXI.Graphics();
         axes.lineStyle(1, 0x111111, 1);
 
         // y axis
@@ -64,6 +95,6 @@ export default class Chart extends Visualization {
         axes.lineTo(this.widthVisualization + this.padding, this.heightVisualization + this.padding);
         axes.lineTo(this.widthVisualization + this.padding, this.heightVisualization + this.padding + 10);
 
-        this.addChild(axes);
+        this.addChild(axes);*/
     }
 }

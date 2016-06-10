@@ -16,7 +16,7 @@ body
         margin 10px
 
 .dg
-    z-index 20 !important
+    z-index 6 !important
 
 .dg.main.a
     margin 0
@@ -31,8 +31,7 @@ canvas, svg
     margin-left 20px
 
 canvas
-    z-index 5
-
+    z-index 1
 
 table
     border 1px solid #e7e7e7
@@ -41,14 +40,14 @@ table
     font-size 11px
     margin auto
     position relative
-    z-index 6
+    z-index 5
 
     th
     td
         padding 10px
 
 svg
-    z-index 1
+    z-index 2
 
     .county-boundary
     .state-boundary
@@ -82,6 +81,15 @@ svg
         fill #777
         font 10px sans-serif
         text-anchor middle
+
+    .axis
+        font 10px sans-serif
+
+    .axis path
+    .axis line
+        fill none
+        stroke #000
+        shape-rendering crispEdges
 
 svg.default .country
     fill lightgrey

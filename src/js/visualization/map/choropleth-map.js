@@ -72,7 +72,6 @@ export default class ChoroplethMap extends BaseMap {
         this[element] = undefined;
     }
 
-
     update(levelOfDetail, colorScheme){
         this.levelOfDetail = levelOfDetail;
         this.colorScheme = colorScheme;

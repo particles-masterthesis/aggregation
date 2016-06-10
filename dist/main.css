@@ -10743,7 +10743,7 @@ body {
   margin: 10px;
 }
 .dg {
-  z-index: 20 !important;
+  z-index: 6 !important;
 }
 .dg.main.a {
   margin: 0;
@@ -10760,7 +10760,7 @@ svg {
   margin-left: 20px;
 }
 canvas {
-  z-index: 5;
+  z-index: 1;
 }
 table {
   border: 1px solid #e7e7e7;
@@ -10769,14 +10769,14 @@ table {
   font-size: 11px;
   margin: auto;
   position: relative;
-  z-index: 6;
+  z-index: 5;
 }
 table th,
 table td {
   padding: 10px;
 }
 svg {
-  z-index: 1;
+  z-index: 2;
 }
 svg .county-boundary,
 svg .state-boundary {
@@ -10810,6 +10810,15 @@ svg .legend text {
   fill: #777;
   font: 10px sans-serif;
   text-anchor: middle;
+}
+svg .axis {
+  font: 10px sans-serif;
+}
+svg .axis path,
+svg .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
 }
 svg.default .country {
   fill: #d3d3d3;

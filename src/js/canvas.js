@@ -2,10 +2,9 @@ import "pixi.js";
 
 import {Stats} from 'stats.js';
 
-import ParticlesContainer from "./visualization/overview/overview";
-
 import Overview from "./visualization/overview/overview";
 import Particle from "./visualization/particle";
+import ParticlesContainer from "./visualization/particlesContainer";
 
 import ScatterPlot from "./visualization/chart/scatter-plot";
 import BarChart from "./visualization/chart/bar-chart";
@@ -45,11 +44,10 @@ export default class Canvas {
         document.body.appendChild(this.stats.dom);
         this.stats.dom.style.cssText = "position:fixed;bottom:0;right:0;cursor:pointer;opacity:0.9;height:48px;width:100px;";
 
-        // Can't use particle container because it doesn't support interactivity
-        this.particlesContainer = new PIXI.Container();
+        // Can't use particle container from pixi because it doesn't support interactivity
+        // our container handles also the placing, transitions and animations
+        this.particlesContainer = new ParticlesContainer();
         this.stage.addChild(this.particlesContainer);
-
-        this.dataRow = new PIXI.Container();
     }
 
     createParticles(dataset) {
@@ -77,13 +75,13 @@ export default class Canvas {
 
             this.particlesContainer.interactive = true;
             this.stage.interactive = true;
+
             return true;
         }
         else {
             return false;
         }
     }
-
 
     toggleDataRow(data) {
         var table = document.getElementById("dataRow");
@@ -123,6 +121,11 @@ export default class Canvas {
     }
 
     removeVisualization() {
+        // Because barchart creates a x axis which should be also removed after that function call
+        if(document.getElementById("x-axis")){
+            document.body.removeChild(document.getElementById("x-axis"));
+        }
+
         this.stage.removeChild(this.visualization);
     }
 
@@ -133,21 +136,24 @@ export default class Canvas {
 
     drawParticles(dataset) {
         let placeParticlesDirectly = this.createParticles(dataStore.data);
-        this.visualization = new Overview(this.width, this.height, this.particlesContainer.children, placeParticlesDirectly);
+        this.visualization = new Overview(this.width, this.height, this.particlesContainer, placeParticlesDirectly);
+        this.particlesContainer.startAnimation();
         this.stage.addChild(this.visualization);
         return this.visualization;
     }
 
     drawBarChart(dataset, schema, features, title) {
         let placeParticlesDirectly = this.createParticles(dataset);
-        this.visualization = new BarChart(this.width, this.height, this.particlesContainer.children, schema, features, this.barChartParticles, placeParticlesDirectly, title);
+        this.visualization = new BarChart(this.width, this.height, this.particlesContainer, schema, features, this.barChartParticles, placeParticlesDirectly, title);
+        this.particlesContainer.startAnimation();
         this.stage.addChild(this.visualization);
         return this.visualization;
     }
 
     drawScatterPlot(dataStore, title) {
         let placeParticlesDirectly = this.createParticles(dataStore.data);
-        this.visualization = new ScatterPlot(this.width, this.height, this.particlesContainer.children, dataStore, placeParticlesDirectly, title);
+        this.visualization = new ScatterPlot(this.width, this.height, this.particlesContainer, dataStore, placeParticlesDirectly, title);
+        this.particlesContainer.startAnimation();
         this.stage.addChild(this.visualization);
         return this.visualization;
     }
@@ -158,7 +164,7 @@ export default class Canvas {
 
         if(isCurrentVisualization){
             this.visualization.updateBaseMap(this.levelOfDetail);
-            this.visualization.drawDots(this.particlesContainer.children);
+            this.visualization.drawDots(this.particlesContainer);
             return this.visualization;
         }
 
@@ -238,9 +244,7 @@ export default class Canvas {
     render() {
         this.stats.begin();
 
-        for (let i = 0; i < this.particlesContainer.children.length; i++) {
-            this.particlesContainer.getChildAt(i).animate();
-        }
+        this.particlesContainer.nextStep();
         this.renderer.render(this.stage);
 
         this.stats.end();

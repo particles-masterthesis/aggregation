@@ -1,43 +1,75 @@
 import Chart from "./chart";
+var d3 = require("d3");
 
 export default class BarChart extends Chart {
 
     /**
-     * @param container
-     * @param dataSet
-     * @param features
+     * @param width
+     * @param height
+     * @param particles
+     * @param schema
+     * @param xyFeatures
+     * @param useParticles
+     * @param newParticles
      * @param title
      */
-    constructor(width, height, particles, schema, xyFeatures, useParticles, newParticles, title) {
-        super(width, height);
+    constructor(width, height, particlesContainer, schema, xyFeatures, useParticles, newParticles, title) {
+        super(width, height, particlesContainer);
 
-        let {uniqueValues, maxAppearance} = this.analyzeFeature(particles, schema, xyFeatures.x);
+        // It easier and better for performance to just hide the particles behind a graphic
+        // then to set every particles alpha to 0
+        this.overlayBars = new PIXI.Graphics();
 
-        if (useParticles) {
-            let {size, particlesPerRow} = this.addItems(particles, xyFeatures.x, uniqueValues, maxAppearance, newParticles);
+        let {uniqueValues, maxAppearance} = this.analyzeFeature(particlesContainer.children, schema, xyFeatures.x);
 
+        let {size, particlesPerRow} = this.addItems(particlesContainer.children, xyFeatures.x, uniqueValues, maxAppearance, newParticles);
 
-            let itemsToAdd = maxAppearance % particlesPerRow > 0 ? particlesPerRow-maxAppearance % particlesPerRow : 0;
-            let heightYAxis = this.padding + this.heightVisualization - size * (maxAppearance + itemsToAdd) / particlesPerRow;
+        // we want to fill the highest bar with particles
+        // even if there is just one it the most top row
+        // to calculate the correct height of the axis and place the ticks correct
+        let itemsToAdd = maxAppearance % particlesPerRow > 0 ? particlesPerRow - (maxAppearance % particlesPerRow) : 0;
+        let heightYAxis = size * (maxAppearance + itemsToAdd) / particlesPerRow;
+        this.addYAxis(heightYAxis);
 
-            this.addTicksY(size, maxAppearance+itemsToAdd, particlesPerRow);
-            this.addAxes("barChart", heightYAxis);
-            this.addLabels({"x": xyFeatures.x, "y": "Amount"}, title, heightYAxis);
-        } else {
-            this.addBars(particles, uniqueValues, maxAppearance);
-            this.addTicksY(60, maxAppearance);
-            this.addAxes();
-            this.addLabels({"x": xyFeatures.x, "y": "Amount"}, title);
+        let dataXAxis = [];
+        Object.keys(uniqueValues).forEach(function (key) {
+            dataXAxis.push({"key": key, "appearance": uniqueValues[key].appearance});
+        });
+        this.addXAxis(dataXAxis);
+
+        this.addTicksY(size, maxAppearance + itemsToAdd, particlesPerRow);
+        this.addLabels({"x": xyFeatures.x, "y": "Amount"}, title, heightYAxis);
+
+        if (!useParticles) {
+            this.hideParticles();
+            this.addBars(particlesContainer.children, uniqueValues, maxAppearance);
         }
+        else {
+            this.showParticles();
+        }
+    }
 
-        this.addTicksX(uniqueValues);
+    hideParticles() {
+        console.log("draw area");
+        this.overlayBars.lineStyle(0, 0xf8f8f8, 1);
+        this.overlayBars.beginFill(0xf8f8f8, 1);
+        this.overlayBars.drawRect(this.widthVisualization, this.heightVisualization, 0, 0);
+        this.addChild(this.overlayBars);
+    }
+
+    showParticles() {
+        this.removeChild(this.overlayBars);
     }
 
     /**
      * Check how often a value threaten as nominal value does appear
      * @param data
      * @param feature
-     * @returns {Object}
+     * @returns object = {
+     *                      key: appearance,
+     *                      key: appearance,
+     *                      ...
+     *                   }
      */
     analyzeFeature(particles, schema, feature) {
         let uniqueValues = {};
@@ -80,7 +112,7 @@ export default class BarChart extends Chart {
         // Because more than ~ 50 unique values haven't enough space on the nominal axis
         // we show only the first 50 unique values
         let values = Object.keys(uniqueValues);
-        let maxValues = 50;
+        let maxValues = 100;
         if (values.length > maxValues) {
             let firstValues = values.splice(0, maxValues);
 
@@ -109,6 +141,82 @@ export default class BarChart extends Chart {
             uniqueValues: uniqueValues,
             maxAppearance: maxAppearance
         };
+    }
+
+    addXAxis(data) {
+        var x = d3.scale.ordinal()
+            .rangeRoundBands([0, this.widthVisualization], 0.1);
+
+        // Because d3 places dynamically margin to the most right and left bar
+        // we have to place the ticks manually
+        let postEditingTicks = function (selection) {
+            let collection = selection.selectAll('ticks')[0].parentNode.getElementsByClassName("tick");
+            let matrix = document.getElementsByTagName("svg")[0].createSVGMatrix();
+            let widthBar = this.widthVisualization / data.length;
+
+            for (let i = 0; i < collection.length; i++) {
+                let matrix = document.getElementsByTagName("svg")[0].createSVGMatrix();
+                matrix = matrix.translate(parseInt(widthBar / 2 + i * widthBar, 10), 0);
+                collection[i].transform.baseVal.getItem(0).setMatrix(matrix);
+                collection[i].placement = i;
+            }
+        };
+
+        var xAxis = d3.svg.axis()
+            .scale(x);
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", this._width)
+            .attr("height", this._height)
+            .attr("id", "x-axis")
+            .append("g")
+            .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
+
+        x.domain(data.map(function (d) {
+            return d.key;
+        }));
+
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + this.heightVisualization + ")")
+            .call(xAxis)
+            .call(postEditingTicks.bind(this))
+            .selectAll("text")
+            .attr("y", 0)
+            .attr("x", 9)
+            .attr("dy", ".35em")
+            .attr("transform", "rotate(45)")
+            .style("text-anchor", "start");
+
+        let allTicksInactive = function(){
+            let ticks = document.getElementsByClassName("tick");
+            for (var i = 0; i < ticks.length; i++) {
+                ticks[i].classList.remove("tick-active");
+            }
+        };
+
+        svg.selectAll(".x.axis g.tick").on("click", function (d) {
+            let classList = d3.event.target.parentNode.classList;
+            if(classList.contains("tick-active")){
+                classList.remove("tick-active");
+                this.particlesContainer.resetHighPriorityParticles();
+            } else {
+                allTicksInactive();
+                classList.add("tick-active");
+                this.particlesContainer.setHighPriorityParticles(d3.event.target.parentNode.placement);
+            }
+        }.bind(this));
+    }
+
+    addYAxis(heightYAxis) {
+        const yAxis = new PIXI.Graphics();
+        yAxis.lineStyle(1, 0x111111, 1);
+
+        yAxis.moveTo(this.padding, this.padding + this.heightVisualization);
+        yAxis.lineTo(this.padding, this.padding + this.heightVisualization - heightYAxis);
+        yAxis.lineTo(this.padding - 10, this.padding + this.heightVisualization - heightYAxis);
+
+        this.addChild(yAxis);
     }
 
     /**
@@ -191,7 +299,7 @@ export default class BarChart extends Chart {
             font: "14px Arial"
         });
         xLabel.anchor = new PIXI.Point(0.5, 0.5);
-        xLabel.x = this._width/2;
+        xLabel.x = this._width / 2;
         xLabel.y = this._height - 20;
         this.addChild(xLabel);
 
@@ -200,7 +308,7 @@ export default class BarChart extends Chart {
         });
         yLabel.anchor = new PIXI.Point(0.5, 0.5);
         yLabel.x = 20;
-        yLabel.y = this.padding + this.heightVisualization - (this.padding + this.heightVisualization - heightYAxis) / 2;
+        yLabel.y = this.padding + this.heightVisualization - heightYAxis / 2;
         yLabel.rotation = -Math.PI / 2;
         this.addChild(yLabel);
 
@@ -212,7 +320,7 @@ export default class BarChart extends Chart {
         titleLabel.y = this.padding / 2;
         this.addChild(titleLabel);
     }
-    
+
     /**
      * Adds bars to the diagram
      * @param {Object} uniqueValues
@@ -277,6 +385,7 @@ export default class BarChart extends Chart {
                 particles[i].alpha = 1;
             }
 
+            particles[i].bar = values.indexOf(uniqueValue);
             particles[i].alpha = 1;
 
             y = uniqueValues[uniqueValue].y || this.heightVisualization + this.padding - size;

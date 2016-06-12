@@ -10820,6 +10820,18 @@ svg .axis line {
   stroke: #000;
   shape-rendering: crispEdges;
 }
+svg .tick {
+  fill: #000;
+}
+svg .tick-active,
+svg .tick:active,
+svg .tick:focus {
+  fill: #34a853;
+}
+svg .tick:hover {
+  cursor: pointer;
+  fill: #4285f4;
+}
 svg.default .country {
   fill: #d3d3d3;
 }

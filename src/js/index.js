@@ -60,8 +60,6 @@ window.updateScreen = () => {
         }
     }
 
-
-
     switch (upcomingVisualizationType) {
         case "barChart":
             currentVisualization = canvas.drawBarChart(

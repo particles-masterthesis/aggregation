@@ -3,13 +3,10 @@ import Particle from "../particle";
 
 export default class Overview extends Visualization {
 
-    /**
-     * @param container
-     */
-    constructor(width, height, particles, newParticles) {
-        super(width, height);
+    constructor(width, height, particlesContainer, newParticles) {
+        super(width, height, particlesContainer);
 
-        this.draw(particles, newParticles);
+        this.draw(particlesContainer.children, newParticles);
     }
 
     draw(particles, newParticles) {

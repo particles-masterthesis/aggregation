@@ -28,7 +28,7 @@ export default class Particle extends PIXI.Sprite {
         this.data = data;
         this.id = this.data["Row ID"];
 
-        this.shouldAnimate = false;
+        this.isAnimating = false;
 
         this.addClickListener();
     }
@@ -36,13 +36,13 @@ export default class Particle extends PIXI.Sprite {
     transitionTo(x, y, width, height, type) {
         switch (type) {
             case "none":
-                this.shouldAnimate = false;
+                this.isAnimating = false;
                 this.setPosition(x, y);
                 this.setSize(width, height);
                 break;
 
             case "linear":
-                this.shouldAnimate = true;
+                this.isAnimating = true;
                 this.setDestination(x, y);
                 this.setAimedSize(width, height);
                 break;
@@ -53,12 +53,11 @@ export default class Particle extends PIXI.Sprite {
     }
 
     animate() {
-        if (!this.shouldAnimate) {
-            return;
+        if (!this.isAnimating) {
+            return false;
         }
 
         //console.log("POSITION", this.position, "DESTINATION", this.destination);
-
         if (!this.position.equals(this.destination)) {
             let deltaX = this.destination.x - this.position.x;
             let deltaY = this.destination.y - this.position.y;
@@ -78,16 +77,22 @@ export default class Particle extends PIXI.Sprite {
 
 
         if (this._width != this.aimedSize.width || this._height != this.aimedSize.height) {
-            if (Math.abs(this._width - this.aimedSize.width) < this.speed*3/4) {
+            if (Math.abs(this._width - this.aimedSize.width) < this.speed * 3 / 4) {
                 this.setSize(this.aimedSize.width, this.aimedSize.height);
             }
             else if (this.aimedSize.width > this._width) {
-                this.setSize(this._width + this.speed*3/4, this._height + this.speed*3/4);
+                this.setSize(this._width + this.speed * 3 / 4, this._height + this.speed * 3 / 4);
             }
             else {
-                this.setSize(this._width - this.speed*3/4, this._height - this.speed*3/4);
+                this.setSize(this._width - this.speed * 3 / 4, this._height - this.speed * 3 / 4);
             }
         }
+
+        if (this.position.equals(this.destination) && this._width == this.aimedSize.width && this._height == this.aimedSize.height) {
+            this.isAnimating = false;
+        }
+
+        return this.isAnimating;
     }
 
     setPosition(x, y) {

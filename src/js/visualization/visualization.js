@@ -2,9 +2,10 @@ import "pixi.js";
 
 export default class Visualization extends PIXI.Container{
 
-    constructor(width, height){
+    constructor(width, height, particlesContainer){
         super();
 
+        this.particlesContainer = particlesContainer;
         this.padding = 120;
         this.width = width;
         this.height = height;

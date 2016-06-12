@@ -42,7 +42,7 @@ export default class BarChart extends Chart {
 
         if (!useParticles) {
             this.hideParticles();
-            this.addBars(particlesContainer.children, uniqueValues, maxAppearance);
+            this.addBars(uniqueValues, maxAppearance+itemsToAdd, heightYAxis);
         }
         else {
             this.showParticles();
@@ -50,10 +50,9 @@ export default class BarChart extends Chart {
     }
 
     hideParticles() {
-        console.log("draw area");
-        this.overlayBars.lineStyle(0, 0xf8f8f8, 1);
-        this.overlayBars.beginFill(0xf8f8f8, 1);
-        this.overlayBars.drawRect(this.widthVisualization, this.heightVisualization, 0, 0);
+        this.overlayBars.lineStyle(0, 0xffffff, 1);
+        this.overlayBars.beginFill(0xffffff, 1);
+        this.overlayBars.drawRect(this.padding+1, this.padding, this.widthVisualization-1, this.heightVisualization);
         this.addChild(this.overlayBars);
     }
 
@@ -325,22 +324,24 @@ export default class BarChart extends Chart {
      * Adds bars to the diagram
      * @param {Object} uniqueValues
      */
-    addBars(particles, uniqueValues, maxAppearance) {
+    addBars(uniqueValues, maxAppearance, maxHeight) {
         const items = new PIXI.Graphics();
-        items.lineStyle(0, 0x5555AA, 1);
-        items.beginFill(0x5555AA, 1);
+        items.lineStyle(0, 0x4285f4, 1);
+        items.beginFill(0x4285f4, 1);
+
+        console.log(uniqueValues, maxAppearance, maxHeight);
 
         const values = Object.keys(uniqueValues);
 
         let widthBar = this.widthVisualization / values.length;
         this.marginBar = widthBar.map(1, this.widthVisualization, 1, 100);
-        let widthBarExlusiveMargin = widthBar - this.marginBar * 2 - particles[0].margin;
+        let widthBarExlusiveMargin = widthBar - this.marginBar * 2;
 
         for (let i = 0; i < values.length; i++) {
             if (typeof uniqueValues[values[i]].appearance === "undefined") {
                 continue;
             }
-            let height = uniqueValues[values[i]].appearance.map(0, maxAppearance, 0, this.heightVisualization);
+            let height = uniqueValues[values[i]].appearance.map(0, maxAppearance, 0, maxHeight);
             items.drawRect(this.padding + this.marginBar + widthBar * i, this.heightVisualization + this.padding, widthBarExlusiveMargin, -height);
         }
 

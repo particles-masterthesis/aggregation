@@ -20,15 +20,12 @@ export default class ParticlesContainer extends PIXI.Container {
         let particle;
 
         if(this.hasPriorityChanged){
-
-            console.log("hPC true");
-
             for (let i = 0; i < this.children.length; i++) {
                 particle = this.getChildAt(i);
 
                 if (particle.priority === 1) {
 
-                    particleReachedDestination = !this.getChildAt(i).animate();
+                    particleReachedDestination = !particle.animate();
                     console.log("reached destination ", particleReachedDestination);
 
                     if (particlesReachedDestinations === true && particleReachedDestination === false) {
@@ -41,9 +38,6 @@ export default class ParticlesContainer extends PIXI.Container {
                 this.hasPriorityChanged = false;
             }
         } else {
-
-            console.log("hPC false");
-
             for (let i = 0; i < this.children.length; i++) {
                 particleReachedDestination = !this.getChildAt(i).animate();
 

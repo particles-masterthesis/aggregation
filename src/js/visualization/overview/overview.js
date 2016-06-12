@@ -32,9 +32,9 @@ export default class Overview extends Visualization {
             particles[i].alpha = 1;
 
             if (newParticles) {
-                particles[i].setPosition(x, y).setSize(size, size);
+                particles[i].setPosition(x, y).setSize(size - particles[i].margin, size - particles[i].margin);
             } else {
-                particles[i].transitionTo(x,y, size, size, transitionType);
+                particles[i].transitionTo(x, y, size - particles[i].margin, size - particles[i].margin, transitionType);
             }
 
             if (particleNumberInRow === particlesPerRow - 1) {

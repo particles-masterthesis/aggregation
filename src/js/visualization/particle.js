@@ -75,10 +75,10 @@ export default class Particle extends PIXI.Sprite {
             }
         }
 
-
         if (this._width != this.aimedSize.width || this._height != this.aimedSize.height) {
             if (Math.abs(this._width - this.aimedSize.width) < this.speed * 3 / 4) {
                 this.setSize(this.aimedSize.width, this.aimedSize.height);
+                console.log("set the same!");
             }
             else if (this.aimedSize.width > this._width) {
                 this.setSize(this._width + this.speed * 3 / 4, this._height + this.speed * 3 / 4);
@@ -110,8 +110,8 @@ export default class Particle extends PIXI.Sprite {
         this.height = height;
 
         //because we want to have always a margin around the particle
-        this.width = this._width - this.margin;
-        this.height = this._height - this.margin;
+        this.width = this._width;
+        this.height = this._height;
 
         return this;
     }

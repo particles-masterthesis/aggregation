@@ -8,15 +8,15 @@ export default class ScatterPlot extends Chart {
      * @param features
      * @param title
      */
-    constructor(width, height, particles, dataStore, newParticles, title) {
-        super(width, height);
+    constructor(width, height, particlesContainer, dataStore, newParticles, title) {
+        super(width, height, particlesContainer);
 
         let boundaries = this.getBoundaries(dataStore);
         this.nominalDict = {};
         this.addAxes();
         this.addLabels(dataStore.currentSelection, "Superstore");
         this.addTicks(boundaries);
-        this.addItems(particles, dataStore.currentSelection, boundaries, newParticles);
+        this.addItems(this.particlesContainer.children, dataStore.currentSelection, boundaries, newParticles);
     }
 
     /**
@@ -50,7 +50,7 @@ export default class ScatterPlot extends Chart {
         titleLabel.y = this.padding / 2;
         this.addChild(titleLabel);
     }
-    
+
     addAxes(){
         const axes = new PIXI.Graphics();
         axes.lineStyle(1, 0x111111, 1);
@@ -231,6 +231,8 @@ export default class ScatterPlot extends Chart {
     addItems(particles, features, boundaries, newParticles) {
         let size = 5, x, y;
         let transitionType = $("select.transition").val();
+
+        console.log(boundaries.schema);
 
         switch (boundaries.schema) {
 

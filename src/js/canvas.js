@@ -63,7 +63,7 @@ export default class Canvas {
                 textureHover = PIXI.Texture.fromImage("dist/img/particle_circle_hover.png");
             }
 
-            let callbackAdd  = data => () => this.toggleDataRow(data);
+            let callbackAdd = data => () => this.toggleDataRow(data);
             let callbackRemove = () => () => document.body.removeChild(document.getElementById("dataRow"));
 
             for (let i = 0; i < dataset.length; i++) {
@@ -89,7 +89,7 @@ export default class Canvas {
 
         var features = Object.keys(data);
 
-        let tmp = features.splice(0, Math.round(features.length/2));
+        let tmp = features.splice(0, Math.round(features.length / 2));
         let tmp2 = features.splice(0, features.length);
 
         var text = "<tr>";
@@ -120,9 +120,20 @@ export default class Canvas {
         this.particlesContainer.removeChildren();
     }
 
+    prepareCanvas() {
+        let transitionType = $("select.transition").val();
+        let transitionLayout = $("select.transition-layout").val();
+
+        // Only remove the vizualization if we don't need it any more
+        // for transitions with layout != in place we need the viz as optical source
+        if (transitionType === "none" || transitionLayout === "inPlace") {
+            this.removeVisualization();
+        }
+    }
+
     removeVisualization() {
         // Because barchart creates a x axis which should be also removed after that function call
-        if(document.getElementById("x-axis")){
+        if (document.getElementById("x-axis")) {
             document.body.removeChild(document.getElementById("x-axis"));
         }
 
@@ -143,11 +154,46 @@ export default class Canvas {
     }
 
     drawBarChart(dataset, schema, features, title) {
+
+        // TODO currently all the following stuff is not animated - but it should be animated!
+
+        let transitionType = $("select.transition").val();
+        let transitionLayout = $("select.transition-layout").val();
+
+        if (this.visualization && transitionType != "none" && transitionLayout === "juxtaposition") {
+            this.visualization.scale.x = 0.5;
+            this.visualization.scale.y = 0.5;
+            this.visualization.x = 0;
+            this.visualization.y = 0;
+
+            document.getElementById("x-axis").style.transform = "scale(0.5) translate(-" + this.width * 0.5 + "px,-" + this.height * 0.5 + "px)";
+
+            for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                this.particlesContainer.children[i].scale.x = 0.5;
+                this.particlesContainer.children[i].scale.y = 0.5;
+            }
+        }
+
         let placeParticlesDirectly = this.createParticles(dataset);
-        this.visualization = new BarChart(this.width, this.height, this.particlesContainer, schema, features, this.barChartParticles, placeParticlesDirectly, title);
-        this.particlesContainer.startAnimation();
+        let newVisualization = new BarChart(this.width, this.height, this.particlesContainer, schema, features, this.barChartParticles, placeParticlesDirectly, title);
+
+
+        if (this.visualization && transitionType != "none" && transitionLayout === "juxtaposition") {
+            newVisualization.scale.x = 0.5;
+            newVisualization.scale.y = 0.5;
+            newVisualization.x = this.width / 2;
+            newVisualization.y = 0;
+
+            // TODO: Move also the d3 chart
+
+        }
+
+        this.visualization = newVisualization;
         this.stage.addChild(this.visualization);
+
+        this.particlesContainer.startAnimation();
         return this.visualization;
+
     }
 
     drawScatterPlot(dataStore, title) {
@@ -162,7 +208,7 @@ export default class Canvas {
         this.reset();
         this.createParticles(dataset);
 
-        if(isCurrentVisualization){
+        if (isCurrentVisualization) {
             this.visualization.updateBaseMap(this.levelOfDetail);
             this.visualization.drawDots(this.particlesContainer);
             return this.visualization;
@@ -182,7 +228,7 @@ export default class Canvas {
         this.reset();
         this.createParticles(dataset);
 
-        if(isCurrentVisualization){
+        if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail);
             return this.visualization;
         }
@@ -197,11 +243,11 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawChoroplethMap(dataset, isCurrentVisualization){
+    drawChoroplethMap(dataset, isCurrentVisualization) {
         this.reset();
         this.createParticles(dataset);
 
-        if(isCurrentVisualization){
+        if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail, this.colorScheme);
             return this.visualization;
         }
@@ -216,11 +262,11 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawCartogram(dataset, isCurrentVisualization){
+    drawCartogram(dataset, isCurrentVisualization) {
         this.reset();
         this.createParticles(dataset);
 
-        if(isCurrentVisualization){
+        if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail);
             return this.visualization;
         }

@@ -29,11 +29,11 @@ html
                         | Transition
                         select.selectpicker.transition
                             option(value="none") None
-                            option(value="linear") Linear
+                            option(value="linear" selected) Linear
                     li
-                        | Transition-Layout
-                        select.selectpicker.transition
-                            option(value="none") In-place
-                            option(value="linear") Juxtaposition
+                        | Transition layout
+                        select.selectpicker.transition-layout
+                            option(value="inPlace") In-place
+                            option(value="juxtaposition" selected) Juxtaposition
 
     script(src="dist/main.js")

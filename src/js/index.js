@@ -128,7 +128,6 @@ window.updateScreen = () => {
             });
             break;
 
-
         case "overview":
             currentVisualization = canvas.drawParticles(dataStore.data);
             visualizationHistory.unshift({
@@ -148,19 +147,19 @@ window.updateScreen = () => {
 function addEventListener(dataStore, canvas){
     $("select.feature-x").change(function () {
         dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
-        canvas.removeVisualization();
+        canvas.prepareCanvas();
         window.updateScreen(dataStore, canvas);
     });
 
     $("select.feature-y").change(function () {
         dataStore.currentSelection.y = $(this).children(":selected")[0].innerHTML;
-        canvas.removeVisualization();
+        canvas.prepareCanvas();
         window.updateScreen(dataStore, canvas);
     });
 
     $("select.visualization").change(function () {
         UI.toggleFeatureDropdowns();
-        canvas.removeVisualization();
+        canvas.prepareCanvas();
         window.updateScreen(dataStore, canvas);
     });
 }

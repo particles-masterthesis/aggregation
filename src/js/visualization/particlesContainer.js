@@ -24,9 +24,7 @@ export default class ParticlesContainer extends PIXI.Container {
                 particle = this.getChildAt(i);
 
                 if (particle.priority === 1) {
-
                     particleReachedDestination = !particle.animate();
-                    console.log("reached destination ", particleReachedDestination);
 
                     if (particlesReachedDestinations === true && particleReachedDestination === false) {
                         particlesReachedDestinations = false;

@@ -1,6 +1,8 @@
 import d3 from 'd3';
 import topojson from  'topojson';
 
+import { colorbrewer } from './colorbrewer.min.js';
+
 let singleton = Symbol();
 let singletonEnforcer = Symbol();
 
@@ -11,6 +13,8 @@ export default class D3 {
         }
         this._d3 = d3;
         this._topojson = topojson;
+        this.colorbrewer = colorbrewer;
+
     }
 
     init(width, height, levelOfDetail, drawMap){
@@ -25,8 +29,8 @@ export default class D3 {
         .range([0, 20]);
 
         this.colorScale = this._d3.scale.quantile()
-        .domain(this._d3.range(10).map( i => i * 3 ))
-        .range(this._d3.range(9).map( i => `q${i}-9` ));
+        .domain(this._d3.range(10).map( i => i * 4 ))
+        .range(this._d3.range(9));
 
         this.path = this._d3.geo.path().projection(this.projection);
         this.svg = this._d3.select("body > svg");

@@ -46,4 +46,8 @@ export default class BaseMap extends Visualization {
         return map.centroids[levelOfDetail][identifierId];
     }
 
+    isFunction(cb){
+        return cb && ({}).toString.call(cb) === '[object Function]';
+    }
+
 }

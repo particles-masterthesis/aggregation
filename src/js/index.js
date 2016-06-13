@@ -13,18 +13,19 @@ import DataStore from './data-store';
 
 import initDatGui from './dat-gui';
 
+import TransitionManager from './visualization/map/transition-manager';
+
 /**
  * @method window.onload
  * @description After loading all scripts initialize the instances, load dataset and update ui
  */
-
+var TM;
 window.onload = () => {
     let dataStore = window.dataStore = new DataStore();
     dataStore.import(`${location.origin}${location.pathname}/dist/datasets/superstore-preprocessed-coords-geoids.csv`);
 
     let ui = window.ui = new UI();
     let canvas = window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
-
     initDatGui(dataStore, ui, canvas, window.updateScreen);
 
     // After import the dataset we now can update the dropboxes with the features
@@ -32,13 +33,13 @@ window.onload = () => {
     UI.toggleFeatureDropdowns();
 
     addEventListener(dataStore, canvas);
+    TM = new TransitionManager(canvas);
     window.updateScreen();
 };
 
 // latest visualization in [0]
 var visualizationHistory = [];
 var currentVisualization = {};
-
 window.updateScreen = () => {
     canvas.stop();
 
@@ -54,18 +55,13 @@ window.updateScreen = () => {
             mapTypesWithDomNodes.indexOf(visualizationHistory[0].type) > -1 &&
             visualizationHistory[0].type !== upcomingVisualizationType
         ){
-
             if(transitionType === 'maps'){
-                currentVisualization = visualizationHistory[0].obj.transitionTo(
-                    upcomingVisualizationType,
-                    canvas
+                currentVisualization = TM.animate(
+                    visualizationHistory[0],
+                    upcomingVisualizationType
                 );
-                visualizationHistory.unshift({
-                    'type': 'psm',
-                    'obj': currentVisualization
-                });
-
-                canvas.render();
+                visualizationHistory.unshift(currentVisualization);
+                currentVisualization = currentVisualization.obj;
                 return;
             } else {
                 // remove all dom nodes
@@ -76,8 +72,6 @@ window.updateScreen = () => {
             }
         }
     }
-
-
 
     switch (upcomingVisualizationType) {
         case "barChart":
@@ -117,8 +111,7 @@ window.updateScreen = () => {
         case "psm":
             currentVisualization = canvas.drawProportionalSymbolMap(
                 dataStore.data,
-                currentVisualization.constructor.name === "ProportionalSymbolMap",
-                false
+                currentVisualization.constructor.name === "ProportionalSymbolMap"
             );
             visualizationHistory.unshift({
                 'type': 'psm',

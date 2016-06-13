@@ -90,6 +90,7 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
-    "d3": "^3.5.17"
+    "d3": "^3.5.17",
+    "d3-scale-chromatic": "^0.3.0"
   }
 }

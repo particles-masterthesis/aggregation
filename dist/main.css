@@ -10812,7 +10812,8 @@ svg .legend text {
   text-anchor: middle;
 }
 svg .axis {
-  font: 10px sans-serif;
+  font-size: 12px;
+  font-family: Arial, Helvetica, sans-serif;
 }
 svg .axis path,
 svg .axis line {

@@ -20,12 +20,14 @@ export default class BarChart extends Chart {
         this.createStage();
     }
 
+
+
     createStage() {
         let {uniqueValues, maxAppearance} = this.analyzeFeature(this.options.schema, this.options.features.x);
-        let {size, particlesPerRow, widthAreaPerValue, marginBar, heightYAxis, blankParticlesHighestBar} = this.calculateValues(this.options.features.x, uniqueValues, maxAppearance);
+        let {size, particlesPerRow, widthAreaPerValue, marginBar, blankParticlesHighestBar} = this.calculateValues(uniqueValues, maxAppearance);
 
         // Y-AXIS
-        this.drawYAxis(heightYAxis);
+        this.drawYAxis();
 
         // X-AXIS
         // X-TICKS
@@ -39,7 +41,9 @@ export default class BarChart extends Chart {
         this.drawTicksY(size, maxAppearance + blankParticlesHighestBar, particlesPerRow);
 
         // LABELS
-        this.drawLabels({"x": this.options.features.x, "y": "Amount"}, this.options.title, heightYAxis);
+        this.drawLabels({"x": this.options.features.x, "y": "Amount"}, this.options.title);
+
+        //this.y = this._height - this.heightVisualization - this.padding*2;
     }
 
     /**
@@ -131,9 +135,9 @@ export default class BarChart extends Chart {
      * @param uniqueValues
      * @param maxAppearance
      * @param newParticles
-     * @returns {{size: number, particlesPerRow: number, widthAreaPerValue: number, marginBar: number, heightYAxis: number, blankParticlesHighestBar: number}}
+     * @returns {{size: number, particlesPerRow: number, widthAreaPerValue: number, marginBar: number, blankParticlesHighestBar: number}}
      */
-    calculateValues(feature, uniqueValues, maxAppearance, newParticles) {
+    calculateValues(uniqueValues, maxAppearance) {
         const values = Object.keys(uniqueValues);
 
         // Calculate the size of a bar
@@ -142,7 +146,7 @@ export default class BarChart extends Chart {
         let widthBarExclusiveMargin = widthAreaPerValue - marginBar * 2;
 
         // Calculate the size a particle
-        let availableAreaHighestBar = this.heightVisualization * widthBarExclusiveMargin;
+        let availableAreaHighestBar = (this._height - this.padding*2) * widthBarExclusiveMargin;
         let areaEveryParticleInHighestBar = availableAreaHighestBar / maxAppearance;
         let sizeEveryParticle = Math.sqrt(areaEveryParticleInHighestBar);
 
@@ -156,14 +160,13 @@ export default class BarChart extends Chart {
         // even if there is just one it the most top row
         // to calculate the correct height of the axis and place the ticks correct
         let blankParticlesHighestBar = maxAppearance % particlesPerRow > 0 ? particlesPerRow - (maxAppearance % particlesPerRow) : 0;
-        let heightYAxis = size * (maxAppearance + blankParticlesHighestBar) / particlesPerRow;
+        this.heightVisualization = size * (maxAppearance + blankParticlesHighestBar) / particlesPerRow;
 
         return {
             size,
             particlesPerRow,
             widthAreaPerValue,
             marginBar,
-            heightYAxis,
             blankParticlesHighestBar
         };
     }
@@ -174,11 +177,11 @@ export default class BarChart extends Chart {
      */
     drawParticles(useBars, areParticlesNew) {
         let {uniqueValues, maxAppearance} = this.analyzeFeature(this.options.schema, this.options.features.x);
-        let {size, particlesPerRow, widthAreaPerValue, marginBar, heightYAxis, blankParticlesHighestBar} = this.calculateValues(this.options.features.x, uniqueValues, maxAppearance);
+        let {size, particlesPerRow, widthAreaPerValue, marginBar, blankParticlesHighestBar} = this.calculateValues(uniqueValues, maxAppearance);
 
         if (useBars) {
             this.hideParticles();
-            this.drawBars(uniqueValues, maxAppearance + blankParticlesHighestBar, heightYAxis);
+            this.drawBars(uniqueValues, maxAppearance + blankParticlesHighestBar);
         }
         else {
             this.placeParticles(uniqueValues, size, particlesPerRow, marginBar, widthAreaPerValue, areParticlesNew);
@@ -212,12 +215,13 @@ export default class BarChart extends Chart {
             this.particles[i].bar = values.indexOf(uniqueValue);
             this.particles[i].alpha = 1;
 
-            y = uniqueValues[uniqueValue].y || this.heightVisualization + this.padding - size;
+            y = uniqueValues[uniqueValue].y || this._height - this.padding - size;
 
             uniqueValues[uniqueValue].particlesRowCounter = ++uniqueValues[uniqueValue].particlesRowCounter || 0;
             uniqueValues[uniqueValue].particleNumberInRow = uniqueValues[uniqueValue].particlesRowCounter % particlesPerRow;
 
             x = this.padding + marginBar + size * uniqueValues[uniqueValue].particleNumberInRow + values.indexOf(uniqueValue) * widthAreaPerValue;
+
 
             let sizeToDraw = size - this.particles[i].margin;
 
@@ -240,7 +244,7 @@ export default class BarChart extends Chart {
      * @param maxAppearance
      * @param maxHeight
      */
-    drawBars(uniqueValues, maxAppearance, maxHeight) {
+    drawBars(uniqueValues, maxAppearance) {
         const items = new PIXI.Graphics();
         items.lineStyle(0, 0x4285f4, 1);
         items.beginFill(0x4285f4, 1);
@@ -255,8 +259,8 @@ export default class BarChart extends Chart {
             if (typeof uniqueValues[values[i]].appearance === "undefined") {
                 continue;
             }
-            let height = uniqueValues[values[i]].appearance.map(0, maxAppearance, 0, maxHeight);
-            items.drawRect(this.padding + marginBar + widthBar * i, this.heightVisualization + this.padding, widthBarExlusiveMargin, -height);
+            let height = uniqueValues[values[i]].appearance.map(0, maxAppearance, 0, this.heightVisualization);
+            items.drawRect(this.padding + marginBar + widthBar * i, this._height - this.padding, widthBarExlusiveMargin, -height);
         }
 
         this.addChild(items);
@@ -307,13 +311,12 @@ export default class BarChart extends Chart {
 
         svg.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(0," + this.heightVisualization + ")")
+            .attr("transform", `translate(0,${parseInt(this._height - this.padding * 2, 10)})`)
             .call(xAxis)
             .call(postEditingTicks.bind(this))
             .selectAll("text")
             .attr("y", 0)
             .attr("x", 9)
-            .attr("dy", ".35em")
             .attr("transform", "rotate(45)")
             .style("text-anchor", "start");
 
@@ -337,16 +340,14 @@ export default class BarChart extends Chart {
         }.bind(this));
     }
 
-    /**
-     * @param heightYAxis
-     */
-    drawYAxis(heightYAxis) {
+    drawYAxis() {
         const yAxis = new PIXI.Graphics();
         yAxis.lineStyle(1, 0x111111, 1);
 
-        yAxis.moveTo(this.padding, this.padding + this.heightVisualization);
-        yAxis.lineTo(this.padding, this.padding + this.heightVisualization - heightYAxis);
-        yAxis.lineTo(this.padding - 10, this.padding + this.heightVisualization - heightYAxis);
+        // From bottom to top and to the left
+        yAxis.moveTo(this.padding, this._height - this.padding);
+        yAxis.lineTo(this.padding, this._height - this.padding - this.heightVisualization);
+        yAxis.lineTo(this.padding - 10, this._height - this.padding - this.heightVisualization);
 
         this.addChild(yAxis);
     }
@@ -360,15 +361,16 @@ export default class BarChart extends Chart {
         const ticks = new PIXI.Graphics();
         ticks.lineStyle(1, 0x111111, 1);
 
-        let y = this.heightVisualization + this.padding;
+        // From bottom to top
+        let y = this._height - this.padding;
         let pxStepY = size;
         while (pxStepY < 50) {
             pxStepY += size;
         }
 
-        let endPointTicksY = this.heightVisualization + this.padding - size * maxAppearance / particlesPerRow;
+        let endPointTicksY = this._height - this.padding - size * maxAppearance / particlesPerRow;
         while (y >= endPointTicksY) {
-            const text = Math.round(Math.abs(this.heightVisualization + this.padding - y) / size * particlesPerRow);
+            const text = Math.round(Math.abs(this._height - this.padding - y) / size * particlesPerRow);
             const tickLabel = new PIXI.Text(text, {
                 font: "12px Arial"
             });
@@ -390,9 +392,8 @@ export default class BarChart extends Chart {
      * Add Labels to the diagram
      * @param features
      * @param title
-     * @param heightYAxis
      */
-    drawLabels(features, title, heightYAxis) {
+    drawLabels(features, title) {
         const xLabel = new PIXI.Text(features.x, {
             font: "14px Arial"
         });
@@ -406,7 +407,7 @@ export default class BarChart extends Chart {
         });
         yLabel.anchor = new PIXI.Point(0.5, 0.5);
         yLabel.x = 20;
-        yLabel.y = this.padding + this.heightVisualization - heightYAxis / 2;
+        yLabel.y = this._height - this.padding - this.heightVisualization / 2;
         yLabel.rotation = -Math.PI / 2;
         this.addChild(yLabel);
 
@@ -415,7 +416,7 @@ export default class BarChart extends Chart {
         });
         titleLabel.anchor = new PIXI.Point(0.5, 0.5);
         titleLabel.x = this._width / 2;
-        titleLabel.y = this.padding / 2;
+        titleLabel.y = this._height - this.padding - this.heightVisualization - this.padding / 2;
         this.addChild(titleLabel);
     }
 

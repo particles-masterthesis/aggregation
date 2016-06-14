@@ -139,7 +139,7 @@ export default class Canvas {
     }
 
     removeVisualization() {
-        // Because barchart creates a x axis which should be also removed after that function call
+        // Because bar chart creates a x axis which should be also removed after that function call
         if (document.getElementById("x-axis")) {
             document.body.removeChild(document.getElementById("x-axis"));
         }
@@ -193,7 +193,6 @@ export default class Canvas {
         }
 
         this.isCleaningNecessary = false;
-        console.log("CLEANED");
     }
 
     drawParticles(dataset) {
@@ -205,16 +204,12 @@ export default class Canvas {
     }
 
     drawBarChart(dataset, schema, features, title) {
-
-        // TODO currently all the following stuff is not animated - but it should be animated!
-
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
         let areParticlesNew = this.createParticles(dataset);
 
-
         /**
-         * Move the current visualization to the left or to the top
+         * Move the old visualization to the left or to the top
          */
         if (!areParticlesNew && this.visualization && transitionType != "none" &&
             (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
@@ -228,7 +223,6 @@ export default class Canvas {
                 this.visualization.y = 0;
 
                 xAxisOld.style.transform = "scale(0.5) translate(-" + this.width * 0.5 + "px,-" + this.height * 0.5 + "px)";
-                xAxisOld.id = "x-axis-old";
 
                 let particle;
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
@@ -240,10 +234,8 @@ export default class Canvas {
                 }
             } else if (transitionLayout === "stacked") {
                 this.visualization.x = this.width / 4;
-                this.visualization.y = 0;
 
                 xAxisOld.style.transform = "scale(0.5) translate(0px,-" + this.height * 0.5 + "px)";
-                xAxisOld.id = "x-axis-old";
 
                 let particle;
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
@@ -255,6 +247,7 @@ export default class Canvas {
                 }
             }
 
+            xAxisOld.id = "x-axis-old";
             this.isCleaningNecessary = true;
         }
 

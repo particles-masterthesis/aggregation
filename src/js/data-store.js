@@ -87,7 +87,7 @@ export default class DataStore {
                 this.createSubset();
                 this.classifyFeatures();
 
-                this.currentSelection.x = this.features[this.features.indexOf("Country")];
+                this.currentSelection.x = this.features[this.features.indexOf("Region")];
                 this.currentSelection.y = this.features[this.features.indexOf("Latitude")];
 
             }

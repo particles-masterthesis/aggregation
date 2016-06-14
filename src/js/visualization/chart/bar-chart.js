@@ -7,62 +7,45 @@ export default class BarChart extends Chart {
      * @param width
      * @param height
      * @param particles
-     * @param schema
-     * @param xyFeatures
-     * @param useParticles
-     * @param newParticles
-     * @param title
+     * @param options
      */
-    constructor(width, height, particlesContainer, schema, xyFeatures, useParticles, newParticles, title) {
+    constructor(width, height, particlesContainer, options) {
         super(width, height, particlesContainer);
+        this.options = options;
 
         // It easier and better for performance to just hide the particles behind a graphic
         // then to set every particles alpha to 0
         this.overlayBars = new PIXI.Graphics();
 
-        let {uniqueValues, maxAppearance} = this.analyzeFeature(particlesContainer.children, schema, xyFeatures.x);
+        this.createStage();
+    }
 
-        let {size, particlesPerRow} = this.addItems(particlesContainer.children, xyFeatures.x, uniqueValues, maxAppearance, newParticles);
+    createStage() {
+        let {uniqueValues, maxAppearance} = this.analyzeFeature(this.options.schema, this.options.features.x);
+        let {size, particlesPerRow, widthAreaPerValue, marginBar, heightYAxis, blankParticlesHighestBar} = this.calculateValues(this.options.features.x, uniqueValues, maxAppearance);
 
-        // we want to fill the highest bar with particles
-        // even if there is just one it the most top row
-        // to calculate the correct height of the axis and place the ticks correct
-        let itemsToAdd = maxAppearance % particlesPerRow > 0 ? particlesPerRow - (maxAppearance % particlesPerRow) : 0;
-        let heightYAxis = size * (maxAppearance + itemsToAdd) / particlesPerRow;
-        this.addYAxis(heightYAxis);
+        // Y-AXIS
+        this.drawYAxis(heightYAxis);
 
+        // X-AXIS
+        // X-TICKS
         let dataXAxis = [];
         Object.keys(uniqueValues).forEach(function (key) {
             dataXAxis.push({"key": key, "appearance": uniqueValues[key].appearance});
         });
-        this.addXAxis(dataXAxis);
+        this.drawXAxisWithTicks(dataXAxis);
 
-        this.addTicksY(size, maxAppearance + itemsToAdd, particlesPerRow);
-        this.addLabels({"x": xyFeatures.x, "y": "Amount"}, title, heightYAxis);
+        // Y-TICKS
+        this.drawTicksY(size, maxAppearance + blankParticlesHighestBar, particlesPerRow);
 
-        if (!useParticles) {
-            this.hideParticles();
-            this.addBars(uniqueValues, maxAppearance+itemsToAdd, heightYAxis);
-        }
-        else {
-            this.showParticles();
-        }
-    }
-
-    hideParticles() {
-        this.overlayBars.lineStyle(0, 0xffffff, 1);
-        this.overlayBars.beginFill(0xffffff, 1);
-        this.overlayBars.drawRect(this.padding+1, this.padding, this.widthVisualization-1, this.heightVisualization);
-        this.addChild(this.overlayBars);
-    }
-
-    showParticles() {
-        this.removeChild(this.overlayBars);
+        // LABELS
+        this.drawLabels({"x": this.options.features.x, "y": "Amount"}, this.options.title, heightYAxis);
     }
 
     /**
      * Check how often a value threaten as nominal value does appear
-     * @param data
+     * @param particles
+     * @param schema
      * @param feature
      * @returns object = {
      *                      key: appearance,
@@ -70,18 +53,18 @@ export default class BarChart extends Chart {
      *                      ...
      *                   }
      */
-    analyzeFeature(particles, schema, feature) {
+    analyzeFeature(schema, feature) {
         let uniqueValues = {};
 
         // Create a dictionary for the values of the current feature
-        for (let i = 0; i < particles.length; i++) {
-            if (typeof uniqueValues[particles[i].data[feature]] === "undefined") {
-                uniqueValues[particles[i].data[feature]] = {
+        for (let i = 0; i < this.particles.length; i++) {
+            if (typeof uniqueValues[this.particles[i].data[feature]] === "undefined") {
+                uniqueValues[this.particles[i].data[feature]] = {
                     "appearance": 1
                 };
             }
             else {
-                uniqueValues[particles[i].data[feature]].appearance++;
+                uniqueValues[this.particles[i].data[feature]].appearance++;
             }
         }
 
@@ -142,7 +125,147 @@ export default class BarChart extends Chart {
         };
     }
 
-    addXAxis(data) {
+    /**
+     * Calculates some important values for drawing ticks and axes and for placing the particles
+     * @param feature
+     * @param uniqueValues
+     * @param maxAppearance
+     * @param newParticles
+     * @returns {{size: number, particlesPerRow: number, widthAreaPerValue: number, marginBar: number, heightYAxis: number, blankParticlesHighestBar: number}}
+     */
+    calculateValues(feature, uniqueValues, maxAppearance, newParticles) {
+        const values = Object.keys(uniqueValues);
+
+        // Calculate the size of a bar
+        let widthAreaPerValue = this.widthVisualization / values.length;
+        let marginBar = widthAreaPerValue.map(1, this.widthVisualization, 1, 100);
+        let widthBarExclusiveMargin = widthAreaPerValue - marginBar * 2;
+
+        // Calculate the size a particle
+        let availableAreaHighestBar = this.heightVisualization * widthBarExclusiveMargin;
+        let areaEveryParticleInHighestBar = availableAreaHighestBar / maxAppearance;
+        let sizeEveryParticle = Math.sqrt(areaEveryParticleInHighestBar);
+
+        // Except for integers we want to make the particles smaller
+        // Example particlesPerRow = 3.5, so we need to create at least 4 particles per row
+        let particlesPerRow = Math.floor(widthBarExclusiveMargin / sizeEveryParticle);
+        particlesPerRow = maxAppearance === 1 ? 1 : ++particlesPerRow;
+        let size = Math.min(widthBarExclusiveMargin / particlesPerRow, this.heightVisualization, this.widthVisualization);
+
+        // we want to fill the highest bar with particles
+        // even if there is just one it the most top row
+        // to calculate the correct height of the axis and place the ticks correct
+        let blankParticlesHighestBar = maxAppearance % particlesPerRow > 0 ? particlesPerRow - (maxAppearance % particlesPerRow) : 0;
+        let heightYAxis = size * (maxAppearance + blankParticlesHighestBar) / particlesPerRow;
+
+        return {
+            size,
+            particlesPerRow,
+            widthAreaPerValue,
+            marginBar,
+            heightYAxis,
+            blankParticlesHighestBar
+        };
+    }
+
+    /**
+     * @param useBars
+     * @param areParticlesNew
+     */
+    drawParticles(useBars, areParticlesNew) {
+        let {uniqueValues, maxAppearance} = this.analyzeFeature(this.options.schema, this.options.features.x);
+        let {size, particlesPerRow, widthAreaPerValue, marginBar, heightYAxis, blankParticlesHighestBar} = this.calculateValues(this.options.features.x, uniqueValues, maxAppearance);
+
+        if (useBars) {
+            this.hideParticles();
+            this.drawBars(uniqueValues, maxAppearance + blankParticlesHighestBar, heightYAxis);
+        }
+        else {
+            this.placeParticles(uniqueValues, size, particlesPerRow, marginBar, widthAreaPerValue, areParticlesNew);
+            this.showParticles();
+        }
+    }
+
+    /**
+     * @param uniqueValues
+     * @param size
+     * @param particlesPerRow
+     * @param marginBar
+     * @param widthAreaPerValue
+     * @param areParticlesNew
+     */
+    placeParticles(uniqueValues, size, particlesPerRow, marginBar, widthAreaPerValue, areParticlesNew) {
+
+        let x, y, uniqueValue;
+        let transitionType = $("select.transition").val();
+        let values = Object.keys(uniqueValues);
+
+        for (let i = 0; i < this.particles.length; i++) {
+            uniqueValue = this.particles[i].data[this.options.features.x];
+            if (typeof uniqueValues[uniqueValue] === "undefined") {
+                this.particles[i].alpha = 0;
+                continue;
+            } else {
+                this.particles[i].alpha = 1;
+            }
+
+            this.particles[i].bar = values.indexOf(uniqueValue);
+            this.particles[i].alpha = 1;
+
+            y = uniqueValues[uniqueValue].y || this.heightVisualization + this.padding - size;
+
+            uniqueValues[uniqueValue].particlesRowCounter = ++uniqueValues[uniqueValue].particlesRowCounter || 0;
+            uniqueValues[uniqueValue].particleNumberInRow = uniqueValues[uniqueValue].particlesRowCounter % particlesPerRow;
+
+            x = this.padding + marginBar + size * uniqueValues[uniqueValue].particleNumberInRow + values.indexOf(uniqueValue) * widthAreaPerValue;
+
+            let sizeToDraw = size - this.particles[i].margin;
+
+            if (areParticlesNew) {
+                this.particles[i].setPosition(x, y).setSize(sizeToDraw, sizeToDraw);
+            } else {
+                this.particles[i].transitionTo(x, y, sizeToDraw, sizeToDraw, transitionType);
+            }
+
+            if (uniqueValues[uniqueValue].particleNumberInRow === particlesPerRow - 1) {
+                uniqueValues[uniqueValue].y = y - size;
+            }
+        }
+
+    }
+
+    /**
+     * Adds bars to the diagram
+     * @param uniqueValues
+     * @param maxAppearance
+     * @param maxHeight
+     */
+    drawBars(uniqueValues, maxAppearance, maxHeight) {
+        const items = new PIXI.Graphics();
+        items.lineStyle(0, 0x4285f4, 1);
+        items.beginFill(0x4285f4, 1);
+
+        const values = Object.keys(uniqueValues);
+
+        let widthBar = this.widthVisualization / values.length;
+        marginBar = widthBar.map(1, this.widthVisualization, 1, 100);
+        let widthBarExlusiveMargin = widthBar - marginBar * 2;
+
+        for (let i = 0; i < values.length; i++) {
+            if (typeof uniqueValues[values[i]].appearance === "undefined") {
+                continue;
+            }
+            let height = uniqueValues[values[i]].appearance.map(0, maxAppearance, 0, maxHeight);
+            items.drawRect(this.padding + marginBar + widthBar * i, this.heightVisualization + this.padding, widthBarExlusiveMargin, -height);
+        }
+
+        this.addChild(items);
+    }
+
+    /**
+     * @param data
+     */
+    drawXAxisWithTicks(data) {
         var x = d3.scale.ordinal()
             .rangeRoundBands([0, this.widthVisualization], 0.1);
 
@@ -162,7 +285,14 @@ export default class BarChart extends Chart {
         };
 
         var xAxis = d3.svg.axis()
-            .scale(x);
+            .scale(x)
+            .tickFormat(function (text) {
+                text = text.length > 16 ? text.substring(0, 16 - 1) + "..." : text;
+                text = text.replace("ä", "ae").replace("Ä", "Ae");
+                text = text.replace("ö", "oe").replace("Ö", "Oe");
+                text = text.replace("ü", "ue").replace("Ü", "Ue");
+                return text;
+            });
 
         var svg = d3.select("body").append("svg")
             .attr("width", this._width)
@@ -187,7 +317,7 @@ export default class BarChart extends Chart {
             .attr("transform", "rotate(45)")
             .style("text-anchor", "start");
 
-        let allTicksInactive = function(){
+        let allTicksInactive = function () {
             let ticks = document.getElementsByClassName("tick");
             for (var i = 0; i < ticks.length; i++) {
                 ticks[i].classList.remove("tick-active");
@@ -196,7 +326,7 @@ export default class BarChart extends Chart {
 
         svg.selectAll(".x.axis g.tick").on("click", function (d) {
             let classList = d3.event.target.parentNode.classList;
-            if(classList.contains("tick-active")){
+            if (classList.contains("tick-active")) {
                 classList.remove("tick-active");
                 this.particlesContainer.resetHighPriorityParticles();
             } else {
@@ -207,7 +337,10 @@ export default class BarChart extends Chart {
         }.bind(this));
     }
 
-    addYAxis(heightYAxis) {
+    /**
+     * @param heightYAxis
+     */
+    drawYAxis(heightYAxis) {
         const yAxis = new PIXI.Graphics();
         yAxis.lineStyle(1, 0x111111, 1);
 
@@ -219,46 +352,11 @@ export default class BarChart extends Chart {
     }
 
     /**
-     * Add ticks along the axes
-     * @param uniqueValues
+     * @param size
+     * @param maxAppearance
+     * @param particlesPerRow
      */
-    addTicksX(uniqueValues) {
-        const ticks = new PIXI.Graphics();
-        ticks.lineStyle(1, 0x111111, 1);
-
-        let amountOfBarsX = Object.keys(uniqueValues).length;
-
-        let pxStepX = this.widthVisualization / amountOfBarsX;
-        let x, text, maxLengthText = 14;
-
-        // Print ticks to the x axis
-        for (let i = 0; i < amountOfBarsX; i++) {
-            x = i * pxStepX + pxStepX / 2;
-
-            text = Object.keys(uniqueValues)[i];
-            text = text.length > maxLengthText ? text.substring(0, maxLengthText - 1) + "..." : text;
-            text = text.replace("ä", "ae").replace("Ä", "Ae");
-            text = text.replace("ö", "oe").replace("Ö", "Oe");
-            text = text.replace("ü", "ue").replace("Ü", "Ue");
-
-            const tickLabel = new PIXI.Text(text, {
-                font: "12px Arial"
-            });
-            tickLabel.anchor = new PIXI.Point(0.5, 0.5);
-            tickLabel.x = this.padding + x;
-            tickLabel.y = this.padding + this.heightVisualization + 16;
-            tickLabel.anchor = new PIXI.Point(0, 0.5);
-            tickLabel.rotation = Math.PI / 4;
-            this.addChild(tickLabel);
-
-            ticks.moveTo(this.padding + x, this.padding + this.heightVisualization);
-            ticks.lineTo(this.padding + x, this.padding + this.heightVisualization + 8);
-        }
-
-        this.addChild(ticks);
-    }
-
-    addTicksY(size, maxAppearance, particlesPerRow) {
+    drawTicksY(size, maxAppearance, particlesPerRow) {
         const ticks = new PIXI.Graphics();
         ticks.lineStyle(1, 0x111111, 1);
 
@@ -292,8 +390,9 @@ export default class BarChart extends Chart {
      * Add Labels to the diagram
      * @param features
      * @param title
+     * @param heightYAxis
      */
-    addLabels(features, title, heightYAxis) {
+    drawLabels(features, title, heightYAxis) {
         const xLabel = new PIXI.Text(features.x, {
             font: "14px Arial"
         });
@@ -320,98 +419,14 @@ export default class BarChart extends Chart {
         this.addChild(titleLabel);
     }
 
-    /**
-     * Adds bars to the diagram
-     * @param {Object} uniqueValues
-     */
-    addBars(uniqueValues, maxAppearance, maxHeight) {
-        const items = new PIXI.Graphics();
-        items.lineStyle(0, 0x4285f4, 1);
-        items.beginFill(0x4285f4, 1);
-
-        console.log(uniqueValues, maxAppearance, maxHeight);
-
-        const values = Object.keys(uniqueValues);
-
-        let widthBar = this.widthVisualization / values.length;
-        this.marginBar = widthBar.map(1, this.widthVisualization, 1, 100);
-        let widthBarExlusiveMargin = widthBar - this.marginBar * 2;
-
-        for (let i = 0; i < values.length; i++) {
-            if (typeof uniqueValues[values[i]].appearance === "undefined") {
-                continue;
-            }
-            let height = uniqueValues[values[i]].appearance.map(0, maxAppearance, 0, maxHeight);
-            items.drawRect(this.padding + this.marginBar + widthBar * i, this.heightVisualization + this.padding, widthBarExlusiveMargin, -height);
-        }
-
-        this.addChild(items);
+    hideParticles() {
+        this.overlayBars.lineStyle(0, 0xffffff, 1);
+        this.overlayBars.beginFill(0xffffff, 1);
+        this.overlayBars.drawRect(this.padding + 1, this.padding, this.widthVisualization - 1, this.heightVisualization);
+        this.addChild(this.overlayBars);
     }
 
-    /**
-     * Add items to the diagram
-     * @param particles
-     * @param feature
-     * @param uniqueValues
-     * @param maxAppearance
-     */
-    addItems(particles, feature, uniqueValues, maxAppearance, newParticles) {
-        const values = Object.keys(uniqueValues);
-
-        // Calculate the size of a bar
-        let widthAreaPerValue = this.widthVisualization / values.length;
-        let marginBar = widthAreaPerValue.map(1, this.widthVisualization, 1, 100);
-        let widthBarExclusiveMargin = widthAreaPerValue - marginBar * 2;
-
-        // Calculate the size a particle
-        let availableAreaHighestBar = this.heightVisualization * widthBarExclusiveMargin;
-        let areaEveryParticleInHighestBar = availableAreaHighestBar / maxAppearance;
-        let sizeEveryParticle = Math.sqrt(areaEveryParticleInHighestBar);
-
-        // Except for integers we want to make the particles smaller
-        // Example particlesPerRow = 3.5, so we need to create at least 4 particles per row
-        let particlesPerRow = Math.floor(widthBarExclusiveMargin / sizeEveryParticle);
-        particlesPerRow = maxAppearance === 1 ? 1 : ++particlesPerRow;
-        let size = Math.min(widthBarExclusiveMargin / particlesPerRow, this.heightVisualization, this.widthVisualization);
-
-        let x = null, y = null, uniqueValue = null;
-        let transitionType = $("select.transition").val();
-
-        for (let i = 0; i < particles.length; i++) {
-            uniqueValue = particles[i].data[feature];
-            if (typeof uniqueValues[uniqueValue] === "undefined") {
-                particles[i].alpha = 0;
-                continue;
-            } else {
-                particles[i].alpha = 1;
-            }
-
-            particles[i].bar = values.indexOf(uniqueValue);
-            particles[i].alpha = 1;
-
-            y = uniqueValues[uniqueValue].y || this.heightVisualization + this.padding - size;
-
-            uniqueValues[uniqueValue].particlesRowCounter = ++uniqueValues[uniqueValue].particlesRowCounter || 0;
-            uniqueValues[uniqueValue].particleNumberInRow = uniqueValues[uniqueValue].particlesRowCounter % particlesPerRow;
-
-            x = this.padding + marginBar + size * uniqueValues[uniqueValue].particleNumberInRow + values.indexOf(uniqueValue) * widthAreaPerValue;
-
-            let sizeToDraw = size - particles[i].margin;
-
-            if (newParticles) {
-                particles[i].setPosition(x, y).setSize(sizeToDraw, sizeToDraw);
-            } else {
-                particles[i].transitionTo(x, y, sizeToDraw, sizeToDraw, transitionType);
-            }
-
-            if (uniqueValues[uniqueValue].particleNumberInRow === particlesPerRow - 1) {
-                uniqueValues[uniqueValue].y = y - size;
-            }
-        }
-
-        return {
-            size,
-            particlesPerRow
-        };
+    showParticles() {
+        this.removeChild(this.overlayBars);
     }
 }

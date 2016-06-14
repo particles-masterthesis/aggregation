@@ -6,6 +6,7 @@ export default class Visualization extends PIXI.Container{
         super();
 
         this.particlesContainer = particlesContainer;
+        this.particles = particlesContainer.children;
         this.padding = 120;
         this.width = width;
         this.height = height;

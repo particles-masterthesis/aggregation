@@ -12,7 +12,7 @@ export default class ParticlesContainer extends PIXI.Container {
 
     nextStep(){
         if(!this.isAnimating){
-            return;
+            return false;
         }
 
         let particlesReachedDestinations = true;
@@ -48,6 +48,8 @@ export default class ParticlesContainer extends PIXI.Container {
                 this.isAnimating = false;
             }
         }
+
+        return this.isAnimating;
     }
 
     resetHighPriorityParticles(){

@@ -17,7 +17,7 @@ import Cartogram from "./visualization/map/cartogram";
 export default class Canvas {
 
     constructor(dataset, features) {
-        this.barChartParticles = true;
+        this.useBars = false;
         this.levelOfDetail = 'country';
         this.colorScheme = 'Oranges';
         this.requestFrameID = null;
@@ -48,6 +48,9 @@ export default class Canvas {
         // our container handles also the placing, transitions and animations
         this.particlesContainer = new ParticlesContainer();
         this.stage.addChild(this.particlesContainer);
+
+        // Layout during transition
+        this.isCleaningNecessary = false;
     }
 
     createParticles(dataset) {
@@ -64,7 +67,11 @@ export default class Canvas {
             }
 
             let callbackAdd = data => () => this.toggleDataRow(data);
-            let callbackRemove = () => () => document.body.removeChild(document.getElementById("dataRow"));
+            let callbackRemove = () => () => {
+                if (document.getElementById("dataRow")) {
+                    document.body.removeChild(document.getElementById("dataRow"));
+                }
+            };
 
             for (let i = 0; i < dataset.length; i++) {
                 let sprite = new Particle(texture, textureHover, dataset[i], 0, 0, 3, 3);
@@ -145,6 +152,50 @@ export default class Canvas {
         this.removeVisualization();
     }
 
+    clean() {
+        let transitionType = $("select.transition").val();
+        let transitionLayout = $("select.transition-layout").val();
+
+        if (this.visualization && transitionType != "none" &&
+            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
+
+            // Remove old visualization
+            this.stage.removeChild(this.visualizationOld);
+            document.body.removeChild(document.getElementById("x-axis-old"));
+
+            // Change appearance of the new visualization
+            this.visualization.scale.x = 1;
+            this.visualization.scale.y = 1;
+            this.visualization.x = 0;
+            this.visualization.y = 0;
+
+            document.getElementById("x-axis").style.transform = "scale(1) translate(0,0)";
+
+            if (transitionLayout === "juxtaposition") {
+                let particle;
+                for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                    particle = this.particlesContainer.children[i];
+                    particle.width = particle._width * 2;
+                    particle.height = particle._height * 2;
+                    particle.position.x = particle.position.x * 2 - this.width;
+                    particle.position.y = particle.position.y * 2;
+                }
+            } else if (transitionLayout === "stacked") {
+                let particle;
+                for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                    particle = this.particlesContainer.children[i];
+                    particle.width = particle._width * 2;
+                    particle.height = particle._height * 2;
+                    particle.position.x = particle.position.x * 2 - this.width / 2;
+                    particle.position.y = particle.position.y *2 - this.height;
+                }
+            }
+        }
+
+        this.isCleaningNecessary = false;
+        console.log("CLEANED");
+    }
+
     drawParticles(dataset) {
         let placeParticlesDirectly = this.createParticles(dataStore.data);
         this.visualization = new Overview(this.width, this.height, this.particlesContainer, placeParticlesDirectly);
@@ -159,36 +210,117 @@ export default class Canvas {
 
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
+        let areParticlesNew = this.createParticles(dataset);
 
-        if (this.visualization && transitionType != "none" && transitionLayout === "juxtaposition") {
+
+        /**
+         * Move the current visualization to the left or to the top
+         */
+        if (!areParticlesNew && this.visualization && transitionType != "none" &&
+            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
+
             this.visualization.scale.x = 0.5;
             this.visualization.scale.y = 0.5;
-            this.visualization.x = 0;
-            this.visualization.y = 0;
+            let xAxisOld = document.getElementById("x-axis");
 
-            document.getElementById("x-axis").style.transform = "scale(0.5) translate(-" + this.width * 0.5 + "px,-" + this.height * 0.5 + "px)";
+            if (transitionLayout === "juxtaposition") {
+                this.visualization.x = 0;
+                this.visualization.y = 0;
 
-            for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                this.particlesContainer.children[i].scale.x = 0.5;
-                this.particlesContainer.children[i].scale.y = 0.5;
+                xAxisOld.style.transform = "scale(0.5) translate(-" + this.width * 0.5 + "px,-" + this.height * 0.5 + "px)";
+                xAxisOld.id = "x-axis-old";
+
+                let particle;
+                for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                    particle = this.particlesContainer.children[i];
+                    particle.width = particle._width / 2;
+                    particle.height = particle._height / 2;
+                    particle.position.x = particle.position.x - particle.position.x / 2;
+                    particle.position.y = particle.position.y - particle.position.y / 2;
+                }
+            } else if (transitionLayout === "stacked") {
+                this.visualization.x = this.width / 4;
+                this.visualization.y = 0;
+
+                xAxisOld.style.transform = "scale(0.5) translate(0px,-" + this.height * 0.5 + "px)";
+                xAxisOld.id = "x-axis-old";
+
+                let particle;
+                for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                    particle = this.particlesContainer.children[i];
+                    particle.width = particle._width / 2;
+                    particle.height = particle._height / 2;
+                    particle.position.x = particle.position.x - particle.position.x / 2 + this.width / 4;
+                    particle.position.y = particle.position.y - particle.position.y / 2;
+                }
+            }
+
+            this.isCleaningNecessary = true;
+        }
+
+        /**
+         * Create the new visualization
+         */
+
+        let barChart = new BarChart(this.width, this.height, this.particlesContainer, {
+            schema,
+            features,
+            title
+        });
+
+        /**
+         * Move the new visualization to the right or to the bottom
+         */
+        if (!areParticlesNew && this.visualization && transitionType != "none" &&
+            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
+            barChart.scale.x = 0.5;
+            barChart.scale.y = 0.5;
+
+            if (transitionLayout === "juxtaposition") {
+                barChart.x = this.width / 2;
+                barChart.y = 0;
+
+                let xAxis = document.getElementById("x-axis");
+                xAxis.style.transform = "scale(0.5) translate(" + this.width * 0.5 + "px,-" + this.height * 0.5 + "px)";
+            } else if (transitionLayout === "stacked") {
+                barChart.x = this.width / 4;
+                barChart.y = this.height / 2;
+
+                let xAxis = document.getElementById("x-axis");
+                xAxis.style.transform = "scale(0.5) translate(0px," + this.height * 0.5 + "px)";
             }
         }
 
-        let placeParticlesDirectly = this.createParticles(dataset);
-        let newVisualization = new BarChart(this.width, this.height, this.particlesContainer, schema, features, this.barChartParticles, placeParticlesDirectly, title);
+        barChart.drawParticles(this.useBars, areParticlesNew);
 
+        if (!areParticlesNew && this.visualization && transitionType != "none" &&
+            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
+            let particle;
 
-        if (this.visualization && transitionType != "none" && transitionLayout === "juxtaposition") {
-            newVisualization.scale.x = 0.5;
-            newVisualization.scale.y = 0.5;
-            newVisualization.x = this.width / 2;
-            newVisualization.y = 0;
-
-            // TODO: Move also the d3 chart
-
+            if (transitionLayout === "juxtaposition") {
+                for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                    particle = this.particlesContainer.children[i];
+                    particle.aimedSize.width = particle.aimedSize.width / 2;
+                    particle.aimedSize.height = particle.aimedSize.height / 2;
+                    particle.destination.x = particle.destination.x - particle.destination.x / 2 + this.width / 2;
+                    particle.destination.y = particle.destination.y - particle.destination.y / 2;
+                }
+            } else if (transitionLayout === "stacked") {
+                for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                    particle = this.particlesContainer.children[i];
+                    particle.aimedSize.width = particle.aimedSize.width / 2;
+                    particle.aimedSize.height = particle.aimedSize.height / 2;
+                    particle.destination.x = particle.destination.x - particle.destination.x / 2 + this.width / 4;
+                    particle.destination.y = particle.destination.y - particle.destination.y / 2 + this.height / 2;
+                }
+            }
         }
 
-        this.visualization = newVisualization;
+        if (this.visualization) {
+            this.visualizationOld = this.visualization;
+        }
+
+        this.visualization = barChart;
         this.stage.addChild(this.visualization);
 
         this.particlesContainer.startAnimation();
@@ -290,7 +422,10 @@ export default class Canvas {
     render() {
         this.stats.begin();
 
-        this.particlesContainer.nextStep();
+        if (!this.particlesContainer.nextStep() && this.isCleaningNecessary) {
+            this.clean();
+        }
+
         this.renderer.render(this.stage);
 
         this.stats.end();

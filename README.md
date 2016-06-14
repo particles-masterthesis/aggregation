@@ -1,2 +1,2 @@
-# aggregation
-master-thesis sub-project about aggregation in particle based visualizations
+# transition
+master-thesis sub-project about transition in particle based visualizations like bar charts, scatter plots and maps.

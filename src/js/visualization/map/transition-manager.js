@@ -31,13 +31,12 @@ export default class TransitionManager {
     }
 
     animate(current, upcoming){
+        this.canvas.stop();
         this.currentViz = current.obj;
         this.upcomingVizType = upcoming;
 
         let upcomingViz = {};
         const transitionKey = `${current.type}_${upcoming}`;
-        console.log(transitionKey);
-        console.log(this.currentViz);
         switch(transitionKey){
 
             case 'dot_psm':
@@ -112,6 +111,7 @@ export default class TransitionManager {
                     if(this.currentViz.isFunction(cb)) cb();
                 });
                 upcomingViz = this.drawDot();
+                this.canvas.stop();
                 this.canvas.render();
                 return this.animate(upcomingViz, upcoming);
 

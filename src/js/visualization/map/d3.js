@@ -1,6 +1,8 @@
 import d3 from 'd3';
 import topojson from  'topojson';
 
+import { colorbrewer } from './colorbrewer.min.js';
+
 let singleton = Symbol();
 let singletonEnforcer = Symbol();
 
@@ -11,6 +13,8 @@ export default class D3 {
         }
         this._d3 = d3;
         this._topojson = topojson;
+        this.colorbrewer = colorbrewer;
+
     }
 
     init(width, height, levelOfDetail, drawMap){
@@ -25,8 +29,8 @@ export default class D3 {
         .range([0, 20]);
 
         this.colorScale = this._d3.scale.quantile()
-        .domain(this._d3.range(10).map( i => i * 3 ))
-        .range(this._d3.range(9).map( i => `q${i}-9` ));
+        .domain(this._d3.range(10).map( i => i * 4 ))
+        .range(this._d3.range(9));
 
         this.path = this._d3.geo.path().projection(this.projection);
         this.svg = this._d3.select("body > svg");
@@ -94,6 +98,11 @@ export default class D3 {
 
 
         this._d3.select(self.frameElement).style("height", this.height + "px");
+
+        this.centroids = {};
+        this.calculateCentroids('states');
+        this.calculateCentroids('counties');
+
     }
 
     static get instance() {
@@ -169,6 +178,18 @@ export default class D3 {
 
     getCountyIdentifier(d){
         return Number(d.id.substring(d.id.search("S")+1, d.id.search("S")+6));
+    }
+
+    calculateCentroids(levelOfDetail){
+        const boundaries = this._topojson.feature(
+            this.data.us,
+            this.data.us.objects[levelOfDetail]
+        ).features;
+
+        this.centroids[levelOfDetail] = {};
+        for(let boundary of boundaries){
+            this.centroids[levelOfDetail][boundary.id] = this.path.centroid(boundary);
+        }
     }
 
 }

@@ -20,6 +20,7 @@ export default class Particle extends PIXI.Sprite {
         // 2px every 1/60 second seem to be a good value
         this.speed = 2;
         this.destination = new PIXI.Point(x, y);
+        this.alpha = 1;
         this.aimedSize = {
             width,
             height
@@ -58,6 +59,7 @@ export default class Particle extends PIXI.Sprite {
         }
 
         //console.log("POSITION", this.position, "DESTINATION", this.destination);
+
         if (!this.position.equals(this.destination)) {
             let deltaX = this.destination.x - this.position.x;
             let deltaY = this.destination.y - this.position.y;
@@ -87,15 +89,38 @@ export default class Particle extends PIXI.Sprite {
             }
         }
 
-        if (this.position.equals(this.destination) && this._width == this.aimedSize.width && this._height == this.aimedSize.height) {
+        // this.speed * 2 / 100 = 0.04 alpha each animation call
+        if(this.aimedAlpha !== this.alpha){
+            if(Math.abs(this.alpha - this.aimedAlpha) < this.speed * 2 / 100){
+                this.alpha = this.aimedAlpha;
+            }
+            else if(this.aimedAlpha < this.alpha){
+                this.alpha -= this.speed * 2 / 100;
+            } else {
+                this.alpha += this.speed * 2 / 100;
+            }
+        }
+
+        if (
+            this.position.equals(this.destination) &&
+            this._width == this.aimedSize.width &&
+            this._height == this.aimedSize.height &&
+            this.alpha === this.aimedAlpha
+        ) {
             this.isAnimating = false;
         }
 
         return this.isAnimating;
+
     }
 
     setPosition(x, y) {
         this.position.set(x, y);
+        return this;
+    }
+
+    setAlpha(e) {
+        this.alpha = e;
         return this;
     }
 
@@ -127,6 +152,13 @@ export default class Particle extends PIXI.Sprite {
         this.on("mouseout", function (ev) {
             this.texture = this.textureDefault;
         }.bind(this));
+    }
+
+    fade(type){
+        this.shouldAnimate = true;
+        if(type === 'in') this.aimedAlpha = 1;
+        if(type === 'out') this.aimedAlpha = 0;
+        return this;
     }
 
 }

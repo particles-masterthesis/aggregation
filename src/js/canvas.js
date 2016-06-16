@@ -236,6 +236,7 @@ export default class Canvas {
                     particle.position.x = particle.position.x - particle.position.x / 2;
                     particle.position.y = particle.position.y - particle.position.y / 2;
                 }
+                this.particlesContainer.startAnimation();
             } else if (transitionLayout === "stacked") {
                 this.visualization.x = this.width / 4;
 
@@ -335,21 +336,21 @@ export default class Canvas {
 
     drawDotMap(dataset, isCurrentVisualization, animationCb) {
         this.createParticles(dataset);
-
         if (isCurrentVisualization) {
             this.visualization.updateBaseMap(this.levelOfDetail);
-            this.visualization.drawDots(this.particlesContainer);
+            this.visualization.drawDots(this.particlesContainer.children);
             return this.visualization;
         }
 
         this.visualization = new DotMap(
             this.width,
             this.height,
-            this.particlesContainer.children,
+            this.particlesContainer,
             this.levelOfDetail,
             animationCb
         );
         this.stage.addChild(this.visualization);
+        this.particlesContainer.startAnimation();
         return this.visualization;
     }
 
@@ -367,7 +368,7 @@ export default class Canvas {
         this.visualization = new ProportionalSymbolMap(
             this.width,
             this.height,
-            this.particlesContainer.children,
+            this.particlesContainer,
             this.levelOfDetail,
             animationCb
         );
@@ -389,7 +390,7 @@ export default class Canvas {
         this.visualization = new ChoroplethMap(
             this.width,
             this.height,
-            this.particlesContainer.children,
+            this.particlesContainer,
             this.levelOfDetail,
             this.colorScheme,
             animationCb
@@ -411,7 +412,7 @@ export default class Canvas {
         this.visualization = new Cartogram(
             this.width,
             this.height,
-            this.particlesContainer.children,
+            this.particlesContainer,
             this.levelOfDetail,
             animationCb
         );

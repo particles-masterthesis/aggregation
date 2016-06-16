@@ -55,7 +55,10 @@ window.updateScreen = () => {
             mapTypesWithDomNodes.indexOf(visualizationHistory[0].type) > -1 &&
             visualizationHistory[0].type !== upcomingVisualizationType
         ){
-            if(transitionType === 'maps'){
+            if(
+                transitionType === 'linear' &&
+                mapTypesWithDomNodes.indexOf(upcomingVisualizationType) > -1
+            ){
                 currentVisualization = TM.animate(
                     visualizationHistory[0],
                     upcomingVisualizationType

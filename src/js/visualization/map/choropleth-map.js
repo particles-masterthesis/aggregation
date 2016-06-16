@@ -2,10 +2,8 @@ import BaseMap from "./base-map";
 
 export default class ChoroplethMap extends BaseMap {
 
-    constructor(width, height, particles, levelOfDetail, colorScheme, animationCb){
-        super(width, height, levelOfDetail, true);
-        this.particles = particles;
-        this.levelOfDetail = levelOfDetail;
+    constructor(width, height, particleContainer, levelOfDetail, colorScheme, animationCb){
+        super(width, height, particleContainer, levelOfDetail, true);
         this.colorScheme = colorScheme;
 
         super.show(true, true);
@@ -136,7 +134,6 @@ export default class ChoroplethMap extends BaseMap {
                 let scaled = map.colorScale(
                     map.symbolScale(Number(d.properties.orders) || 0) || 0
                 );
-                console.log(this.getColor[scaled]);
                 return this.getColor[scaled];
             });
         }

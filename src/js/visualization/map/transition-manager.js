@@ -1,4 +1,5 @@
 function animateParticleToCentroid(currentViz, levelOfDetail){
+    console.log(currentViz.particles);
     for(let particle of currentViz.particles){
         let coords  = currentViz.getCentroidOfParticle(
             particle,
@@ -37,6 +38,7 @@ export default class TransitionManager {
 
         let upcomingViz = {};
         const transitionKey = `${current.type}_${upcoming}`;
+        console.log(transitionKey);
         switch(transitionKey){
 
             case 'dot_psm':

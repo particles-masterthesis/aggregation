@@ -3,9 +3,10 @@ import D3 from "./d3";
 
 export default class BaseMap extends Visualization {
 
-    constructor(width, height, levelOfDetail, drawMap) {
-        super(width, height);
+    constructor(width, height, particleContainer, levelOfDetail, drawMap) {
+        super(width, height, particleContainer);
         this.baseMap = D3.instance;
+        this.levelOfDetail = levelOfDetail;
 
         if(!this.baseMap.svg){
             this.baseMap.init(width, height, levelOfDetail, drawMap);

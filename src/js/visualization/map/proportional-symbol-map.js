@@ -3,11 +3,8 @@ import BaseMap from "./base-map";
 
 export default class ProportionalSymbolMap extends BaseMap {
 
-    constructor(width, height, particles, levelOfDetail, animationCb){
-        super(width, height, levelOfDetail, true);
-
-        this.particles = particles;
-        this.levelOfDetail = levelOfDetail;
+    constructor(width, height, particleContainer, levelOfDetail, animationCb){
+        super(width, height, particleContainer, levelOfDetail, true);
 
         super.show(true, true);
 

@@ -155,7 +155,7 @@ export default class Particle extends PIXI.Sprite {
     }
 
     fade(type){
-        this.shouldAnimate = true;
+        this.isAnimating = true;
         if(type === 'in') this.aimedAlpha = 1;
         if(type === 'out') this.aimedAlpha = 0;
         return this;

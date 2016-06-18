@@ -192,11 +192,11 @@ export default class Canvas {
         this.isCleaningNecessary = false;
     }
 
-    calculateTranslationLayoutValues(vizualization){
+    calculateTranslationLayoutValues(visualization){
         // height of visualization + labels
-        let height = this.visualization.padding * 2 + this.visualization.heightVisualization;
+        let height = visualization.padding * 2 + visualization.heightVisualization;
 
-        // place for the old visualization at the top of the screen
+        // place for the visualization at the screen
         let possibleHeight = this.height / 2;
 
         // how much we can scale the visualization, scale can be 1 <= 0

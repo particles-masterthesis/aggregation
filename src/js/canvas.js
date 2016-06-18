@@ -170,6 +170,9 @@ export default class Canvas {
                 let particle;
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
                     particle = this.particlesContainer.children[i];
+                    if(particle.alpha === 0) {
+                        continue;
+                    }
                     particle.width = particle._width * 2;
                     particle.height = particle._height * 2;
                     particle.position.x = particle.position.x * 2 - this.width;
@@ -181,6 +184,9 @@ export default class Canvas {
                 let particle;
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
                     particle = this.particlesContainer.children[i];
+                    if(particle.alpha === 0) {
+                        continue;
+                    }
                     particle.width = particle._width / ratio;
                     particle.height = particle._height / ratio;
                     particle.position.x = (particle.position.x + width / 2 - this.width / 2) / ratio;
@@ -224,6 +230,63 @@ export default class Canvas {
         return this.visualization;
     }
 
+    moveVisualization(visualization, place){
+        let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(visualization);
+
+        if (place === "left" || place === "right") {
+            visualization.x = 0;
+            visualization.y = this.height / 4;
+            visualization.scale.x = 0.5;
+            visualization.scale.y = 0.5;
+
+            if(place === "right"){
+                visualization.x += this.width/2;
+            }
+        } else if (place === "top" || place === "bottom") {
+            // set the visualization to the middle and half the new width to the left
+            visualization.x = this.width / 2 - visualization._width * ratio / 2;
+
+            // move the visualization slightly outside of the allowed area
+            // because we don't need the blank space on the top of the viz
+            visualization.y = -yTranslate * ratio;
+            visualization.scale.x = ratio;
+            visualization.scale.y = ratio;
+
+            if(place === "bottom"){
+                visualization.y += this.height / 2;
+            }
+        }
+
+        // The particles should move also the left or the right
+        if(place === "left"){
+            let particle;
+            for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                particle = this.particlesContainer.children[i];
+                if(particle.alpha === 0) {
+                    continue;
+                }
+                particle.width = particle._width / 2;
+                particle.height = particle._height / 2;
+                particle.position.x = particle.position.x - particle.position.x / 2;
+                particle.position.y = visualization.y + particle.position.y / 2;
+            }
+        }
+
+        if(place === "top"){
+            let particle;
+            for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                particle = this.particlesContainer.children[i];
+                if(particle.alpha === 0) {
+                    continue;
+                }
+                particle.width = particle._width * ratio;
+                particle.height = particle._height * ratio;
+                particle.position.x = visualization.x + particle.position.x * ratio;
+                particle.position.y = particle.position.y * ratio - yTranslate * ratio;
+            }
+        }
+    }
+
     drawBarChart(dataset, schema, features, oldFeatureX, title) {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
@@ -248,38 +311,9 @@ export default class Canvas {
             (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
 
             if (transitionLayout === "juxtaposition") {
-                this.visualization.y = this.height / 4;
-                this.visualization.scale.x = 0.5;
-                this.visualization.scale.y = 0.5;
-
-                let particle;
-                for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                    particle = this.particlesContainer.children[i];
-                    particle.width = particle._width / 2;
-                    particle.height = particle._height / 2;
-                    particle.position.x = particle.position.x - particle.position.x / 2;
-                    particle.position.y = this.visualization.y + particle.position.y / 2;
-                }
-
+                this.moveVisualization(this.visualization, "left");
             } else if (transitionLayout === "stacked") {
-                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualization);
-
-                // set the visualization to the middle and half the new width to the left
-                this.visualization.x = this.width / 2 - this.visualization._width * ratio / 2;
-
-                // move the visualization into the negative, because we don't need the blank space on the top of the viz
-                this.visualization.y = -yTranslate * ratio;
-                this.visualization.scale.x = ratio;
-                this.visualization.scale.y = ratio;
-
-                let particle;
-                for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                    particle = this.particlesContainer.children[i];
-                    particle.width = particle._width * ratio;
-                    particle.height = particle._height * ratio;
-                    particle.position.x = this.visualization.x + particle.position.x * ratio;
-                    particle.position.y = particle.position.y * ratio - yTranslate * ratio;
-                }
+                this.moveVisualization(this.visualization, "top");
             }
 
             this.isCleaningNecessary = true;
@@ -302,22 +336,9 @@ export default class Canvas {
             (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
 
             if (transitionLayout === "juxtaposition") {
-                barChart.x = this.width / 2;
-                barChart.y = this.visualization.y;
-                barChart.scale.x = 0.5;
-                barChart.scale.y = 0.5;
+                this.moveVisualization(barChart, "right");
             } else if (transitionLayout === "stacked") {
-                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(barChart);
-
-                // set the visualization to the middle and half the new width to the left
-                barChart.x = this.width / 2 - barChart._width * ratio / 2;
-
-                // move the visualization slightly outside of the allowed area
-                // because we don't need the blank space on the top of the viz
-                barChart.y = this.height / 2 - yTranslate * ratio;
-
-                barChart.scale.x = ratio;
-                barChart.scale.y = ratio;
+                this.moveVisualization(barChart, "bottom");
             }
         }
 
@@ -330,6 +351,9 @@ export default class Canvas {
             if (transitionLayout === "juxtaposition") {
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
                     particle = this.particlesContainer.children[i];
+                    if(particle.alpha === 0) {
+                        continue;
+                    }
                     particle.aimedSize.width = particle.aimedSize.width / 2;
                     particle.aimedSize.height = particle.aimedSize.height / 2;
                     particle.destination.x = particle.destination.x - particle.destination.x / 2 + this.width / 2;
@@ -340,6 +364,9 @@ export default class Canvas {
 
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
                     particle = this.particlesContainer.children[i];
+                    if(particle.alpha === 0) {
+                        continue;
+                    }
                     particle.aimedSize.width = particle.aimedSize.width * ratio;
                     particle.aimedSize.height = particle.aimedSize.height * ratio;
                     particle.destination.x = this.width / 2 - width / 2 + particle.destination.x * ratio;

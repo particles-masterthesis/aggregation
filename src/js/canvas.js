@@ -26,7 +26,7 @@ export default class Canvas {
             shape: "rectangle"
         };
 
-        this.height = 600; //windowH height - menu height - css-paddings
+        this.height = window.innerHeight - 142; //windowH height - menu height - css-paddings
         this.width = window.innerWidth - 40; //windowH width - css-paddings
 
         // arguments: width, height, view, transparent, antialias

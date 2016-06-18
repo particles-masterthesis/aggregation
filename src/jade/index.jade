@@ -25,16 +25,25 @@ html
                             option(value="psm") Proportional symbol map
                             option(value="choropleth") Choropleth map
                             option(value="cartogram") Cartogram
+                    br
                     li
                         | Transition
                         select.selectpicker.transition
-                            option(value="none" selected) None
-                            option(value="linear") Linear animation
+                            option(value="none") None
+                            option(value="linear" selected) Linear animation
                     li
                         | Transition layout
                         select.selectpicker.transition-layout
-                            option(value="inPlace" selected) In-place
+                            option(value="inPlace") In-place
                             option(value="juxtaposition") Juxtaposition
-                            option(value="stacked") Stacked
+                            option(value="stacked" selected) Stacked
+
+                    li
+                        | Sort
+                        select.selectpicker.sort-type
+                            option(value="automatically" selected) automatically
+                            option(value="manually") manually
+                        | by
+                        select.selectpicker.feature.sort-by(disabled="true")
 
     script(src="dist/main.js")

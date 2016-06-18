@@ -1,5 +1,4 @@
 import Chart from "./chart";
-var d3 = require("d3");
 
 export default class BarChart extends Chart {
 
@@ -21,29 +20,21 @@ export default class BarChart extends Chart {
     }
 
 
-
     createStage() {
         let {uniqueValues, maxAppearance} = this.analyzeFeature(this.options.schema, this.options.features.x);
         let {size, particlesPerRow, widthAreaPerValue, marginBar, blankParticlesHighestBar} = this.calculateValues(uniqueValues, maxAppearance);
 
-        // Y-AXIS
-        this.drawYAxis();
+        // X- AND Y-AXIS
+        this.drawAxes();
 
-        // X-AXIS
         // X-TICKS
-        let dataXAxis = [];
-        Object.keys(uniqueValues).forEach(function (key) {
-            dataXAxis.push({"key": key, "appearance": uniqueValues[key].appearance});
-        });
-        this.drawXAxisWithTicks(dataXAxis);
+        this.drawTicksX(uniqueValues);
 
         // Y-TICKS
         this.drawTicksY(size, maxAppearance + blankParticlesHighestBar, particlesPerRow);
 
         // LABELS
         this.drawLabels({"x": this.options.features.x, "y": "Amount"}, this.options.title);
-
-        //this.y = this._height - this.heightVisualization - this.padding*2;
     }
 
     /**
@@ -146,7 +137,7 @@ export default class BarChart extends Chart {
         let widthBarExclusiveMargin = widthAreaPerValue - marginBar * 2;
 
         // Calculate the size a particle
-        let availableAreaHighestBar = (this._height - this.padding*2) * widthBarExclusiveMargin;
+        let availableAreaHighestBar = (this._height - this.padding * 2) * widthBarExclusiveMargin;
         let areaEveryParticleInHighestBar = availableAreaHighestBar / maxAppearance;
         let sizeEveryParticle = Math.sqrt(areaEveryParticleInHighestBar);
 
@@ -198,7 +189,6 @@ export default class BarChart extends Chart {
      * @param areParticlesNew
      */
     placeParticles(uniqueValues, size, particlesPerRow, marginBar, widthAreaPerValue, areParticlesNew) {
-
         let x, y, uniqueValue;
         let transitionType = $("select.transition").val();
         let values = Object.keys(uniqueValues);
@@ -266,90 +256,69 @@ export default class BarChart extends Chart {
         this.addChild(items);
     }
 
-    /**
-     * @param data
-     */
-    drawXAxisWithTicks(data) {
-        var x = d3.scale.ordinal()
-            .rangeRoundBands([0, this.widthVisualization], 0.1);
+    drawTicksX(uniqueValues) {
+        const ticks = new PIXI.Graphics();
+        ticks.lineStyle(1, 0x111111, 1);
 
-        // Because d3 places dynamically margin to the most right and left bar
-        // we have to place the ticks manually
-        let postEditingTicks = function (selection) {
-            let collection = selection.selectAll('ticks')[0].parentNode.getElementsByClassName("tick");
-            let matrix = document.getElementsByTagName("svg")[0].createSVGMatrix();
-            let widthBar = this.widthVisualization / data.length;
+        let amountOfBarsX = Object.keys(uniqueValues).length;
+        let pxStepX = this.widthVisualization / amountOfBarsX;
+        let x, text, maxLengthText = 12;
 
-            for (let i = 0; i < collection.length; i++) {
-                let matrix = document.getElementsByTagName("svg")[0].createSVGMatrix();
-                matrix = matrix.translate(parseInt(widthBar / 2 + i * widthBar, 10), 0);
-                collection[i].transform.baseVal.getItem(0).setMatrix(matrix);
-                collection[i].placement = i;
-            }
+        this.labelsX = new PIXI.Container();
+
+        let styleDefault = {
+            font: "12px Arial",
+            fill: 0x000000
         };
 
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .tickFormat(function (text) {
-                text = text.length > 16 ? text.substring(0, 16 - 1) + "..." : text;
-                text = text.replace("ä", "ae").replace("Ä", "Ae");
-                text = text.replace("ö", "oe").replace("Ö", "Oe");
-                text = text.replace("ü", "ue").replace("Ü", "Ue");
-                return text;
-            });
-
-        var svg = d3.select("body").append("svg")
-            .attr("width", this._width)
-            .attr("height", this._height)
-            .attr("id", "x-axis")
-            .append("g")
-            .attr("transform", "translate(" + this.padding + "," + this.padding + ")");
-
-        x.domain(data.map(function (d) {
-            return d.key;
-        }));
-
-        svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", `translate(0,${parseInt(this._height - this.padding * 2, 10)})`)
-            .call(xAxis)
-            .call(postEditingTicks.bind(this))
-            .selectAll("text")
-            .attr("y", 0)
-            .attr("x", 9)
-            .attr("transform", "rotate(45)")
-            .style("text-anchor", "start");
-
-        let allTicksInactive = function () {
-            let ticks = document.getElementsByClassName("tick");
-            for (var i = 0; i < ticks.length; i++) {
-                ticks[i].classList.remove("tick-active");
-            }
+        let styleActive = {
+            font: "12px Arial",
+            fill: 0x34a853
         };
 
-        svg.selectAll(".x.axis g.tick").on("click", function (d) {
-            let classList = d3.event.target.parentNode.classList;
-            if (classList.contains("tick-active")) {
-                classList.remove("tick-active");
+        let onClick = (index, label) => function() {
+            if(label.isActive){
+                label.isActive = false;
+                for(let i=0; i<this.labelsX.children.length; i++){
+                    this.labelsX.children[i].style = styleDefault;
+                }
                 this.particlesContainer.resetHighPriorityParticles();
-            } else {
-                allTicksInactive();
-                classList.add("tick-active");
-                this.particlesContainer.setHighPriorityParticles(d3.event.target.parentNode.placement);
+                return;
             }
-        }.bind(this));
-    }
 
-    drawYAxis() {
-        const yAxis = new PIXI.Graphics();
-        yAxis.lineStyle(1, 0x111111, 1);
+            label.isActive = true;
+            label.style = styleActive;
+            this.particlesContainer.setHighPriorityParticles(index);
+        }.bind(this);
 
-        // From bottom to top and to the left
-        yAxis.moveTo(this.padding, this._height - this.padding);
-        yAxis.lineTo(this.padding, this._height - this.padding - this.heightVisualization);
-        yAxis.lineTo(this.padding - 10, this._height - this.padding - this.heightVisualization);
+        // Print ticks to the x axis
+        for (let i = 0; i < amountOfBarsX; i++) {
+            x = i * pxStepX + pxStepX / 2;
 
-        this.addChild(yAxis);
+            text = Object.keys(uniqueValues)[i];
+            text = text.length > maxLengthText ? text.substring(0, maxLengthText - 1) + "..." : text;
+            text = text.replace("ä", "ae").replace("Ä", "Ae");
+            text = text.replace("ö", "oe").replace("Ö", "Oe");
+            text = text.replace("ü", "ue").replace("Ü", "Ue");
+
+            const tickLabel = new PIXI.Text(text, styleDefault);
+            tickLabel.anchor = new PIXI.Point(0.5, 0.5);
+            tickLabel.x = this.padding + x;
+            tickLabel.y = this._height - this.padding + 16;
+            tickLabel.anchor = new PIXI.Point(0, 0.5);
+            tickLabel.rotation = Math.PI / 4;
+            tickLabel.interactive = true;
+            tickLabel.buttonMode = true;
+
+            tickLabel.on("click", onClick(i, tickLabel), null);
+            this.labelsX.addChild(tickLabel);
+
+            ticks.moveTo(this.padding + x, this._height - this.padding);
+            ticks.lineTo(this.padding + x, this._height - this.padding + 8);
+        }
+
+        this.addChild(this.labelsX);
+        this.addChild(ticks);
     }
 
     /**

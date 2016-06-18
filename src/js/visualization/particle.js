@@ -18,7 +18,7 @@ export default class Particle extends PIXI.Sprite {
 
         // Attributes
         // 2px every 1/60 second seem to be a good value
-        this.speed = 2;
+        this.speed = 5;
         this.destination = new PIXI.Point(x, y);
         this.aimedSize = {
             width,

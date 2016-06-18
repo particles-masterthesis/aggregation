@@ -10736,7 +10736,7 @@ body {
   height: 100%;
 }
 .navbar-nav li {
-  margin-left: 10px;
+  margin-left: 15px;
 }
 .navbar-nav select {
   height: 30px;
@@ -10761,6 +10761,7 @@ svg {
 }
 canvas {
   z-index: 1;
+  background: #f8f8f8;
 }
 table {
   border: 1px solid #e7e7e7;

@@ -25,7 +25,7 @@
               <option value="choropleth">Choropleth map</option>
               <option value="cartogram">Cartogram</option>
             </select>
-          </li>
+          </li><br>
           <li>Transition
             <select class="selectpicker transition">
               <option value="none">None</option>
@@ -38,6 +38,13 @@
               <option value="juxtaposition">Juxtaposition</option>
               <option value="stacked" selected>Stacked</option>
             </select>
+          </li>
+          <li>Sort
+            <select class="selectpicker sort-type">
+              <option value="automatically" selected>automatically</option>
+              <option value="manually">manually</option>
+            </select>by
+            <select disabled="true" class="selectpicker feature sort-by"></select>
           </li>
         </ul>
       </div>

@@ -274,6 +274,7 @@ export default class Canvas {
             this.moveOldVisualizationForTransition(this.visualizationOld, areParticlesNew, transitionType, transitionLayout);
         });
 
+        // Second step
         this.animationQueue.push(() => {
             this.moveNewVisualizationForTransition(this.visualization, areParticlesNew, transitionType, transitionLayout);
             this.stage.addChild(this.visualization);

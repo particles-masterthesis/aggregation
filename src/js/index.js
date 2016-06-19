@@ -20,6 +20,7 @@ import TransitionManager from './visualization/map/transition-manager';
  * @description After loading all scripts initialize the instances, load dataset and update ui
  */
 var TM;
+
 window.onload = () => {
     let dataStore = window.dataStore = new DataStore();
     dataStore.import(`${location.origin}${location.pathname}/dist/datasets/superstore-preprocessed-coords-geoids.csv`);

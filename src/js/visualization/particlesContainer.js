@@ -15,6 +15,8 @@ export default class ParticlesContainer extends PIXI.Container {
             return false;
         }
 
+        console.log("animate");
+
         let particlesReachedDestinations = true;
         let particleReachedDestination;
         let particle;
@@ -60,7 +62,7 @@ export default class ParticlesContainer extends PIXI.Container {
 
     setHighPriorityParticles(barWithHighPriority){
         for(let i=0; i<this.children.length; i++){
-            if(this.children[i].bar == barWithHighPriority){
+            if(this.children[i].bar === barWithHighPriority){
                 this.children[i].priority = 1; // priority = high
             } else {
                 this.children[i].priority = 0; // priority = low

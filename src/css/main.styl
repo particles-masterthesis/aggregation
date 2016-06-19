@@ -9,7 +9,8 @@ body
 
 .navbar-nav
     li
-        margin-left 10px
+        margin-left 15px
+
     select
         height 30px
         margin 10px
@@ -30,7 +31,8 @@ canvas, svg
     margin-left 20px
 
 canvas
-    z-index 5
+    z-index 2
+    border 1px solid #f8f8f8
 
 table
     border 1px solid #e7e7e7
@@ -46,7 +48,7 @@ table
         padding 10px
 
 svg
-    z-index 2
+    z-index 1
 
     .county-boundary
     .state-boundary
@@ -90,18 +92,6 @@ svg
         fill none
         stroke #000
         shape-rendering crispEdges
-
-    .tick
-        fill #000
-
-    .tick-active
-    .tick:active
-    .tick:focus
-        fill #34a853
-
-    .tick:hover
-        cursor pointer
-        fill #4285f4
 
 svg.default .country
     fill lightgrey

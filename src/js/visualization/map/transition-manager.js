@@ -1,9 +1,10 @@
 function animateParticleToCentroid(currentViz, levelOfDetail){
     for(let particle of currentViz.particles){
-        let coords  = currentViz.getCentroidOfParticle(
+        let coords = currentViz.getCentroidOfParticle(
             particle,
             levelOfDetail
         );
+
         particle.transitionTo(
             coords[0],
             coords[1],

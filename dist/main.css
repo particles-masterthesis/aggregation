@@ -6767,7 +6767,7 @@ body {
   height: 100%;
 }
 .navbar-nav li {
-  margin-left: 10px;
+  margin-left: 15px;
 }
 .navbar-nav select {
   height: 30px;
@@ -6791,7 +6791,8 @@ svg {
   margin-left: 20px;
 }
 canvas {
-  z-index: 5;
+  z-index: 2;
+  border: 1px solid #f8f8f8;
 }
 table {
   border: 1px solid #e7e7e7;
@@ -6807,7 +6808,7 @@ table td {
   padding: 10px;
 }
 svg {
-  z-index: 2;
+  z-index: 1;
 }
 svg .county-boundary,
 svg .state-boundary {
@@ -6851,18 +6852,6 @@ svg .axis line {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
-}
-svg .tick {
-  fill: #000;
-}
-svg .tick-active,
-svg .tick:active,
-svg .tick:focus {
-  fill: #34a853;
-}
-svg .tick:hover {
-  cursor: pointer;
-  fill: #4285f4;
 }
 svg.default .country {
   fill: #d3d3d3;

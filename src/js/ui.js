@@ -10,9 +10,9 @@ export default class UI {
 
         for (let feature of features) {
             if (feature === currentSelection.x) {
-                $(".feature-x").append(`<option selected>${feature}</option>`);
+                $(".feature-x, .sort-by").append(`<option selected>${feature}</option>`);
             } else {
-                $(".feature-x").append(`<option>${feature}</option>`);
+                $(".feature-x, .sort-by").append(`<option>${feature}</option>`);
             }
 
             if (feature === currentSelection.y) {
@@ -34,10 +34,12 @@ export default class UI {
 
             case "scatterPlot":
                 $("select.feature").attr("disabled", false);
+                $("select.sort-by").attr("disabled", true);
                 break;
 
             default:
                 $("select.feature").attr("disabled", true);
+                $("select.sort-by").attr("disabled", true);
                 break;
         }
     }

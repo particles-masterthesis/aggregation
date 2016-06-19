@@ -6,6 +6,8 @@ export default class ProportionalSymbolMap extends BaseMap {
     constructor(width, height, particleContainer, levelOfDetail, animationCb){
         super(width, height, particleContainer, levelOfDetail, true);
 
+        this.levelOfDetail = levelOfDetail;
+
         super.show(true, true);
 
         this.drawSymbols(animationCb);

@@ -27,10 +27,10 @@ export default class Canvas {
         this.requestFrameID = null;
 
         this.particles = {
-            shape: "circle"
+            shape: "rectangle"
         };
 
-        this.height = window.innerHeight - 90; //windowH height - menu height - css-paddings
+        this.height = window.innerHeight - 142; //windowH height - menu height - css-paddings
         this.width = window.innerWidth - 40; //windowH width - css-paddings
 
         // arguments: width, height, view, transparent, antialias
@@ -143,11 +143,6 @@ export default class Canvas {
     }
 
     removeVisualization() {
-        // Because bar chart creates a x axis which should be also removed after that function call
-        if (document.getElementById("x-axis")) {
-            document.body.removeChild(document.getElementById("x-axis"));
-        }
-
         this.stage.removeChild(this.visualization);
     }
 
@@ -165,7 +160,9 @@ export default class Canvas {
 
             // Remove old visualization
             this.stage.removeChild(this.visualizationOld);
-            document.body.removeChild(document.getElementById("x-axis-old"));
+
+            // the scales of the viz contains the scaling ratio
+            let ratio = this.visualization.scale.x;
 
             // Change appearance of the new visualization
             this.visualization.scale.x = 1;
@@ -173,30 +170,60 @@ export default class Canvas {
             this.visualization.x = 0;
             this.visualization.y = 0;
 
-            document.getElementById("x-axis").style.transform = "scale(1) translate(0,0)";
-
             if (transitionLayout === "juxtaposition") {
                 let particle;
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
                     particle = this.particlesContainer.children[i];
+                    if(particle.alpha === 0) {
+                        continue;
+                    }
                     particle.width = particle._width * 2;
                     particle.height = particle._height * 2;
                     particle.position.x = particle.position.x * 2 - this.width;
-                    particle.position.y = particle.position.y * 2;
+                    particle.position.y = (particle.position.y - this.height / 4) * 2;
                 }
             } else if (transitionLayout === "stacked") {
+                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualization);
+
                 let particle;
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
                     particle = this.particlesContainer.children[i];
-                    particle.width = particle._width * 2;
-                    particle.height = particle._height * 2;
-                    particle.position.x = particle.position.x * 2 - this.width / 2;
-                    particle.position.y = particle.position.y *2 - this.height;
+                    if(particle.alpha === 0) {
+                        continue;
+                    }
+                    particle.width = particle._width / ratio;
+                    particle.height = particle._height / ratio;
+                    particle.position.x = (particle.position.x + width / 2 - this.width / 2) / ratio;
+                    particle.position.y = (particle.position.y + yTranslate * ratio - this.height / 2) / ratio;
                 }
             }
         }
 
         this.isCleaningNecessary = false;
+    }
+
+    calculateTranslationLayoutValues(visualization){
+        // height of visualization + labels
+        let height = visualization.padding * 2 + visualization.heightVisualization;
+
+        // place for the visualization at the screen
+        let possibleHeight = this.height / 2;
+
+        // how much we can scale the visualization, scale can be 1 <= 0
+        let ratio = Math.min(possibleHeight / height, 1);
+
+        // calculate how much blank space there is
+        let yTranslate = this.height - height;
+
+        // calculate the new width
+        let width = this.width * ratio;
+
+        return {
+            height,
+            width,
+            ratio,
+            yTranslate
+        };
     }
 
     drawParticles(dataset) {
@@ -207,52 +234,90 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawBarChart(dataset, schema, features, title) {
+    moveVisualization(visualization, place){
+        let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(visualization);
+
+        if (place === "left" || place === "right") {
+            visualization.x = 0;
+            visualization.y = this.height / 4;
+            visualization.scale.x = 0.5;
+            visualization.scale.y = 0.5;
+
+            if(place === "right"){
+                visualization.x += this.width/2;
+            }
+        } else if (place === "top" || place === "bottom") {
+            // set the visualization to the middle and half the new width to the left
+            visualization.x = this.width / 2 - visualization._width * ratio / 2;
+
+            // move the visualization slightly outside of the allowed area
+            // because we don't need the blank space on the top of the viz
+            visualization.y = -yTranslate * ratio;
+            visualization.scale.x = ratio;
+            visualization.scale.y = ratio;
+
+            if(place === "bottom"){
+                visualization.y += this.height / 2;
+            }
+        }
+
+        // The particles should move also the left or the right
+        if(place === "left"){
+            let particle;
+            for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                particle = this.particlesContainer.children[i];
+                if(particle.alpha === 0) {
+                    continue;
+                }
+                particle.width = particle._width / 2;
+                particle.height = particle._height / 2;
+                particle.position.x = particle.position.x - particle.position.x / 2;
+                particle.position.y = visualization.y + particle.position.y / 2;
+            }
+        }
+
+        if(place === "top"){
+            let particle;
+            for (let i = 0; i < this.particlesContainer.children.length; i++) {
+                particle = this.particlesContainer.children[i];
+                if(particle.alpha === 0) {
+                    continue;
+                }
+                particle.width = particle._width * ratio;
+                particle.height = particle._height * ratio;
+                particle.position.x = visualization.x + particle.position.x * ratio;
+                particle.position.y = particle.position.y * ratio - yTranslate * ratio;
+            }
+        }
+    }
+
+    drawBarChart(dataset, schema, features, oldFeatureX, title) {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
         let areParticlesNew = this.createParticles(dataset);
 
+        // If the sorting of the particles should be automatic be by the last chosen attribute
+        // we have to sort it before we start the transition
+        if ($("select.sort-type").val() === "automatically") {
+            let oldFeature = oldFeatureX || $("select.feature-x").children(":selected")[0].innerHTML;
+
+            $("select.sort-by option").filter(function (index) {
+                return $(this).text() === oldFeatureX;
+            }).prop('selected', true);
+
+            this.particlesContainer.children.sortBy(oldFeature, "data");
+        }
+
         /**
          * Move the old visualization to the left or to the top
          */
-        if (!areParticlesNew && this.visualization && transitionType != "none" &&
-            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
-
-            this.visualization.scale.x = 0.5;
-            this.visualization.scale.y = 0.5;
-            let xAxisOld = document.getElementById("x-axis");
-
+        if (!areParticlesNew && this.visualization && transitionType != "none") {
             if (transitionLayout === "juxtaposition") {
-                this.visualization.x = 0;
-                this.visualization.y = 0;
-
-                xAxisOld.style.transform = "scale(0.5) translate(-" + this.width * 0.5 + "px,-" + this.height * 0.5 + "px)";
-
-                let particle;
-                for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                    particle = this.particlesContainer.children[i];
-                    particle.width = particle._width / 2;
-                    particle.height = particle._height / 2;
-                    particle.position.x = particle.position.x - particle.position.x / 2;
-                    particle.position.y = particle.position.y - particle.position.y / 2;
-                }
-                this.particlesContainer.startAnimation();
+                this.moveVisualization(this.visualization, "left");
             } else if (transitionLayout === "stacked") {
-                this.visualization.x = this.width / 4;
-
-                xAxisOld.style.transform = "scale(0.5) translate(0px,-" + this.height * 0.5 + "px)";
-
-                let particle;
-                for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                    particle = this.particlesContainer.children[i];
-                    particle.width = particle._width / 2;
-                    particle.height = particle._height / 2;
-                    particle.position.x = particle.position.x - particle.position.x / 2 + this.width / 4;
-                    particle.position.y = particle.position.y - particle.position.y / 2;
-                }
+                this.moveVisualization(this.visualization, "top");
             }
 
-            xAxisOld.id = "x-axis-old";
             this.isCleaningNecessary = true;
         }
 
@@ -269,47 +334,42 @@ export default class Canvas {
         /**
          * Move the new visualization to the right or to the bottom
          */
-        if (!areParticlesNew && this.visualization && transitionType != "none" &&
-            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
-            barChart.scale.x = 0.5;
-            barChart.scale.y = 0.5;
-
+        if (!areParticlesNew && this.visualization && transitionType != "none") {
             if (transitionLayout === "juxtaposition") {
-                barChart.x = this.width / 2;
-                barChart.y = 0;
-
-                let xAxis = document.getElementById("x-axis");
-                xAxis.style.transform = "scale(0.5) translate(" + this.width * 0.5 + "px,-" + this.height * 0.5 + "px)";
+                this.moveVisualization(barChart, "right");
             } else if (transitionLayout === "stacked") {
-                barChart.x = this.width / 4;
-                barChart.y = this.height / 2;
-
-                let xAxis = document.getElementById("x-axis");
-                xAxis.style.transform = "scale(0.5) translate(0px," + this.height * 0.5 + "px)";
+                this.moveVisualization(barChart, "bottom");
             }
         }
 
         barChart.drawParticles(this.useBars, areParticlesNew);
 
-        if (!areParticlesNew && this.visualization && transitionType != "none" &&
-            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
+        if (!areParticlesNew && this.visualization && transitionType != "none") {
             let particle;
 
             if (transitionLayout === "juxtaposition") {
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
                     particle = this.particlesContainer.children[i];
+                    if(particle.alpha === 0) {
+                        continue;
+                    }
                     particle.aimedSize.width = particle.aimedSize.width / 2;
                     particle.aimedSize.height = particle.aimedSize.height / 2;
                     particle.destination.x = particle.destination.x - particle.destination.x / 2 + this.width / 2;
-                    particle.destination.y = particle.destination.y - particle.destination.y / 2;
+                    particle.destination.y = particle.destination.y - particle.destination.y / 2 + this.height / 4;
                 }
             } else if (transitionLayout === "stacked") {
+                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(barChart);
+
                 for (let i = 0; i < this.particlesContainer.children.length; i++) {
                     particle = this.particlesContainer.children[i];
-                    particle.aimedSize.width = particle.aimedSize.width / 2;
-                    particle.aimedSize.height = particle.aimedSize.height / 2;
-                    particle.destination.x = particle.destination.x - particle.destination.x / 2 + this.width / 4;
-                    particle.destination.y = particle.destination.y - particle.destination.y / 2 + this.height / 2;
+                    if(particle.alpha === 0) {
+                        continue;
+                    }
+                    particle.aimedSize.width = particle.aimedSize.width * ratio;
+                    particle.aimedSize.height = particle.aimedSize.height * ratio;
+                    particle.destination.x = this.width / 2 - width / 2 + particle.destination.x * ratio;
+                    particle.destination.y = this.height / 2 + particle.destination.y * ratio - yTranslate * ratio;
                 }
             }
         }
@@ -324,6 +384,11 @@ export default class Canvas {
         this.particlesContainer.startAnimation();
         return this.visualization;
 
+    }
+
+    changeSorting(feature) {
+        this.particlesContainer.children.sortBy(feature, "data");
+        this.visualization.drawParticles(this.useBars, false);
     }
 
     drawScatterPlot(dataStore, title) {
@@ -373,6 +438,8 @@ export default class Canvas {
             animationCb
         );
         this.stage.addChild(this.visualization);
+
+        this.particlesContainer.startAnimation();
         return this.visualization;
     }
 
@@ -395,6 +462,8 @@ export default class Canvas {
             this.colorScheme,
             animationCb
         );
+
+        this.particlesContainer.startAnimation();
         return this.visualization;
     }
 
@@ -416,6 +485,8 @@ export default class Canvas {
             this.levelOfDetail,
             animationCb
         );
+
+        this.particlesContainer.startAnimation();
         return this.visualization;
     }
 

@@ -82,6 +82,7 @@ window.updateScreen = () => {
                 dataStore.data,
                 dataStore.schema,
                 dataStore.currentSelection,
+                dataStore.oldSelectionX,
                 "Superstore"
             );
             visualizationHistory.unshift({
@@ -161,7 +162,8 @@ window.updateScreen = () => {
 };
 
 function addEventListener(dataStore, canvas){
-    $("select.feature-x").change(function () {
+    $("select.feature-x").not(".sort-by").change(function () {
+        dataStore.oldSelectionX = dataStore.currentSelection.x;
         dataStore.currentSelection.x = $(this).children(":selected")[0].innerHTML;
         canvas.prepareCanvas();
         window.updateScreen(dataStore, canvas);
@@ -177,5 +179,19 @@ function addEventListener(dataStore, canvas){
         UI.toggleFeatureDropdowns();
         canvas.prepareCanvas();
         window.updateScreen(dataStore, canvas);
+    });
+
+    $("select.sort-by").change(function(){
+        let sortByFeature = $(this).children(":selected")[0].innerHTML;
+        dataStore.changeSorting(sortByFeature);
+        canvas.changeSorting(sortByFeature);
+    });
+
+    $("select.sort-type").change(function(){
+        if($(this).val() === "automatically"){
+            $("select.sort-by").attr("disabled", true);
+        } else {
+            $("select.sort-by").attr("disabled", false);
+        }
     });
 }

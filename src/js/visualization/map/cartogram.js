@@ -1,9 +1,9 @@
 import BaseMap from "./base-map";
 
 export default class Cartogram extends BaseMap {
-
-    constructor(width, height, particleContainer, levelOfDetail, animationCb){
-        super(width, height, particleContainer, levelOfDetail, false);
+    constructor(width, height, particlesContainer, levelOfDetail, animationCb){
+        super(width, height, particlesContainer, levelOfDetail, false);
+        this.levelOfDetail = levelOfDetail;
 
         super.show(true, false);
 

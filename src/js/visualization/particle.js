@@ -18,7 +18,7 @@ export default class Particle extends PIXI.Sprite {
 
         // Attributes
         // 2px every 1/60 second seem to be a good value
-        this.speed = 2;
+        this.speed = 4;
         this.destination = new PIXI.Point(x, y);
         this.alpha = 1;
         this.aimedSize = {
@@ -90,7 +90,7 @@ export default class Particle extends PIXI.Sprite {
         }
 
         // this.speed * 2 / 100 = 0.04 alpha each animation call
-        if(this.aimedAlpha && this.aimedAlpha !== this.alpha){
+        /*if(this.aimedAlpha && this.aimedAlpha !== this.alpha){
             if(Math.abs(this.alpha - this.aimedAlpha) < this.speed * 2 / 100){
                 this.alpha = this.aimedAlpha;
             }
@@ -99,7 +99,7 @@ export default class Particle extends PIXI.Sprite {
             } else {
                 this.alpha += this.speed * 2 / 100;
             }
-        }
+        }*/
 
         if (
             this.position.equals(this.destination) &&

@@ -80,7 +80,7 @@ Array.prototype.getNominalBoundaries = function (selection, both, type = undefin
     let getUniqueElements = function (selection, both) {
         let dict = {};
 
-        if(both){
+        if (both) {
 
             dict.x = {};
             dict.y = {};
@@ -90,7 +90,7 @@ Array.prototype.getNominalBoundaries = function (selection, both, type = undefin
                 dict.y[this[i][selection.y]] = ++dict.y[this[i][selection.y]] || 1;
             }
 
-        } else{
+        } else {
 
             for (let i = 0; i < this.length; i++) {
                 dict[this[i][selection]] = ++dict[this[i][selection]] || 1;
@@ -101,7 +101,7 @@ Array.prototype.getNominalBoundaries = function (selection, both, type = undefin
         return dict;
     };
 
-    if(both){
+    if (both) {
         unique = getUniqueElements.call(this, selection, true);
         result = {
             minX: 0,
@@ -112,16 +112,16 @@ Array.prototype.getNominalBoundaries = function (selection, both, type = undefin
             uniqueY: unique.y
         };
     }
-    else{
+    else {
 
         unique = getUniqueElements.call(this, selection, false);
-        if(type === "x"){
+        if (type === "x") {
             result = {
                 minX: 0,
                 maxX: Object.keys(unique).length,
                 uniqueX: unique
             };
-        } else{
+        } else {
             result = {
                 minY: 0,
                 maxY: Object.keys(unique).length,
@@ -144,7 +144,7 @@ Array.prototype.getNominalBoundaries = function (selection, both, type = undefin
  */
 Array.prototype.getNumericalBoundaries = function (features, both, type = undefined) {
     let result;
-    if(both){
+    if (both) {
 
         let maxValueX = -Infinity, minValueX = Infinity;
         let maxValueY = -Infinity, minValueY = Infinity;
@@ -173,11 +173,11 @@ Array.prototype.getNumericalBoundaries = function (features, both, type = undefi
             maxY: maxValueY
         };
 
-    } else{
+    } else {
 
         let maxValue = -Infinity, minValue = Infinity, i, current;
 
-        if(type === "x"){
+        if (type === "x") {
 
             for (i = 0; i < this.length; i++) {
                 current = parseFloat(this[i][features.x]);
@@ -195,7 +195,7 @@ Array.prototype.getNumericalBoundaries = function (features, both, type = undefi
                 maxX: maxValue
             };
 
-        } else{
+        } else {
 
             for (i = 0; i < this.length; i++) {
                 current = parseFloat(this[i][features.y]);
@@ -217,4 +217,71 @@ Array.prototype.getNumericalBoundaries = function (features, both, type = undefi
 
     return result;
 
+};
+
+Array.prototype.sortBy = function (feature, attribute) {
+    let type;
+    let cellToCheck = attribute ? this[0][attribute][feature] : this[0][feature];
+
+    if (cellToCheck.isNumeric()) {
+        type = "numeric";
+    }
+    else if (cellToCheck.isDate()) {
+        type = "date";
+    }
+    else {
+        type = "nominal";
+    }
+
+    if (type === "numeric") {
+        if (attribute) {
+            this.sort((a, b) => a[attribute][feature] - b[attribute][feature]);
+        } else {
+            this.sort((a, b) => a[feature] - b[feature]);
+        }
+    } else if (type === "date") {
+
+        if (attribute) {
+            this.sort(function (a, b) {
+                a = a[attribute][feature].split(".");
+                b = b[attribute][feature].split(".");
+                return new Date(a[2], a[1], a[0]) - new Date(b[2], b[1], b[0]);
+            });
+        } else {
+            this.sort(function (a, b) {
+                a = a[feature].split(".");
+                b = b[feature].split(".");
+                return new Date(a[2], a[1], a[0]) - new Date(b[2], b[1], b[0]);
+            });
+        }
+
+    } else {
+        let value1, value2;
+
+        if (attribute) {
+            this.sort(function (a, b) {
+                value1 = a[attribute][feature].toUpperCase();
+                value2 = b[attribute][feature].toUpperCase();
+                if (value1 < value2) {
+                    return -1;
+                }
+                if (value1 > value2) {
+                    return 1;
+                }
+                return 0;
+            });
+        } else {
+            this.sort(function (a, b) {
+                value1 = a[feature].toUpperCase();
+                value2 = b[feature].toUpperCase();
+                if (value1 < value2) {
+                    return -1;
+                }
+                if (value1 > value2) {
+                    return 1;
+                }
+            });
+        }
+
+    }
 };

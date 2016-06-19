@@ -6,7 +6,7 @@ export default class DataStore {
         this.schema = {};
         this.useSubset = true;
 
-        this.sizeOfSubset = 1;
+        this.sizeOfSubset = 50;
 
         this.currentSelection = {
             x: null,
@@ -65,6 +65,10 @@ export default class DataStore {
             console.info(`Using data with ${this.dataSet.length} items.`);
         }
 
+    }
+
+    changeSorting(feature) {
+        this.data.sortBy(feature);
     }
 
     import(url) {

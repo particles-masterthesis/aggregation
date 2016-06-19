@@ -2,8 +2,9 @@ import BaseMap from "./base-map";
 
 export default class ChoroplethMap extends BaseMap {
 
-    constructor(width, height, particleContainer, levelOfDetail, colorScheme, animationCb){
-        super(width, height, particleContainer, levelOfDetail, true);
+    constructor(width, height, particlesContainer, levelOfDetail, colorScheme, animationCb){
+        super(width, height, particlesContainer, levelOfDetail, true);
+        this.levelOfDetail = levelOfDetail;
         this.colorScheme = colorScheme;
 
         super.show(true, true);

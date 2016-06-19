@@ -6,6 +6,7 @@ export default class DotMap extends BaseMap {
         super(width, height, particleContainer, levelOfDetail, true);
         this.size = 5;
         super.show(true, true);
+
         this.drawDots(this.particles, animationCb);
     }
 

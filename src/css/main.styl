@@ -1,5 +1,4 @@
 @import "../../node_modules/bootstrap/dist/css/bootstrap.css"
-@import "./colorbrewer"
 
 html
 body
@@ -32,8 +31,8 @@ canvas, svg
     margin-left 20px
 
 canvas
-    z-index 1
-    background #f8f8f8
+    z-index 2
+    border 1px solid #f8f8f8
 
 table
     border 1px solid #e7e7e7
@@ -49,7 +48,7 @@ table
         padding 10px
 
 svg
-    z-index 2
+    z-index 1
 
     .county-boundary
     .state-boundary
@@ -93,18 +92,6 @@ svg
         fill none
         stroke #000
         shape-rendering crispEdges
-
-    .tick
-        fill #000
-
-    .tick-active
-    .tick:active
-    .tick:focus
-        fill #34a853
-
-    .tick:hover
-        cursor pointer
-        fill #4285f4
 
 svg.default .country
     fill lightgrey

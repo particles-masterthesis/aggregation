@@ -3,35 +3,34 @@ import BaseMap from "./base-map";
 
 export default class ProportionalSymbolMap extends BaseMap {
 
-    constructor(width, height, particles, levelOfDetail){
-        super(width, height, levelOfDetail, true);
+    constructor(width, height, particlesContainer, levelOfDetail, animationCb){
+        super(width, height, particlesContainer, levelOfDetail, true);
 
-        this.particles = particles;
         this.levelOfDetail = levelOfDetail;
 
         super.show(true, true);
 
-        this.drawSymbols();
+        this.drawSymbols(animationCb);
         this.drawLegend();
     }
 
-    drawSymbols(){
+    drawSymbols(animationCb){
         switch (this.levelOfDetail) {
             case "country":
             case "state":
                 if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
-                if (typeof this.states === 'undefined') this.draw("states");
+                if (typeof this.states === 'undefined') this.draw("states", animationCb);
                 break;
             case "county":
                 if (typeof this.states !== 'undefined') this.removeSvgElement('states');
-                if (typeof this.counties === 'undefined') this.draw("counties");
+                if (typeof this.counties === 'undefined') this.draw("counties", animationCb);
                 break;
             default:
                 break;
         }
     }
 
-    draw(id){
+    draw(id, animationCb){
         let map = this.baseMap;
 
         this[id] = map.svg.append("g")
@@ -44,15 +43,29 @@ export default class ProportionalSymbolMap extends BaseMap {
                 return (b.properties.orders || 0) - (a.properties.orders || 0);
             })
         )
-        .enter().append("circle")
+        .enter()
+        .append("circle")
         .attr("transform", function(d) {
             let coords = map.path.centroid(d);
             if(isNaN(coords[0]) || isNaN(coords[1])) return;
             return "translate(" + coords + ")";
-        })
-        .attr("r", function(d) {
-            return map.symbolScale(d.properties.orders) || 0;
         });
+
+        if(this.isFunction(animationCb)){
+            this[id]
+            .attr("r", 0)
+            .transition()
+            .delay(300)
+            .attr("r", function(d) {
+                return map.symbolScale(d.properties.orders) || 0;
+            })
+            .each("end", animationCb);
+        } else {
+            this[id]
+            .attr("r", function(d) {
+                return map.symbolScale(d.properties.orders) || 0;
+            });
+        }
     }
 
 
@@ -63,16 +76,26 @@ export default class ProportionalSymbolMap extends BaseMap {
         this.drawLegend();
     }
 
-    removeAllDomNodes(){
-        if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
-        if (typeof this.states !== 'undefined') this.removeSvgElement('states');
+    removeAllDomNodes(animationCb){
+        if (typeof this.counties !== 'undefined') this.removeSvgElement('counties', animationCb);
+        if (typeof this.states !== 'undefined') this.removeSvgElement('states', animationCb);
         if (typeof this.legend !== 'undefined') this.removeSvgElement('legend');
     }
 
-    removeSvgElement(element){
-        this[element].remove();
+    removeSvgElement(element, animationCb){
+        if(this.isFunction(animationCb)){
+            this[element]
+            .transition()
+            .attr("r", 0)
+            .each("end", animationCb(() => {
+                // this.baseMap._d3.selectAll(`#psm-${element}`).remove();
+            }))
+            .remove();
+
+        } else {
+            this[element].remove();
+        }
         this[element] = undefined;
-        this.baseMap._d3.selectAll(`#psm-${element}`).remove();
     }
 
     drawLegend(){
@@ -97,6 +120,7 @@ export default class ProportionalSymbolMap extends BaseMap {
         .attr('y', -21)
         .text('Orders');
 
+        let tmp = this.legend;
 
         this.legend = this.legend
         .selectAll("g")
@@ -111,6 +135,8 @@ export default class ProportionalSymbolMap extends BaseMap {
         .attr("y", function(d) { return -2 * map.symbolScale(d); })
         .attr("dy", "1.3em")
         .text(this.baseMap._d3.format(".1s"));
+
+        this.legend = tmp;
     }
 
 }

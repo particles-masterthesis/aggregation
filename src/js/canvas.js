@@ -14,6 +14,10 @@ import ProportionalSymbolMap from "./visualization/map/proportional-symbol-map";
 import ChoroplethMap from "./visualization/map/choropleth-map";
 import Cartogram from "./visualization/map/cartogram";
 
+function isFunction(cb){
+    return cb && ({}).toString.call(cb) === '[object Function]';
+}
+
 export default class Canvas {
 
     constructor(dataset, features) {
@@ -23,7 +27,7 @@ export default class Canvas {
         this.requestFrameID = null;
 
         this.particles = {
-            shape: "rectangle"
+            shape: "circle"
         };
 
         this.height = window.innerHeight - 142; //windowH height - menu height - css-paddings
@@ -400,29 +404,31 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawDotMap(dataset, isCurrentVisualization) {
-        this.reset();
+    drawDotMap(dataset, isCurrentVisualization, animationCb) {
         this.createParticles(dataset);
 
         if (isCurrentVisualization) {
             this.visualization.updateBaseMap(this.levelOfDetail);
-            this.visualization.drawDots(this.particlesContainer);
+            this.visualization.drawDots(this.particlesContainer.children);
             return this.visualization;
         }
 
         this.visualization = new DotMap(
             this.width,
             this.height,
-            this.particlesContainer.children,
-            this.levelOfDetail
+            this.particlesContainer,
+            this.levelOfDetail,
+            animationCb
         );
         this.stage.addChild(this.visualization);
         return this.visualization;
     }
 
-    drawProportionalSymbolMap(dataset, isCurrentVisualization) {
-        this.reset();
-        this.createParticles(dataset);
+    drawProportionalSymbolMap(dataset, isCurrentVisualization, animationCb) {
+        if(!isFunction(animationCb)){
+            this.reset();
+            this.createParticles(dataset);
+        }
 
         if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail);
@@ -432,16 +438,19 @@ export default class Canvas {
         this.visualization = new ProportionalSymbolMap(
             this.width,
             this.height,
-            this.particlesContainer.children,
-            this.levelOfDetail
+            this.particlesContainer,
+            this.levelOfDetail,
+            animationCb
         );
         this.stage.addChild(this.visualization);
         return this.visualization;
     }
 
-    drawChoroplethMap(dataset, isCurrentVisualization) {
-        this.reset();
-        this.createParticles(dataset);
+    drawChoroplethMap(dataset, isCurrentVisualization, animationCb){
+        if(!isFunction(animationCb)){
+            this.reset();
+            this.createParticles(dataset);
+        }
 
         if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail, this.colorScheme);
@@ -451,16 +460,19 @@ export default class Canvas {
         this.visualization = new ChoroplethMap(
             this.width,
             this.height,
-            this.particlesContainer.children,
+            this.particlesContainer,
             this.levelOfDetail,
-            this.colorScheme
+            this.colorScheme,
+            animationCb
         );
         return this.visualization;
     }
 
-    drawCartogram(dataset, isCurrentVisualization) {
-        this.reset();
-        this.createParticles(dataset);
+    drawCartogram(dataset, isCurrentVisualization, animationCb){
+        if(!isFunction(animationCb)){
+            this.reset();
+            this.createParticles(dataset);
+        }
 
         if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail);
@@ -470,8 +482,9 @@ export default class Canvas {
         this.visualization = new Cartogram(
             this.width,
             this.height,
-            this.particlesContainer.children,
-            this.levelOfDetail
+            this.particlesContainer,
+            this.levelOfDetail,
+            animationCb
         );
         return this.visualization;
     }

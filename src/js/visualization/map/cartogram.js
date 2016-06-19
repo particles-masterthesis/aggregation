@@ -2,38 +2,36 @@ import BaseMap from "./base-map";
 
 export default class Cartogram extends BaseMap {
 
-    constructor(width, height, particles, levelOfDetail){
-        super(width, height, levelOfDetail, false);
-        this.particles = particles;
+    constructor(width, height, particlesContainer, levelOfDetail, animationCb){
+        super(width, height, particlesContainer, levelOfDetail, false);
         this.levelOfDetail = levelOfDetail;
 
         super.show(true, false);
 
         this.symbolPadding = 5;
-        this.drawSymbols();
+        this.drawSymbols(animationCb);
 
     }
 
-    drawSymbols(){
+    drawSymbols(animationCb){
         switch (this.levelOfDetail) {
             case "country":
             case "state":
                 if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
-                if (typeof this.states === 'undefined') this.draw("states");
+                if (typeof this.states === 'undefined') this.draw("states", animationCb);
                 break;
             case "county":
                 if (typeof this.states !== 'undefined') this.removeSvgElement('states');
-                if (typeof this.counties === 'undefined') this.draw("counties");
+                if (typeof this.counties === 'undefined') this.draw("counties", animationCb);
                 break;
             default:
                 break;
         }
     }
 
-    draw(id){
+    draw(id, animationCb){
         const map = this.baseMap;
 
-        const wrapper = map.svg.append("g").attr("id", `cartogram-${id}`);
         const force = map._d3.layout.force()
         .charge(0)
         .gravity(0)
@@ -60,25 +58,51 @@ export default class Cartogram extends BaseMap {
 
         });
 
-        this.node = wrapper.selectAll("rect")
+        this.node = map.svg.append("g")
+        .attr("id", `cartogram-${id}`)
+        .selectAll("rect")
         .data(this.nodes)
         .enter()
         .append("rect")
-        .attr("class", "rect")
-        .attr("width", d => { return d.r * 2; })
-        .attr("height", d => { return d.r * 2; });
-        this[id] = this.node;
+        .attr("class", "rect");
 
-        force
-        .nodes(this.nodes)
-        .on("tick", this.tick.bind(this))
-        .start();
+        if(this.isFunction(animationCb)){
+            this.node
+            .attr('width', 0)
+            .attr('height', 0)
+            .transition()
+            .delay(300)
+            .attr("x", d => { return d.x - d.r; })
+            .attr("y", d => { return d.y - d.r; })
+            .attr("width", d => { return d.r * 2; })
+            .attr("height", d => { return d.r * 2; })
+            .each("end", () => {
+                animationCb();
+
+                force
+                .nodes(this.nodes)
+                .on("tick", this.tick.bind(this, 0.00599))
+                .start();
+
+            });
+            this[id] = this.node;
+        } else {
+            this.node
+            .attr("width", d => { return d.r * 2; })
+            .attr("height", d => { return d.r * 2; });
+
+            this[id] = this.node;
+            force
+            .nodes(this.nodes)
+            .on("tick", this.tick.bind(this, 0.0099))
+            .start();
+        }
     }
 
-    tick(e) {
+    tick(gravity) {
         this.node
-        .each(this.gravity(e.alpha * 0.1))
-        .each(this.collide(0.3))
+        .each(this.gravity(gravity))
+        .each(this.collide(0.25))
         .attr("x", d => { return d.x - d.r; })
         .attr("y", d => { return d.y - d.r; });
     }
@@ -125,13 +149,23 @@ export default class Cartogram extends BaseMap {
     }
 
 
-    removeAllDomNodes(){
-        if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
-        if (typeof this.states !== 'undefined') this.removeSvgElement('states');
+    removeAllDomNodes(animationCb){
+        if (typeof this.counties !== 'undefined') this.removeSvgElement('counties', animationCb);
+        if (typeof this.states !== 'undefined') this.removeSvgElement('states', animationCb);
     }
 
-    removeSvgElement(element){
-        this.baseMap._d3.selectAll(`#cartogram-${element}`).remove();
+    removeSvgElement(element, animationCb){
+        if(this.isFunction(animationCb)){
+            this[element]
+            .transition()
+            .attr("width", 0)
+            .attr("height", 0)
+            .each("end", animationCb)
+            .remove();
+        }
+        else {
+            this.baseMap._d3.selectAll(`#cartogram-${element}`).remove();
+        }
         this[element] = undefined;
     }
 

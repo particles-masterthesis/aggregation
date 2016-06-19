@@ -27,7 +27,7 @@ export default class Canvas {
         this.requestFrameID = null;
 
         this.particles = {
-            shape: "circle"
+            shape: "rectangle"
         };
 
         this.height = window.innerHeight - 142; //windowH height - menu height - css-paddings
@@ -311,9 +311,7 @@ export default class Canvas {
         /**
          * Move the old visualization to the left or to the top
          */
-        if (!areParticlesNew && this.visualization && transitionType != "none" &&
-            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
-
+        if (!areParticlesNew && this.visualization && transitionType != "none") {
             if (transitionLayout === "juxtaposition") {
                 this.moveVisualization(this.visualization, "left");
             } else if (transitionLayout === "stacked") {
@@ -336,9 +334,7 @@ export default class Canvas {
         /**
          * Move the new visualization to the right or to the bottom
          */
-        if (!areParticlesNew && this.visualization && transitionType != "none" &&
-            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
-
+        if (!areParticlesNew && this.visualization && transitionType != "none") {
             if (transitionLayout === "juxtaposition") {
                 this.moveVisualization(barChart, "right");
             } else if (transitionLayout === "stacked") {
@@ -348,8 +344,7 @@ export default class Canvas {
 
         barChart.drawParticles(this.useBars, areParticlesNew);
 
-        if (!areParticlesNew && this.visualization && transitionType != "none" &&
-            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
+        if (!areParticlesNew && this.visualization && transitionType != "none") {
             let particle;
 
             if (transitionLayout === "juxtaposition") {

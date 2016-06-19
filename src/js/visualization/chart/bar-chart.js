@@ -242,7 +242,7 @@ export default class BarChart extends Chart {
         const values = Object.keys(uniqueValues);
 
         let widthBar = this.widthVisualization / values.length;
-        marginBar = widthBar.map(1, this.widthVisualization, 1, 100);
+        let marginBar = widthBar.map(1, this.widthVisualization, 1, 100);
         let widthBarExlusiveMargin = widthBar - marginBar * 2;
 
         for (let i = 0; i < values.length; i++) {
@@ -392,7 +392,7 @@ export default class BarChart extends Chart {
     hideParticles() {
         this.overlayBars.lineStyle(0, 0xffffff, 1);
         this.overlayBars.beginFill(0xffffff, 1);
-        this.overlayBars.drawRect(this.padding + 1, this.padding, this.widthVisualization - 1, this.heightVisualization);
+        this.overlayBars.drawRect(this.padding + 1, this.padding, this.widthVisualization - 1, this.heightVisualization + 5);
         this.addChild(this.overlayBars);
     }
 

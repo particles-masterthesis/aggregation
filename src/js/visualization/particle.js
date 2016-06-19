@@ -90,7 +90,7 @@ export default class Particle extends PIXI.Sprite {
         }
 
         // this.speed * 2 / 100 = 0.04 alpha each animation call
-        if(this.aimedAlpha !== this.alpha){
+        /*if(this.aimedAlpha !== this.alpha){
             if(Math.abs(this.alpha - this.aimedAlpha) < this.speed * 2 / 100){
                 this.alpha = this.aimedAlpha;
             }
@@ -99,7 +99,7 @@ export default class Particle extends PIXI.Sprite {
             } else {
                 this.alpha += this.speed * 2 / 100;
             }
-        }
+        }*/
 
         if (
             this.position.equals(this.destination) &&

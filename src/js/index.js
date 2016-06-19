@@ -181,6 +181,20 @@ function addEventListener(dataStore, canvas){
         window.updateScreen(dataStore, canvas);
     });
 
+    $("select.transition").change(function () {
+        if($(this).val() === "none"){
+            $("select.transition-layout").attr("disabled", true);
+            $("select.sort-type").attr("disabled", true);
+            $("select.sort-by").attr("disabled", true);
+        } else {
+            $("select.transition-layout").attr("disabled", false);
+            $("select.sort-type").attr("disabled", false);
+            if($("select.sort-type").val() === "manually"){
+                $("select.sort-by").attr("disabled", false);
+            }
+        }
+    });
+
     $("select.sort-by").change(function(){
         let sortByFeature = $(this).children(":selected")[0].innerHTML;
         dataStore.changeSorting(sortByFeature);

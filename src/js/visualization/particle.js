@@ -91,21 +91,21 @@ export default class Particle extends PIXI.Sprite {
 
         // this.speed * 2 / 100 = 0.04 alpha each animation call
         /*if(this.aimedAlpha && this.aimedAlpha !== this.alpha){
-            if(Math.abs(this.alpha - this.aimedAlpha) < this.speed * 2 / 100){
-                this.alpha = this.aimedAlpha;
-            }
-            else if(this.aimedAlpha < this.alpha){
-                this.alpha -= this.speed * 2 / 100;
-            } else {
-                this.alpha += this.speed * 2 / 100;
-            }
-        }*/
+         if(Math.abs(this.alpha - this.aimedAlpha) < this.speed * 2 / 100){
+         this.alpha = this.aimedAlpha;
+         }
+         else if(this.aimedAlpha < this.alpha){
+         this.alpha -= this.speed * 2 / 100;
+         } else {
+         this.alpha += this.speed * 2 / 100;
+         }
+         }*/
 
         if (
             this.position.equals(this.destination) &&
             this._width == this.aimedSize.width &&
-            this._height == this.aimedSize.height &&
-            this.alpha === this.aimedAlpha
+            this._height == this.aimedSize.height /*&&
+            this.alpha === this.aimedAlpha*/
         ) {
             this.isAnimating = false;
         }
@@ -154,10 +154,10 @@ export default class Particle extends PIXI.Sprite {
         }.bind(this));
     }
 
-    fade(type){
+    fade(type) {
         this.isAnimating = true;
-        if(type === 'in') this.aimedAlpha = 1;
-        if(type === 'out') this.aimedAlpha = 0;
+        if (type === 'in') this.aimedAlpha = 1;
+        if (type === 'out') this.aimedAlpha = 0;
         return this;
     }
 

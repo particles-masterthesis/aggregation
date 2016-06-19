@@ -1,6 +1,6 @@
 import "pixi.js";
 
-import {Stats} from 'stats.js';
+import {Stats} from "stats.js";
 
 import Overview from "./visualization/overview/overview";
 import Particle from "./visualization/particle";
@@ -14,16 +14,18 @@ import ProportionalSymbolMap from "./visualization/map/proportional-symbol-map";
 import ChoroplethMap from "./visualization/map/choropleth-map";
 import Cartogram from "./visualization/map/cartogram";
 
-function isFunction(cb){
-    return cb && ({}).toString.call(cb) === '[object Function]';
+import Queue from "./queue";
+
+function isFunction(cb) {
+    return cb && ({}).toString.call(cb) === "[object Function]";
 }
 
 export default class Canvas {
 
     constructor(dataset, features) {
         this.useBars = false;
-        this.levelOfDetail = 'country';
-        this.colorScheme = 'Oranges';
+        this.levelOfDetail = "country";
+        this.colorScheme = "Oranges";
         this.requestFrameID = null;
 
         this.particles = {
@@ -55,6 +57,8 @@ export default class Canvas {
 
         // Layout during transition
         this.isCleaningNecessary = false;
+
+        this.animationQueue = new Queue();
     }
 
     createParticles(dataset) {
@@ -94,9 +98,132 @@ export default class Canvas {
         }
     }
 
+    drawParticles(dataset) {
+        let placeParticlesDirectly = this.createParticles(dataStore.data);
+        this.visualization = new Overview(this.width, this.height, this.particlesContainer, placeParticlesDirectly);
+        this.particlesContainer.startAnimation();
+        this.stage.addChild(this.visualization);
+        return this.visualization;
+    }
+
+    moveNewVisualizationForTransition(visualization, areParticlesNew, transitionType, transitionLayout) {
+        if (!areParticlesNew && this.visualization && transitionType != "none") {
+            if (transitionLayout === "juxtaposition") {
+                this.moveVisualization(visualization, "right", "none");
+            } else if (transitionLayout === "stacked") {
+                this.moveVisualization(visualization, "bottom", "none");
+            }
+        }
+    }
+
+    moveOldVisualizationForTransition(visualization, areParticlesNew, transitionType, transitionLayout) {
+        if (!areParticlesNew && visualization && transitionType != "none") {
+            if (transitionLayout === "juxtaposition") {
+                this.moveVisualization(visualization, "left", "none");
+            } else if (transitionLayout === "stacked") {
+                this.moveVisualization(visualization, "top", "none");
+            }
+
+            this.isCleaningNecessary = true;
+        }
+    }
+
+    moveParticlesDestination(visualization, areParticlesNew, transitionType, transitionLayout) {
+        if (!areParticlesNew && this.visualization && transitionType != "none" &&
+            transitionLayout === "juxtaposition" || transitionLayout === "stacked") {
+
+            let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(visualization);
+            this.particlesContainer.moveParticlesDestinationOnBasisOfLayout(
+                this.width,
+                this.height,
+                transitionType === "juxtaposition" ? "right" : "bottom",
+                width,
+                yTranslate,
+                ratio
+            );
+        }
+    }
+
+    moveVisualization(visualization, place, transition) {
+        let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(visualization);
+
+        if (place === "left" || place === "right") {
+
+            visualization.transitionTo(
+                place === "right" ? this.width / 2 : 0,
+                this.height / 4,
+                0.5,
+                0.5,
+                transition
+            );
+
+        } else if (place === "top" || place === "bottom") {
+
+            visualization.transitionTo(
+                // set the visualization to the middle and half the new width to the left
+                this.width / 2 - visualization._width * ratio / 2,
+                // move the visualization slightly outside of the allowed area
+                // because we don't need the blank space on the top of the viz
+                place === "bottom" ? -yTranslate * ratio + this.height / 2 : -yTranslate * ratio,
+                ratio,
+                ratio,
+                transition
+            );
+        }
+
+        // The particles should move also the left or the top
+        this.particlesContainer.moveParticlesOnBasisOfLayout(place, "none", {
+            "x": visualization.x,
+            "y": visualization.y
+        }, yTranslate, ratio);
+    }
+
+    calculateTranslationLayoutValues(visualization) {
+        // height of visualization + labels
+        let height = visualization.padding * 2 + visualization.heightVisualization;
+
+        // place for the visualization at the screen
+        let possibleHeight = this.height / 2;
+
+        // how much we can scale the visualization, scale can be 1 <= 0
+        let ratio = Math.min(possibleHeight / height, 1);
+
+        // calculate how much blank space there is
+        let yTranslate = this.height - height;
+
+        // calculate the new width
+        let width = this.width * ratio;
+
+        return {
+            height,
+            width,
+            ratio,
+            yTranslate
+        };
+    }
+
+    automaticallySortParticles(oldFeature) {
+        // If the sorting of the particles should be automatic be by the last chosen attribute
+        // we have to sort it before we start the transition
+        if ($("select.sort-type").val() === "automatically") {
+            let oldFeature = oldFeature || $("select.feature-x").children(":selected")[0].innerHTML;
+
+            $("select.sort-by option").filter(function (index) {
+                return $(this).text() === oldFeature;
+            }).prop("selected", true);
+
+            this.particlesContainer.children.sortBy(oldFeature, "data");
+        }
+    }
+
+    changeSorting(feature) {
+        this.particlesContainer.children.sortBy(feature, "data");
+        this.visualization.drawParticles(this.useBars, false);
+    }
+
     toggleDataRow(data) {
         var table = document.getElementById("dataRow");
-        table = table ? document.body.removeChild(table) : document.createElement('table');
+        table = table ? document.body.removeChild(table) : document.createElement("table");
 
         var features = Object.keys(data);
 
@@ -127,268 +254,34 @@ export default class Canvas {
         document.body.appendChild(table);
     }
 
-    removeParticles() {
-        this.particlesContainer.removeChildren();
-    }
-
-    prepareCanvas() {
-        let transitionType = $("select.transition").val();
-        let transitionLayout = $("select.transition-layout").val();
-
-        // Only remove the vizualization if we don't need it any more
-        // for transitions with layout != in place we need the viz as optical source
-        if (transitionType === "none" || transitionLayout === "inPlace") {
-            this.removeVisualization();
-        }
-    }
-
-    removeVisualization() {
-        this.stage.removeChild(this.visualization);
-    }
-
-    reset() {
-        this.removeParticles();
-        this.removeVisualization();
-    }
-
-    clean() {
-        let transitionType = $("select.transition").val();
-        let transitionLayout = $("select.transition-layout").val();
-
-        if (this.visualization && transitionType != "none" &&
-            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
-
-            // Remove old visualization
-            this.stage.removeChild(this.visualizationOld);
-
-            // the scales of the viz contains the scaling ratio
-            let ratio = this.visualization.scale.x;
-
-            // Change appearance of the new visualization
-            this.visualization.scale.x = 1;
-            this.visualization.scale.y = 1;
-            this.visualization.x = 0;
-            this.visualization.y = 0;
-
-            if (transitionLayout === "juxtaposition") {
-                let particle;
-                for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                    particle = this.particlesContainer.children[i];
-                    if(particle.alpha === 0) {
-                        continue;
-                    }
-                    particle.width = particle._width * 2;
-                    particle.height = particle._height * 2;
-                    particle.position.x = particle.position.x * 2 - this.width;
-                    particle.position.y = (particle.position.y - this.height / 4) * 2;
-                }
-            } else if (transitionLayout === "stacked") {
-                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualization);
-
-                let particle;
-                for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                    particle = this.particlesContainer.children[i];
-                    if(particle.alpha === 0) {
-                        continue;
-                    }
-                    particle.width = particle._width / ratio;
-                    particle.height = particle._height / ratio;
-                    particle.position.x = (particle.position.x + width / 2 - this.width / 2) / ratio;
-                    particle.position.y = (particle.position.y + yTranslate * ratio - this.height / 2) / ratio;
-                }
-            }
-        }
-
-        this.isCleaningNecessary = false;
-    }
-
-    calculateTranslationLayoutValues(visualization){
-        // height of visualization + labels
-        let height = visualization.padding * 2 + visualization.heightVisualization;
-
-        // place for the visualization at the screen
-        let possibleHeight = this.height / 2;
-
-        // how much we can scale the visualization, scale can be 1 <= 0
-        let ratio = Math.min(possibleHeight / height, 1);
-
-        // calculate how much blank space there is
-        let yTranslate = this.height - height;
-
-        // calculate the new width
-        let width = this.width * ratio;
-
-        return {
-            height,
-            width,
-            ratio,
-            yTranslate
-        };
-    }
-
-    drawParticles(dataset) {
-        let placeParticlesDirectly = this.createParticles(dataStore.data);
-        this.visualization = new Overview(this.width, this.height, this.particlesContainer, placeParticlesDirectly);
-        this.particlesContainer.startAnimation();
-        this.stage.addChild(this.visualization);
-        return this.visualization;
-    }
-
-    moveVisualization(visualization, place){
-        let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(visualization);
-
-        if (place === "left" || place === "right") {
-            visualization.x = 0;
-            visualization.y = this.height / 4;
-            visualization.scale.x = 0.5;
-            visualization.scale.y = 0.5;
-
-            if(place === "right"){
-                visualization.x += this.width/2;
-            }
-        } else if (place === "top" || place === "bottom") {
-            // set the visualization to the middle and half the new width to the left
-            visualization.x = this.width / 2 - visualization._width * ratio / 2;
-
-            // move the visualization slightly outside of the allowed area
-            // because we don't need the blank space on the top of the viz
-            visualization.y = -yTranslate * ratio;
-            visualization.scale.x = ratio;
-            visualization.scale.y = ratio;
-
-            if(place === "bottom"){
-                visualization.y += this.height / 2;
-            }
-        }
-
-        // The particles should move also the left or the right
-        if(place === "left"){
-            let particle;
-            for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                particle = this.particlesContainer.children[i];
-                if(particle.alpha === 0) {
-                    continue;
-                }
-                particle.width = particle._width / 2;
-                particle.height = particle._height / 2;
-                particle.position.x = particle.position.x - particle.position.x / 2;
-                particle.position.y = visualization.y + particle.position.y / 2;
-            }
-        }
-
-        if(place === "top"){
-            let particle;
-            for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                particle = this.particlesContainer.children[i];
-                if(particle.alpha === 0) {
-                    continue;
-                }
-                particle.width = particle._width * ratio;
-                particle.height = particle._height * ratio;
-                particle.position.x = visualization.x + particle.position.x * ratio;
-                particle.position.y = particle.position.y * ratio - yTranslate * ratio;
-            }
-        }
-    }
-
     drawBarChart(dataset, schema, features, oldFeatureX, title) {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
         let areParticlesNew = this.createParticles(dataset);
 
-        // If the sorting of the particles should be automatic be by the last chosen attribute
-        // we have to sort it before we start the transition
-        if ($("select.sort-type").val() === "automatically") {
-            let oldFeature = oldFeatureX || $("select.feature-x").children(":selected")[0].innerHTML;
+        this.automaticallySortParticles(oldFeatureX);
 
-            $("select.sort-by option").filter(function (index) {
-                return $(this).text() === oldFeatureX;
-            }).prop('selected', true);
-
-            this.particlesContainer.children.sortBy(oldFeature, "data");
-        }
-
-        /**
-         * Move the old visualization to the left or to the top
-         */
-        if (!areParticlesNew && this.visualization && transitionType != "none") {
-            if (transitionLayout === "juxtaposition") {
-                this.moveVisualization(this.visualization, "left");
-            } else if (transitionLayout === "stacked") {
-                this.moveVisualization(this.visualization, "top");
-            }
-
-            this.isCleaningNecessary = true;
-        }
-
-        /**
-         * Create the new visualization
-         */
-
-        let barChart = new BarChart(this.width, this.height, this.particlesContainer, {
+        this.visualizationOld = this.visualization ? this.visualization : null;
+        this.visualization = new BarChart(this.width, this.height, this.particlesContainer, {
             schema,
             features,
             title
         });
+        this.visualization.drawData(this.useBars, areParticlesNew);
 
-        /**
-         * Move the new visualization to the right or to the bottom
-         */
-        if (!areParticlesNew && this.visualization && transitionType != "none") {
-            if (transitionLayout === "juxtaposition") {
-                this.moveVisualization(barChart, "right");
-            } else if (transitionLayout === "stacked") {
-                this.moveVisualization(barChart, "bottom");
-            }
-        }
+        // First step
+        this.animationQueue.push(() => {
+            this.moveOldVisualizationForTransition(this.visualizationOld, areParticlesNew, transitionType, transitionLayout);
+        });
 
-        barChart.drawParticles(this.useBars, areParticlesNew);
-
-        if (!areParticlesNew && this.visualization && transitionType != "none") {
-            let particle;
-
-            if (transitionLayout === "juxtaposition") {
-                for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                    particle = this.particlesContainer.children[i];
-                    if(particle.alpha === 0) {
-                        continue;
-                    }
-                    particle.aimedSize.width = particle.aimedSize.width / 2;
-                    particle.aimedSize.height = particle.aimedSize.height / 2;
-                    particle.destination.x = particle.destination.x - particle.destination.x / 2 + this.width / 2;
-                    particle.destination.y = particle.destination.y - particle.destination.y / 2 + this.height / 4;
-                }
-            } else if (transitionLayout === "stacked") {
-                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(barChart);
-
-                for (let i = 0; i < this.particlesContainer.children.length; i++) {
-                    particle = this.particlesContainer.children[i];
-                    if(particle.alpha === 0) {
-                        continue;
-                    }
-                    particle.aimedSize.width = particle.aimedSize.width * ratio;
-                    particle.aimedSize.height = particle.aimedSize.height * ratio;
-                    particle.destination.x = this.width / 2 - width / 2 + particle.destination.x * ratio;
-                    particle.destination.y = this.height / 2 + particle.destination.y * ratio - yTranslate * ratio;
-                }
-            }
-        }
-
-        if (this.visualization) {
-            this.visualizationOld = this.visualization;
-        }
-
-        this.visualization = barChart;
-        this.stage.addChild(this.visualization);
+        this.animationQueue.push(() => {
+            this.moveNewVisualizationForTransition(this.visualization, areParticlesNew, transitionType, transitionLayout);
+            this.stage.addChild(this.visualization);
+            this.moveParticlesDestination(barChart, areParticlesNew, transitionType, transitionLayout)
+        });
 
         this.particlesContainer.startAnimation();
         return this.visualization;
-
-    }
-
-    changeSorting(feature) {
-        this.particlesContainer.children.sortBy(feature, "data");
-        this.visualization.drawParticles(this.useBars, false);
     }
 
     drawScatterPlot(dataStore, title) {
@@ -420,7 +313,7 @@ export default class Canvas {
     }
 
     drawProportionalSymbolMap(dataset, isCurrentVisualization, animationCb) {
-        if(!isFunction(animationCb)){
+        if (!isFunction(animationCb)) {
             this.reset();
             this.createParticles(dataset);
         }
@@ -443,8 +336,8 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawChoroplethMap(dataset, isCurrentVisualization, animationCb){
-        if(!isFunction(animationCb)){
+    drawChoroplethMap(dataset, isCurrentVisualization, animationCb) {
+        if (!isFunction(animationCb)) {
             this.reset();
             this.createParticles(dataset);
         }
@@ -467,8 +360,8 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawCartogram(dataset, isCurrentVisualization, animationCb){
-        if(!isFunction(animationCb)){
+    drawCartogram(dataset, isCurrentVisualization, animationCb) {
+        if (!isFunction(animationCb)) {
             this.reset();
             this.createParticles(dataset);
         }
@@ -490,6 +383,56 @@ export default class Canvas {
         return this.visualization;
     }
 
+    removeVisualization() {
+        this.stage.removeChild(this.visualization);
+    }
+
+    removeParticles() {
+        this.particlesContainer.removeChildren();
+    }
+
+    prepareCanvas() {
+        let transitionType = $("select.transition").val();
+        let transitionLayout = $("select.transition-layout").val();
+
+        // Only remove the vizualization if we don't need it any more
+        // for transitions with layout != in place we need the viz as optical source
+        if (transitionType === "none" || transitionLayout === "inPlace") {
+            this.removeVisualization();
+        }
+    }
+
+    cleanLayout() {
+        let transitionType = $("select.transition").val();
+        let transitionLayout = $("select.transition-layout").val();
+
+        if (this.visualization && transitionType != "none" &&
+            (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
+
+            this.stage.removeChild(this.visualizationOld);
+            let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualization);
+
+            this.visualization.scale.x = this.visualization.scale.y = 1;
+            this.visualization.x = this.visualization.y = 0;
+
+            this.particlesContainer.moveBackParticlesOnBasisOfLayout(
+                this.width,
+                this.height,
+                transitionLayout === "juxtaposition" ? "right" : "bottom",
+                width,
+                yTranslate,
+                ratio
+            );
+        }
+
+        this.isCleaningNecessary = false;
+    }
+
+    reset() {
+        this.removeParticles();
+        this.removeVisualization();
+    }
+
     stop() {
         if (this.requestFrameID) {
             window.cancelAnimationFrame(this.requestFrameID);
@@ -500,8 +443,19 @@ export default class Canvas {
     render() {
         this.stats.begin();
 
-        if (!this.particlesContainer.nextStep() && this.isCleaningNecessary) {
-            this.clean();
+        let areParticlesAnimating = this.particlesContainer.nextStep();
+        let areVisualizationsAnimating = this.visualization.nextStep();
+
+        // Get the next job when there is one and the last job finished
+        if(!areParticlesAnimating && !areVisualizationsAnimating && this.animationQueue.length > 0){
+            this.animationQueue.pop()();
+            this.particlesContainer.startAnimation();
+            this.visualization.startAnimation();
+        }
+
+        // Clean layout then the animations are finished, the queue is empty and the cleaning is necessary
+        if (!areParticlesAnimating && !areVisualizationsAnimating && this.animationQueue.length === 0 && this.isCleaningNecessary) {
+            this.cleanLayout()
         }
 
         this.renderer.render(this.stage);

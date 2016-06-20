@@ -38,7 +38,7 @@ export default class TransitionManager {
 
         let upcomingViz = {};
         const transitionKey = `${current.type}_${upcoming}`;
-        console.log(transitionKey);
+
         switch(transitionKey){
 
             case 'dot_psm':

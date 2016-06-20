@@ -29,11 +29,16 @@ export default class Canvas {
         this.requestFrameID = null;
 
         this.particles = {
-            shape: "rectangle"
+            "speedPxPerFrame": 3,
+            "shape": "rectangle"
+        };
+
+        this.visualizations = {
+            "speedPxPerFrame": 3
         };
 
         this.height = window.innerHeight - 142; //windowH height - menu height - css-paddings
-        this.width = window.innerWidth - 40; //windowH width - css-paddings
+        this.width = window.innerWidth - 285; //windowH width - css-paddings
 
         // arguments: width, height, view, transparent, antialias
         this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {
@@ -82,7 +87,7 @@ export default class Canvas {
             };
 
             for (let i = 0; i < dataset.length; i++) {
-                let sprite = new Particle(texture, textureHover, dataset[i], 0, 0, 3, 3);
+                let sprite = new Particle(texture, textureHover, dataset[i], 0, 0, this.particles.speedPxPerFrame);
                 sprite.on("mouseover", callbackAdd(sprite.data));
                 sprite.on("mouseout", callbackRemove());
                 this.particlesContainer.addChild(sprite);
@@ -99,10 +104,71 @@ export default class Canvas {
     }
 
     drawParticles(dataset) {
-        let placeParticlesDirectly = this.createParticles(dataStore.data);
-        this.visualization = new Overview(this.width, this.height, this.particlesContainer, placeParticlesDirectly);
-        this.particlesContainer.startAnimation();
-        this.stage.addChild(this.visualization);
+        let transitionType = $("select.transition").val();
+        let transitionLayout = $("select.transition-layout").val();
+        let areParticlesNew = this.createParticles(dataset);
+
+        this.visualizationOld = this.visualization ? this.visualization : null;
+        this.visualization = new Overview(this.width, this.height, this.particlesContainer);
+
+        // First step
+        this.animationQueue.push(() => {
+            if (!areParticlesNew && this.visualizationOld && transitionType != "none") {
+                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualizationOld);
+
+                if (transitionLayout === "juxtaposition") {
+                    this.moveVisualization(this.visualizationOld, "left", "linear");
+                    this.particlesContainer.moveParticles("left", "linear", {
+                        "x": this.visualizationOld.destination.x,
+                        "y": this.visualizationOld.destination.y
+                    }, yTranslate, ratio);
+                } else if (transitionLayout === "stacked") {
+                    this.moveVisualization(this.visualizationOld, "top", "linear");
+                    this.particlesContainer.moveParticles("top", "linear", {
+                        "x": this.visualizationOld.destination.x,
+                        "y": this.visualizationOld.destination.y
+                    }, yTranslate, ratio);
+                }
+
+                this.isCleaningNecessary = true;
+            }
+        });
+
+        // Second step
+        this.animationQueue.push(() => {
+            if (!areParticlesNew && this.visualizationOld && transitionType != "none") {
+                if (transitionLayout === "juxtaposition") {
+                    this.moveVisualization(this.visualization, "right", "none");
+                } else if (transitionLayout === "stacked") {
+                    this.moveVisualization(this.visualization, "bottom", "none");
+                }
+            }
+
+            this.stage.addChild(this.visualization);
+
+            this.visualization.drawData(areParticlesNew);
+
+            if (!areParticlesNew && this.visualizationOld && transitionType != "none" &&
+                (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
+
+                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualization);
+
+                this.particlesContainer.moveParticlesDestination(
+                    this.width,
+                    this.height,
+                    transitionLayout === "juxtaposition" ? "right" : "bottom",
+                    transitionType,
+                    width,
+                    yTranslate,
+                    ratio
+                );
+            }
+        });
+
+        this.animationQueue.push(() => {
+            this.cleanLayout();
+        });
+
         return this.visualization;
     }
 
@@ -236,15 +302,15 @@ export default class Canvas {
 
                 if (transitionLayout === "juxtaposition") {
                     this.moveVisualization(this.visualizationOld, "left", "linear");
-                    this.particlesContainer.moveParticles("left", "none", {
-                        "x": this.visualizationOld.x,
-                        "y": this.visualizationOld.y
+                    this.particlesContainer.moveParticles("left", "linear", {
+                        "x": this.visualizationOld.destination.x,
+                        "y": this.visualizationOld.destination.y
                     }, yTranslate, ratio);
                 } else if (transitionLayout === "stacked") {
                     this.moveVisualization(this.visualizationOld, "top", "linear");
-                    this.particlesContainer.moveParticles("top", "none", {
-                        "x": this.visualizationOld.x,
-                        "y": this.visualizationOld.y
+                    this.particlesContainer.moveParticles("top", "linear", {
+                        "x": this.visualizationOld.destination.x,
+                        "y": this.visualizationOld.destination.y
                     }, yTranslate, ratio);
                 }
 
@@ -266,7 +332,7 @@ export default class Canvas {
 
             this.visualization.drawData(this.useBars, areParticlesNew);
 
-            if (!areParticlesNew && this.visualization && transitionType != "none" &&
+            if (!areParticlesNew && this.visualizationOld && transitionType != "none" &&
                 (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
 
                 let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualization);
@@ -290,11 +356,76 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawScatterPlot(dataStore, title) {
-        let placeParticlesDirectly = this.createParticles(dataStore.data);
-        this.visualization = new ScatterPlot(this.width, this.height, this.particlesContainer, dataStore, placeParticlesDirectly, title);
-        this.particlesContainer.startAnimation();
-        this.stage.addChild(this.visualization);
+    drawScatterPlot(dataset, schema, features, title) {
+        let transitionType = $("select.transition").val();
+        let transitionLayout = $("select.transition-layout").val();
+        let areParticlesNew = this.createParticles(dataset);
+
+        this.visualizationOld = this.visualization ? this.visualization : null;
+        this.visualization = new ScatterPlot(this.width, this.height, this.particlesContainer, {
+            schema,
+            features,
+            title
+        });
+
+        // First step
+        this.animationQueue.push(() => {
+            if (!areParticlesNew && this.visualizationOld && transitionType != "none") {
+                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualizationOld);
+
+                if (transitionLayout === "juxtaposition") {
+                    this.moveVisualization(this.visualizationOld, "left", "linear");
+                    this.particlesContainer.moveParticles("left", "linear", {
+                        "x": this.visualizationOld.destination.x,
+                        "y": this.visualizationOld.destination.y
+                    }, yTranslate, ratio);
+                } else if (transitionLayout === "stacked") {
+                    this.moveVisualization(this.visualizationOld, "top", "linear");
+                    this.particlesContainer.moveParticles("top", "linear", {
+                        "x": this.visualizationOld.destination.x,
+                        "y": this.visualizationOld.destination.y
+                    }, yTranslate, ratio);
+                }
+
+                this.isCleaningNecessary = true;
+            }
+        });
+
+        // Second step
+        this.animationQueue.push(() => {
+            if (!areParticlesNew && this.visualizationOld && transitionType != "none") {
+                if (transitionLayout === "juxtaposition") {
+                    this.moveVisualization(this.visualization, "right", "none");
+                } else if (transitionLayout === "stacked") {
+                    this.moveVisualization(this.visualization, "bottom", "none");
+                }
+            }
+
+            this.stage.addChild(this.visualization);
+
+            this.visualization.drawData(areParticlesNew);
+
+            if (!areParticlesNew && this.visualizationOld && transitionType != "none" &&
+                (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
+
+                let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualization);
+
+                this.particlesContainer.moveParticlesDestination(
+                    this.width,
+                    this.height,
+                    transitionLayout === "juxtaposition" ? "right" : "bottom",
+                    transitionType,
+                    width,
+                    yTranslate,
+                    ratio
+                );
+            }
+        });
+
+        this.animationQueue.push(() => {
+            this.cleanLayout();
+        });
+
         return this.visualization;
     }
 
@@ -416,7 +547,7 @@ export default class Canvas {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
 
-        if (this.visualization && transitionType != "none" &&
+        if (this.visualizationOld && transitionType != "none" &&
             (transitionLayout === "juxtaposition" || transitionLayout === "stacked")) {
 
             this.stage.removeChild(this.visualizationOld);
@@ -459,9 +590,9 @@ export default class Canvas {
 
         // Get the next job when there is one and the last job finished
         if (!areParticlesAnimating && !isOldVisualizationAnimating && !isNewVisualizationAnimating && this.animationQueue.length > 0) {
-            this.animationQueue.pop()() ;
+            this.animationQueue.pop()();
             this.particlesContainer.startAnimation();
-            if(this.visualizationOld) this.visualizationOld.startAnimation();
+            if (this.visualizationOld) this.visualizationOld.startAnimation();
             this.visualization.startAnimation();
         }
 

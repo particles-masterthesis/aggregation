@@ -70,6 +70,12 @@ export default class ParticlesContainer extends PIXI.Container {
         this.hasPriorityChanged = true;
     }
 
+    setParticlesSpeed(speed){
+        for (let i = 0; i < this.children.length; i++) {
+            this.children[i].speed = speed;
+        }
+    }
+
     moveParticles(to, transition, origin, yTranslate, ratio) {
         let particle;
 
@@ -84,8 +90,8 @@ export default class ParticlesContainer extends PIXI.Container {
                 particle.transitionTo(
                     particle.position.x - particle.position.x / 2,
                     origin.y + particle.position.y / 2,
-                    particle._width / 2,
-                    particle._height / 2,
+                    particle.width / 2,
+                    particle.height / 2,
                     transition
                 );
             }
@@ -99,8 +105,8 @@ export default class ParticlesContainer extends PIXI.Container {
                 particle.transitionTo(
                     origin.x + particle.position.x * ratio,
                     particle.position.y * ratio - yTranslate * ratio,
-                    particle._width * ratio,
-                    particle._height * ratio,
+                    particle.width * ratio,
+                    particle.height * ratio,
                     transition
                 );
             }
@@ -154,8 +160,8 @@ export default class ParticlesContainer extends PIXI.Container {
                 particle.transitionTo(
                     particle.position.x * 2 - canvasWidth,
                     (particle.position.y - canvasHeight / 4) * 2,
-                    particle._width * 2,
-                    particle._height * 2,
+                    particle.width * 2,
+                    particle.height * 2,
                     transition
                 );
             }
@@ -169,8 +175,8 @@ export default class ParticlesContainer extends PIXI.Container {
                 particle.transitionTo(
                     (particle.position.x + width / 2 - canvasWidth / 2) / ratio,
                     (particle.position.y + yTranslate * ratio - canvasHeight / 2) / ratio,
-                    particle._width / ratio,
-                    particle._height / ratio,
+                    particle.width / ratio,
+                    particle.height / ratio,
                     transition
                 );
             }

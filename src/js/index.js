@@ -24,6 +24,7 @@ var TM;
 window.onload = () => {
     let dataStore = window.dataStore = new DataStore();
     dataStore.import(`${location.origin}${location.pathname}/dist/datasets/superstore-preprocessed-coords-geoids.csv`);
+    dataStore.title = "Superstore";
 
     let ui = window.ui = new UI();
     let canvas = window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
@@ -84,7 +85,7 @@ window.updateScreen = () => {
                 dataStore.schema,
                 dataStore.currentSelection,
                 dataStore.oldSelectionX,
-                "Superstore"
+                dataStore.title
             );
             visualizationHistory.unshift({
                 'type': 'bar',
@@ -93,8 +94,10 @@ window.updateScreen = () => {
             break;
         case "scatterPlot":
             currentVisualization = canvas.drawScatterPlot(
-                dataStore,
-                "Superstore"
+                dataStore.data,
+                dataStore.schema,
+                dataStore.currentSelection,
+                dataStore.title
             );
             visualizationHistory.unshift({
                 'type': 'scatter',

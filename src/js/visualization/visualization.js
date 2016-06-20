@@ -18,23 +18,31 @@ export default class Visualization extends PIXI.Container {
         this.aimedScale = new PIXI.Point(1, 1);
     }
 
-    transitionTo(x, y, scaleX, scaleY, type) {
+    transitionTo(x, y, scale, type) {
         switch (type) {
             case "none":
                 this.isAnimating = false;
+
                 this.position.set(x, y);
-                this.scale.set(scaleX, scaleY);
+                this.scale.set(scale, scale);
+
+                this.destination.set(x,y);
+                this.aimedScale.set(scale, scale);
                 break;
 
             case "linear":
                 this.isAnimating = true;
                 this.setDestination(x, y);
-                this.setAimedScale(scaleX, scaleY);
+                this.setAimedScale(scale, scale);
                 break;
 
             default:
-                throw new Error(`Transition type not handled: ${type}`);
+                throw new Error(`Visualization transition type not handled: ${type}`);
         }
+    }
+
+    startAnimation(){
+        this.isAnimating = true;
     }
 
     nextStep() {

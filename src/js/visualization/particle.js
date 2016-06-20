@@ -38,8 +38,12 @@ export default class Particle extends PIXI.Sprite {
         switch (type) {
             case "none":
                 this.isAnimating = false;
+
                 this.setPosition(x, y);
+                this.setDestination(x,y);
+
                 this.setSize(width, height);
+                this.setAimedSize(width, height);
                 break;
 
             case "linear":
@@ -49,7 +53,7 @@ export default class Particle extends PIXI.Sprite {
                 break;
 
             default:
-                throw new Error(`Transition type not handled: ${type}`);
+                throw new Error(`Particles transition type not handled: ${type}`);
         }
     }
 

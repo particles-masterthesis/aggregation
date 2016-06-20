@@ -70,10 +70,10 @@ export default class ParticlesContainer extends PIXI.Container {
         this.hasPriorityChanged = true;
     }
 
-    moveParticlesOnBasisOfLayout(place, transition, origin, yTranslate, ratio) {
+    moveParticles(to, transition, origin, yTranslate, ratio) {
         let particle;
 
-        if (place === "left") {
+        if (to === "left") {
             for (let i = 0; i < this.children.length; i++) {
                 particle = this.children[i];
 
@@ -89,7 +89,7 @@ export default class ParticlesContainer extends PIXI.Container {
                     transition
                 );
             }
-        } else if (place === "top") {
+        } else if (to === "top") {
             for (let i = 0; i < this.children.length; i++) {
                 particle = this.children[i];
                 if (particle.alpha === 0) {
@@ -107,35 +107,43 @@ export default class ParticlesContainer extends PIXI.Container {
         }
     }
 
-    moveParticlesDestinationOnBasisOfLayout(canvasWidth, canvasHeight, from, width, yTranslate, ratio){
+    moveParticlesDestination(canvasWidth, canvasHeight, to, transition, width, yTranslate, ratio) {
         let particle;
 
-        if (from === "right") {
+        if (to === "right") {
             for (let i = 0; i < this.children.length; i++) {
                 particle = this.children[i];
                 if (particle.alpha === 0) {
                     continue;
                 }
-                particle.aimedSize.width = particle.aimedSize.width / 2;
-                particle.aimedSize.height = particle.aimedSize.height / 2;
-                particle.destination.x = particle.destination.x - particle.destination.x / 2 + canvasWidth / 2;
-                particle.destination.y = particle.destination.y - particle.destination.y / 2 + canvasHeight / 4;
+
+                particle.transitionTo(
+                    particle.destination.x - particle.destination.x / 2 + canvasWidth / 2,
+                    particle.destination.y - particle.destination.y / 2 + canvasHeight / 4,
+                    particle.aimedSize.width / 2,
+                    particle.aimedSize.height / 2,
+                    transition
+                );
             }
-        } else if (from === "bottom") {
+        } else if (to === "bottom") {
             for (let i = 0; i < this.children.length; i++) {
                 particle = this.children[i];
                 if (particle.alpha === 0) {
                     continue;
                 }
-                particle.aimedSize.width = particle.aimedSize.width * ratio;
-                particle.aimedSize.height = particle.aimedSize.height * ratio;
-                particle.destination.x = canvasWidth / 2 - width / 2 + particle.destination.x * ratio;
-                particle.destination.y = canvasHeight / 2 + particle.destination.y * ratio - yTranslate * ratio;
+
+                particle.transitionTo(
+                    particle.destination.x = canvasWidth / 2 - width / 2 + particle.destination.x * ratio,
+                    particle.destination.y = canvasHeight / 2 + particle.destination.y * ratio - yTranslate * ratio,
+                    particle.aimedSize.width * ratio,
+                    particle.aimedSize.height = particle.aimedSize.height * ratio,
+                    transition
+                );
             }
         }
     }
 
-    moveBackParticlesOnBasisOfLayout(canvasWidth, canvasHeight, from, width, yTranslate, ratio){
+    moveParticlesBack(canvasWidth, canvasHeight, from, transition, width, yTranslate, ratio) {
         if (from === "right") {
             let particle;
             for (let i = 0; i < this.children.length; i++) {
@@ -143,10 +151,13 @@ export default class ParticlesContainer extends PIXI.Container {
                 if (particle.alpha === 0) {
                     continue;
                 }
-                particle.width = particle._width * 2;
-                particle.height = particle._height * 2;
-                particle.position.x = particle.position.x * 2 - canvasWidth;
-                particle.position.y = (particle.position.y - canvasHeight / 4) * 2;
+                particle.transitionTo(
+                    particle.position.x * 2 - canvasWidth,
+                    (particle.position.y - canvasHeight / 4) * 2,
+                    particle._width * 2,
+                    particle._height * 2,
+                    transition
+                );
             }
         } else if (from === "bottom") {
             let particle;
@@ -155,10 +166,13 @@ export default class ParticlesContainer extends PIXI.Container {
                 if (particle.alpha === 0) {
                     continue;
                 }
-                particle.width = particle._width / ratio;
-                particle.height = particle._height / ratio;
-                particle.position.x = (particle.position.x + width / 2 - canvasWidth / 2) / ratio;
-                particle.position.y = (particle.position.y + yTranslate * ratio - canvasHeight / 2) / ratio;
+                particle.transitionTo(
+                    (particle.position.x + width / 2 - canvasWidth / 2) / ratio,
+                    (particle.position.y + yTranslate * ratio - canvasHeight / 2) / ratio,
+                    particle._width / ratio,
+                    particle._height / ratio,
+                    transition
+                );
             }
         }
     }

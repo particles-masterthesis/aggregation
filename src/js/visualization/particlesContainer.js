@@ -15,8 +15,6 @@ export default class ParticlesContainer extends PIXI.Container {
             return false;
         }
 
-        console.log("animate");
-
         let particlesReachedDestinations = true;
         let particleReachedDestination;
         let particle;
@@ -40,7 +38,6 @@ export default class ParticlesContainer extends PIXI.Container {
         } else {
             for (let i = 0; i < this.children.length; i++) {
                 particleReachedDestination = !this.getChildAt(i).animate();
-
                 if(particleReachedDestination === false && particlesReachedDestinations === true){
                     particlesReachedDestinations = false;
                 }

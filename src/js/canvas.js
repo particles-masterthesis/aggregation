@@ -396,6 +396,7 @@ export default class Canvas {
         this.visualization = new ScatterPlot(this.width, this.height, this.particlesContainer, dataStore, placeParticlesDirectly, title);
         this.particlesContainer.startAnimation();
         this.stage.addChild(this.visualization);
+        // return new Promise( (resolve, reject) => { resolve(this.visualization); });
         return this.visualization;
     }
 
@@ -415,6 +416,7 @@ export default class Canvas {
             animationCb
         );
         this.stage.addChild(this.visualization);
+
         this.particlesContainer.startAnimation();
         return this.visualization;
     }
@@ -440,6 +442,7 @@ export default class Canvas {
         this.stage.addChild(this.visualization);
 
         this.particlesContainer.startAnimation();
+        // return new Promise( (resolve, reject) => { resolve(this.visualization); });
         return this.visualization;
     }
 
@@ -498,6 +501,7 @@ export default class Canvas {
     }
 
     render() {
+        this.requestFrameID = requestAnimationFrame(this.render.bind(this));
         this.stats.begin();
 
         if (!this.particlesContainer.nextStep() && this.isCleaningNecessary) {
@@ -507,7 +511,6 @@ export default class Canvas {
         this.renderer.render(this.stage);
 
         this.stats.end();
-        this.requestFrameID = requestAnimationFrame(this.render.bind(this));
     }
 
 }

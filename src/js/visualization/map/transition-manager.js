@@ -48,9 +48,10 @@ export default class TransitionManager {
                     this.currentViz.constructor.name === "ProportionalSymbolMap",
                     () => {
                         this.canvas.reset();
-                        // for(let particle of this.currentViz.particles){
-                        //     particle.fade('out');
-                        // }
+                        for(let particle of this.currentViz.particles){
+                            particle.fade('out');
+                        }
+                        this.canvas.particlesContainer.startAnimation();
                     }
                 );
                 upcomingViz.type = 'psm';
@@ -61,6 +62,7 @@ export default class TransitionManager {
                 for(let particle of this.currentViz.particles){
                     particle.fade('out');
                 }
+                this.canvas.particlesContainer.startAnimation();
 
                 upcomingViz.obj = this.canvas.drawChoroplethMap(
                     null,
@@ -80,9 +82,10 @@ export default class TransitionManager {
                     this.currentViz.constructor.name === "Cartogram",
                     () => {
                         this.canvas.reset();
-                        // for(let particle of this.currentViz.particles){
-                        //     particle.fade('out');
-                        // }
+                        for(let particle of this.currentViz.particles){
+                            particle.fade('out');
+                        }
+                        this.canvas.particlesContainer.startAnimation();
                         this.currentViz.hide(false, true);
                     }
                 );

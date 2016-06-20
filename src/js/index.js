@@ -19,13 +19,13 @@ import TransitionManager from './visualization/map/transition-manager';
  * @method window.onload
  * @description After loading all scripts initialize the instances, load dataset and update ui
  */
-var TM;
 window.onload = () => {
     let dataStore = window.dataStore = new DataStore();
     dataStore.import(`${location.origin}${location.pathname}/dist/datasets/superstore-preprocessed-coords-geoids.csv`);
 
     let ui = window.ui = new UI();
     let canvas = window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
+    let TM = window.TM = new TransitionManager(canvas);
     initDatGui(dataStore, ui, canvas, window.updateScreen);
 
     // After import the dataset we now can update the dropboxes with the features
@@ -33,7 +33,6 @@ window.onload = () => {
     UI.toggleFeatureDropdowns();
 
     addEventListener(dataStore, canvas);
-    TM = new TransitionManager(canvas);
     window.updateScreen();
 };
 

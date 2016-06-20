@@ -3,7 +3,6 @@ import "pixi.js";
 import {Stats} from "stats.js";
 
 import Overview from "./visualization/overview/overview";
-import Particle from "./visualization/particle";
 import ParticlesContainer from "./visualization/particlesContainer";
 
 import ScatterPlot from "./visualization/chart/scatter-plot";
@@ -29,12 +28,14 @@ export default class Canvas {
         this.requestFrameID = null;
 
         this.particles = {
-            "speedPxPerFrame": 3,
-            "shape": "rectangle"
+            "speedPxPerFrame": 2,
+            "arrivalSync": true,
+            "shape": "rectangle",
+            "sizeOfParticles": 4        // Only for scatter-plot relevant
         };
 
         this.visualizations = {
-            "speedPxPerFrame": 3
+            "speedPxPerFrame": 2
         };
 
         this.height = window.innerHeight - 142; //windowH height - menu height - css-paddings
@@ -49,6 +50,7 @@ export default class Canvas {
         document.body.appendChild(this.renderer.view);
 
         this.stage = new PIXI.Container();
+        this.stage.interactive = true;
 
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -58,6 +60,7 @@ export default class Canvas {
         // Can't use particle container from pixi because it doesn't support interactivity
         // our container handles also the placing, transitions and animations
         this.particlesContainer = new ParticlesContainer();
+        this.particlesContainer.interactive = true;
         this.stage.addChild(this.particlesContainer);
 
         // Layout during transition
@@ -66,47 +69,10 @@ export default class Canvas {
         this.animationQueue = new Queue();
     }
 
-    createParticles(dataset) {
-        if (this.particlesContainer.children.length === 0) {
-
-            let texture, textureHover;
-
-            if (this.particles.shape === "rectangle") {
-                texture = PIXI.Texture.fromImage("dist/img/particle.png");
-                textureHover = PIXI.Texture.fromImage("dist/img/particle_hover.png");
-            } else {
-                texture = PIXI.Texture.fromImage("dist/img/particle_circle.png");
-                textureHover = PIXI.Texture.fromImage("dist/img/particle_circle_hover.png");
-            }
-
-            let callbackAdd = data => () => this.toggleDataRow(data);
-            let callbackRemove = () => () => {
-                if (document.getElementById("dataRow")) {
-                    document.body.removeChild(document.getElementById("dataRow"));
-                }
-            };
-
-            for (let i = 0; i < dataset.length; i++) {
-                let sprite = new Particle(texture, textureHover, dataset[i], 0, 0, this.particles.speedPxPerFrame);
-                sprite.on("mouseover", callbackAdd(sprite.data));
-                sprite.on("mouseout", callbackRemove());
-                this.particlesContainer.addChild(sprite);
-            }
-
-            this.particlesContainer.interactive = true;
-            this.stage.interactive = true;
-
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
     drawParticles(dataset) {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
-        let areParticlesNew = this.createParticles(dataset);
+        let areParticlesNew = this.particlesContainer.createParticles(dataset, this.particles);
 
         this.visualizationOld = this.visualization ? this.visualization : null;
         this.visualization = new Overview(this.width, this.height, this.particlesContainer);
@@ -131,6 +97,10 @@ export default class Canvas {
                 }
 
                 this.isCleaningNecessary = true;
+
+                // After defining the destination we have to calculate the speed for the particles
+                // so the reach at the same time their destination
+                if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
             }
         });
 
@@ -163,6 +133,10 @@ export default class Canvas {
                     ratio
                 );
             }
+
+            // After defining the destination we have to calculate the speed for the particles
+            // so the reach at the same time their destination
+            if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
         });
 
         this.animationQueue.push(() => {
@@ -245,46 +219,13 @@ export default class Canvas {
 
     changeSorting(feature) {
         this.particlesContainer.children.sortBy(feature, "data");
-        this.visualization.drawParticles(this.useBars, false);
-    }
-
-    toggleDataRow(data) {
-        var table = document.getElementById("dataRow");
-        table = table ? document.body.removeChild(table) : document.createElement("table");
-
-        var features = Object.keys(data);
-
-        let tmp = features.splice(0, Math.round(features.length / 2));
-        let tmp2 = features.splice(0, features.length);
-
-        var text = "<tr>";
-        tmp.forEach(function (key) {
-            text += `<th>${key}</th>`;
-        });
-        text += "</tr><tr>";
-        tmp.forEach(function (key) {
-            text += `<td>${data[key]}</td>`;
-        });
-        text += "</tr><tr>";
-
-        tmp2.forEach(function (key) {
-            text += `<th>${key}</th>`;
-        });
-        text += "</tr><tr>";
-        tmp2.forEach(function (key) {
-            text += `<td>${data[key]}</td>`;
-        });
-        text += "</tr>";
-
-        table.innerHTML = text;
-        table.id = "dataRow";
-        document.body.appendChild(table);
+        this.visualization.drawData(this.useBars, false);
     }
 
     drawBarChart(dataset, schema, features, oldFeatureX, title) {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
-        let areParticlesNew = this.createParticles(dataset);
+        let areParticlesNew = this.particlesContainer.createParticles(dataset, this.particles);
 
         this.automaticallySortParticles(oldFeatureX);
 
@@ -313,6 +254,10 @@ export default class Canvas {
                         "y": this.visualizationOld.destination.y
                     }, yTranslate, ratio);
                 }
+
+                // After defining the destination we have to calculate the speed for the particles
+                // so the reach at the same time their destination
+                if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
 
                 this.isCleaningNecessary = true;
             }
@@ -347,6 +292,10 @@ export default class Canvas {
                     ratio
                 );
             }
+
+            // After defining the destination we have to calculate the speed for the particles
+            // so the reach at the same time their destination
+            if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
         });
 
         this.animationQueue.push(() => {
@@ -359,13 +308,14 @@ export default class Canvas {
     drawScatterPlot(dataset, schema, features, title) {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
-        let areParticlesNew = this.createParticles(dataset);
+        let areParticlesNew = this.particlesContainer.createParticles(dataset, this.particles);
 
         this.visualizationOld = this.visualization ? this.visualization : null;
         this.visualization = new ScatterPlot(this.width, this.height, this.particlesContainer, {
             schema,
             features,
-            title
+            title,
+            sizeParticles: this.particles.sizeOfParticles
         });
 
         // First step
@@ -388,6 +338,10 @@ export default class Canvas {
                 }
 
                 this.isCleaningNecessary = true;
+
+                // After defining the destination we have to calculate the speed for the particles
+                // so the reach at the same time their destination
+                if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
             }
         });
 
@@ -420,6 +374,10 @@ export default class Canvas {
                     ratio
                 );
             }
+
+            // After defining the destination we have to calculate the speed for the particles
+            // so the reach at the same time their destination
+            if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
         });
 
         this.animationQueue.push(() => {
@@ -430,7 +388,7 @@ export default class Canvas {
     }
 
     drawDotMap(dataset, isCurrentVisualization, animationCb) {
-        this.createParticles(dataset);
+        this.particlesContainer.createParticles(dataset, this.particles);
         if (isCurrentVisualization) {
             this.visualization.updateBaseMap(this.levelOfDetail);
             this.visualization.drawDots(this.particlesContainer.children);
@@ -452,7 +410,7 @@ export default class Canvas {
     drawProportionalSymbolMap(dataset, isCurrentVisualization, animationCb) {
         if (!isFunction(animationCb)) {
             this.reset();
-            this.createParticles(dataset);
+            this.particlesContainer.createParticles(dataset, this.particles);
         }
 
         if (isCurrentVisualization) {
@@ -476,7 +434,7 @@ export default class Canvas {
     drawChoroplethMap(dataset, isCurrentVisualization, animationCb) {
         if (!isFunction(animationCb)) {
             this.reset();
-            this.createParticles(dataset);
+            this.particlesContainer.createParticles(dataset, this.particles);
         }
 
         if (isCurrentVisualization) {
@@ -500,7 +458,7 @@ export default class Canvas {
     drawCartogram(dataset, isCurrentVisualization, animationCb) {
         if (!isFunction(animationCb)) {
             this.reset();
-            this.createParticles(dataset);
+            this.particlesContainer.createParticles(dataset, this.particles);
         }
 
         if (isCurrentVisualization) {
@@ -564,6 +522,10 @@ export default class Canvas {
                 yTranslate,
                 ratio
             );
+
+            // After defining the destination we have to calculate the speed for the particles
+            // so the reach at the same time their destination
+            if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
         }
 
         this.isCleaningNecessary = false;
@@ -601,5 +563,4 @@ export default class Canvas {
         this.stats.end();
         this.requestFrameID = requestAnimationFrame(this.render.bind(this));
     }
-
 }

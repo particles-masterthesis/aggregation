@@ -3,12 +3,13 @@ import "pixi.js";
 
 export default class Particle extends PIXI.Sprite {
 
-    constructor(texture, textureHover, data, x, y, speed) {
+    constructor(texture, textureHover, data, x, y, size, speed) {
         super(texture);
 
         this.textureDefault = texture;
         this.textureHover = textureHover;
 
+        this.width = this.height = size;
         this.margin = 1;
         this.alpha = 1;
 
@@ -16,8 +17,8 @@ export default class Particle extends PIXI.Sprite {
         this.isAnimating = false;
         this.speed = speed;
         this.aimedSize = {
-            "width": this.width,
-            "height": this.height
+            "width": size,
+            "height": size
         };
 
         this.data = data;
@@ -96,7 +97,7 @@ export default class Particle extends PIXI.Sprite {
             this.position.equals(this.destination) &&
             this.width == this.aimedSize.width &&
             this.height == this.aimedSize.height /*&&
-            this.alpha === this.aimedAlpha*/
+         this.alpha === this.aimedAlpha*/
         ) {
             this.isAnimating = false;
         }

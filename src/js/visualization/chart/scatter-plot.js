@@ -46,7 +46,7 @@ export default class ScatterPlot extends Chart {
         this.addChild(titleLabel);
     }
 
-    addAxes(){
+    addAxes() {
         const axes = new PIXI.Graphics();
         axes.lineStyle(1, 0x111111, 1);
 
@@ -224,8 +224,10 @@ export default class ScatterPlot extends Chart {
      * @param {Object} features
      */
     drawData(newParticles) {
-        let size = 5, x, y;
+        let x, y;
         let transitionType = $("select.transition").val();
+        let moveOriginBy = this.options.sizeParticles / 2;
+
 
         switch (this.boundaries.schema) {
 
@@ -233,16 +235,16 @@ export default class ScatterPlot extends Chart {
             case "nominal numeric":
 
                 for (let i = 0; i < this.particles.length; i++) {
-                    x = this.nominalDict[this.particles[i].data[this.options.features.x]].x;
+                    x = this.nominalDict[this.particles[i].data[this.options.features.x]].x - moveOriginBy;
                     y = parseFloat(this.particles[i].data[this.options.features.y]);
-                    y = y.map(this.boundaries.values.minY, this.boundaries.values.maxY, 0, this.heightVisualization);
+                    y = y.map(this.boundaries.values.minY, this.boundaries.values.maxY, 0, this.heightVisualization) + moveOriginBy;
 
                     this.particles[i].alpha = 1;
 
                     if (newParticles) {
-                        this.particles[i].setPosition(x + this.padding, this.heightVisualization + this.padding - y).setSize(size, size);
+                        this.particles[i].setPosition(x + this.padding, this.heightVisualization + this.padding - y).setSize(this.options.sizeParticles, this.options.sizeParticles);
                     } else {
-                        this.particles[i].transitionTo(x + this.padding, this.heightVisualization + this.padding - y, size, size, transitionType);
+                        this.particles[i].transitionTo(x + this.padding, this.heightVisualization + this.padding - y, this.options.sizeParticles, this.options.sizeParticles, transitionType);
                     }
                 }
                 break;
@@ -251,16 +253,16 @@ export default class ScatterPlot extends Chart {
             case "numeric nominal":
 
                 for (let i = 0; i < this.particles.length; i++) {
-                    x = parseFloat(this.particles[i].data[this.options.features.x]);
+                    x = parseFloat(this.particles[i].data[this.options.features.x]) - moveOriginBy;
                     x = x.map(this.boundaries.values.minX, this.boundaries.values.maxX, 0, this.widthVisualization);
-                    y = this.nominalDict[particles[i].data[this.options.features.y]].y;
+                    y = this.nominalDict[particles[i].data[this.options.features.y]].y + moveOriginBy;
 
                     this.particles[i].alpha = 1;
 
                     if (newParticles) {
-                        this.particles[i].setPosition(x + this.padding, y + this.padding).setSize(size, size);
+                        this.particles[i].setPosition(x + this.padding, y + this.padding).setSize(this.options.sizeParticles, this.options.sizeParticles);
                     } else {
-                        this.particles[i].transitionTo(x + this.padding, y + this.padding, size, size, transitionType);
+                        this.particles[i].transitionTo(x + this.padding, y + this.padding, this.options.sizeParticles, this.options.sizeParticles, transitionType);
                     }
                 }
                 break;
@@ -271,15 +273,15 @@ export default class ScatterPlot extends Chart {
             case "nominal nominal":
 
                 for (let i = 0; i < this.particles.length; i++) {
-                    x = this.nominalDict[this.particles[i].data[this.options.features.x]].x;
-                    y = this.nominalDict[this.particles[i].data[this.options.features.y]].y;
+                    x = this.nominalDict[this.particles[i].data[this.options.features.x]].x - moveOriginBy;
+                    y = this.nominalDict[this.particles[i].data[this.options.features.y]].y + moveOriginBy;
 
                     this.particles[i].alpha = 1;
 
                     if (newParticles) {
-                        this.particles[i].setPosition(x + this.padding, y + this.padding).setSize(size, size);
+                        this.particles[i].setPosition(x + this.padding, y + this.padding).setSize(this.options.sizeParticles, this.options.sizeParticles);
                     } else {
-                        this.particles[i].transitionTo(x + this.padding, y + this.padding, size, size, transitionType);
+                        this.particles[i].transitionTo(x + this.padding, y + this.padding, this.options.sizeParticles, this.options.sizeParticles, transitionType);
                     }
                 }
                 break;
@@ -290,15 +292,15 @@ export default class ScatterPlot extends Chart {
                     x = parseFloat(this.particles[i].data[this.options.features.x]);
                     y = parseFloat(this.particles[i].data[this.options.features.y]);
 
-                    x = x.map(this.boundaries.values.minX, this.boundaries.values.maxX, 0, this.widthVisualization) - size / 2;
-                    y = y.map(this.boundaries.values.minY, this.boundaries.values.maxY, 0, this.heightVisualization) - size / 2;
+                    x = x.map(this.boundaries.values.minX, this.boundaries.values.maxX, 0, this.widthVisualization) - this.options.sizeParticles / 2 - moveOriginBy;
+                    y = y.map(this.boundaries.values.minY, this.boundaries.values.maxY, 0, this.heightVisualization) - this.options.sizeParticles / 2 + moveOriginBy;
 
                     this.particles[i].alpha = 1;
 
                     if (newParticles) {
-                        this.particles[i].setPosition(x + this.padding, this.heightVisualization + this.padding - y).setSize(size, size);
+                        this.particles[i].setPosition(x + this.padding, this.heightVisualization + this.padding - y).setSize(this.options.sizeParticles, this.options.sizeParticles);
                     } else {
-                        this.particles[i].transitionTo(x + this.padding, this.heightVisualization + this.padding - y, size, size, transitionType);
+                        this.particles[i].transitionTo(x + this.padding, this.heightVisualization + this.padding - y, this.options.sizeParticles, this.options.sizeParticles, transitionType);
                     }
                 }
                 break;

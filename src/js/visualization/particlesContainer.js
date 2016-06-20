@@ -1,9 +1,81 @@
+import Particle from "./particle";
+
 export default class ParticlesContainer extends PIXI.Container {
     constructor() {
         super();
 
         this.hasPriorityChanged = false;
         this.isAnimating = false;
+        this.speedPxPerFrame = 2;
+    }
+
+    createParticles(dataset, options) {
+        this.speedPxPerFrame = options.speedPxPerFrame;
+
+        if (this.children.length === 0) {
+
+            let texture, textureHover;
+
+            if (options.shape === "rectangle") {
+                texture = PIXI.Texture.fromImage("dist/img/particle.png");
+                textureHover = PIXI.Texture.fromImage("dist/img/particle_hover.png");
+            } else {
+                texture = PIXI.Texture.fromImage("dist/img/particle_circle.png");
+                textureHover = PIXI.Texture.fromImage("dist/img/particle_circle_hover.png");
+            }
+
+            let callbackAdd = data => () => this.showParticleDetails(data);
+            let callbackRemove = () => () => {
+                if (document.getElementById("dataRow")) {
+                    document.body.removeChild(document.getElementById("dataRow"));
+                }
+            };
+
+            for (let i = 0; i < dataset.length; i++) {
+                let sprite = new Particle(texture, textureHover, dataset[i], 0, 0, options.sizeOfParticles, options.speedPxPerFrame);
+                sprite.on("mouseover", callbackAdd(sprite.data));
+                sprite.on("mouseout", callbackRemove());
+                this.addChild(sprite);
+            }
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    showParticleDetails(data) {
+        var table = document.getElementById("dataRow");
+        table = table ? document.body.removeChild(table) : document.createElement("table");
+
+        var features = Object.keys(data);
+
+        let tmp = features.splice(0, Math.round(features.length / 2));
+        let tmp2 = features.splice(0, features.length);
+
+        var text = "<tr>";
+        tmp.forEach(function (key) {
+            text += `<th>${key}</th>`;
+        });
+        text += "</tr><tr>";
+        tmp.forEach(function (key) {
+            text += `<td>${data[key]}</td>`;
+        });
+        text += "</tr><tr>";
+
+        tmp2.forEach(function (key) {
+            text += `<th>${key}</th>`;
+        });
+        text += "</tr><tr>";
+        tmp2.forEach(function (key) {
+            text += `<td>${data[key]}</td>`;
+        });
+        text += "</tr>";
+
+        table.innerHTML = text;
+        table.id = "dataRow";
+        document.body.appendChild(table);
     }
 
     startAnimation() {
@@ -70,9 +142,31 @@ export default class ParticlesContainer extends PIXI.Container {
         this.hasPriorityChanged = true;
     }
 
-    setParticlesSpeed(speed){
+    setParticlesSpeed(speed) {
+        this.speedPxPerFrame = speed;
+
         for (let i = 0; i < this.children.length; i++) {
             this.children[i].speed = speed;
+        }
+    }
+
+    calculateSpeedArrivingSameTime() {
+        let sum = 0;
+        for (let i = 0; i < this.children.length; i++) {
+            let deltaX = this.children[i].destination.x - this.children[i].position.x;
+            let deltaY = this.children[i].destination.y - this.children[i].position.y;
+            let distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+            sum+=distance;
+
+            this.children[i].distance = distance;
+        }
+
+        let averageDistance = Math.floor(sum/this.children.length);
+        let amountOfFrames = averageDistance/this.speedPxPerFrame;
+
+        for (let i = 0; i < this.children.length; i++) {
+            this.children[i].speed = this.children[i].distance/amountOfFrames;
+            delete this.children[i].distance;
         }
     }
 

@@ -58,12 +58,20 @@ window.updateScreen = () => {
                 transitionType === 'linear' &&
                 mapTypesWithDomNodes.indexOf(upcomingVisualizationType) > -1
             ){
-                currentVisualization = TM.animate(
+                let promise = TM.animate(
                     visualizationHistory[0],
                     upcomingVisualizationType
                 );
-                visualizationHistory.unshift(currentVisualization);
-                currentVisualization = currentVisualization.obj;
+
+                promise
+                .then((_currentVisualization) => {
+                    visualizationHistory.unshift(_currentVisualization);
+                    currentVisualization = _currentVisualization.obj;
+                })
+                .catch((error) => {
+                    console.log('promise error');
+                });
+
                 return;
             } else {
                 // remove all dom nodes

@@ -34,10 +34,6 @@ export default class Canvas {
             "sizeOfParticles": 4        // Only for scatter-plot relevant
         };
 
-        this.visualizations = {
-            "speedPxPerFrame": 2
-        };
-
         this.height = window.innerHeight - 142; //windowH height - menu height - css-paddings
         this.width = window.innerWidth - 285; //windowH width - css-paddings
 
@@ -84,23 +80,21 @@ export default class Canvas {
 
                 if (transitionLayout === "juxtaposition") {
                     this.moveVisualization(this.visualizationOld, "left", "linear");
-                    this.particlesContainer.moveParticles("left", "linear", {
+                    let amountOfFrames = this.particlesContainer.moveParticles("left", "linear", {
                         "x": this.visualizationOld.destination.x,
                         "y": this.visualizationOld.destination.y
                     }, yTranslate, ratio);
+                    this.visualizationOld.calculateSpeed(amountOfFrames);
                 } else if (transitionLayout === "stacked") {
                     this.moveVisualization(this.visualizationOld, "top", "linear");
-                    this.particlesContainer.moveParticles("top", "linear", {
+                    let amountOfFrames = this.particlesContainer.moveParticles("top", "linear", {
                         "x": this.visualizationOld.destination.x,
                         "y": this.visualizationOld.destination.y
                     }, yTranslate, ratio);
+                    this.visualizationOld.calculateSpeed(amountOfFrames);
                 }
 
                 this.isCleaningNecessary = true;
-
-                // After defining the destination we have to calculate the speed for the particles
-                // so the reach at the same time their destination
-                if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
             }
         });
 
@@ -136,7 +130,7 @@ export default class Canvas {
 
             // After defining the destination we have to calculate the speed for the particles
             // so the reach at the same time their destination
-            if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
+            if (this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
         });
 
         this.animationQueue.push(() => {
@@ -169,13 +163,16 @@ export default class Canvas {
                 ratio,
                 transition
             );
+
         } else if (place === "default") {
+
             visualization.transitionTo(
                 0,
                 0,
                 1,
                 transition
             );
+
         }
     }
 
@@ -243,21 +240,20 @@ export default class Canvas {
 
                 if (transitionLayout === "juxtaposition") {
                     this.moveVisualization(this.visualizationOld, "left", "linear");
-                    this.particlesContainer.moveParticles("left", "linear", {
+                    let amountOfFrames = this.particlesContainer.moveParticles("left", "linear", {
                         "x": this.visualizationOld.destination.x,
                         "y": this.visualizationOld.destination.y
                     }, yTranslate, ratio);
+                    this.visualizationOld.calculateSpeed(amountOfFrames);
                 } else if (transitionLayout === "stacked") {
                     this.moveVisualization(this.visualizationOld, "top", "linear");
-                    this.particlesContainer.moveParticles("top", "linear", {
+                    let amountOfFrames = this.particlesContainer.moveParticles("top", "linear", {
                         "x": this.visualizationOld.destination.x,
                         "y": this.visualizationOld.destination.y
                     }, yTranslate, ratio);
+                    this.visualizationOld.calculateSpeed(amountOfFrames);
                 }
 
-                // After defining the destination we have to calculate the speed for the particles
-                // so the reach at the same time their destination
-                if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
 
                 this.isCleaningNecessary = true;
             }
@@ -295,7 +291,7 @@ export default class Canvas {
 
             // After defining the destination we have to calculate the speed for the particles
             // so the reach at the same time their destination
-            if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
+            if (this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
         });
 
         this.animationQueue.push(() => {
@@ -325,23 +321,26 @@ export default class Canvas {
 
                 if (transitionLayout === "juxtaposition") {
                     this.moveVisualization(this.visualizationOld, "left", "linear");
-                    this.particlesContainer.moveParticles("left", "linear", {
+                    let amountOfFrames = this.particlesContainer.moveParticles("left", "linear", {
                         "x": this.visualizationOld.destination.x,
                         "y": this.visualizationOld.destination.y
                     }, yTranslate, ratio);
+                    this.visualizationOld.calculateSpeed(amountOfFrames);
                 } else if (transitionLayout === "stacked") {
                     this.moveVisualization(this.visualizationOld, "top", "linear");
-                    this.particlesContainer.moveParticles("top", "linear", {
+                    let amountOfFrames = this.particlesContainer.moveParticles("top", "linear", {
                         "x": this.visualizationOld.destination.x,
                         "y": this.visualizationOld.destination.y
                     }, yTranslate, ratio);
+                    this.visualizationOld.calculateSpeed(amountOfFrames);
                 }
+
 
                 this.isCleaningNecessary = true;
 
                 // After defining the destination we have to calculate the speed for the particles
                 // so the reach at the same time their destination
-                if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
+                if (this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
             }
         });
 
@@ -377,7 +376,7 @@ export default class Canvas {
 
             // After defining the destination we have to calculate the speed for the particles
             // so the reach at the same time their destination
-            if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
+            if (this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
         });
 
         this.animationQueue.push(() => {
@@ -510,10 +509,8 @@ export default class Canvas {
 
             this.stage.removeChild(this.visualizationOld);
 
-            this.moveVisualization(this.visualization, "default", "linear");
-
             let {height, width, ratio, yTranslate} = this.calculateTranslationLayoutValues(this.visualization);
-            this.particlesContainer.moveParticlesBack(
+            let amountOfFrames = this.particlesContainer.moveParticlesBack(
                 this.width,
                 this.height,
                 transitionLayout === "juxtaposition" ? "right" : "bottom",
@@ -522,10 +519,8 @@ export default class Canvas {
                 yTranslate,
                 ratio
             );
-
-            // After defining the destination we have to calculate the speed for the particles
-            // so the reach at the same time their destination
-            if(this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
+            this.moveVisualization(this.visualization, "default", "linear");
+            this.visualization.calculateSpeed(amountOfFrames);
         }
 
         this.isCleaningNecessary = false;

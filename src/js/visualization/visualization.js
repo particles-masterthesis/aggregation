@@ -13,6 +13,7 @@ export default class Visualization extends PIXI.Container {
         this.widthVisualization = this._width - this.padding * 2;
 
         this.speed = 3;
+        this.distanceRatio = 0;
         this.isAnimating = false;
         this.destination = new PIXI.Point(0, 0);
         this.aimedScale = new PIXI.Point(1, 1);
@@ -51,7 +52,6 @@ export default class Visualization extends PIXI.Container {
         }
 
         // POSITION
-        let distanceRatio;
         if (!this.position.equals(this.destination)) {
             let deltaX = this.destination.x - this.position.x;
             let deltaY = this.destination.y - this.position.y;
@@ -60,8 +60,8 @@ export default class Visualization extends PIXI.Container {
             if (distance <= this.speed) {
                 this.position.set(this.destination.x, this.destination.y);
             } else {
-                distanceRatio = this.speed / distance;
-                this.position.set(this.position.x + deltaX * distanceRatio, this.position.y + deltaY * distanceRatio);
+                this.distanceRatio = this.speed / distance;
+                this.position.set(this.position.x + deltaX * this.distanceRatio, this.position.y + deltaY * this.distanceRatio);
             }
         }
 
@@ -70,12 +70,14 @@ export default class Visualization extends PIXI.Container {
             let deltaX = this.aimedScale.x - this.scale.x;
             let deltaY = this.aimedScale.y - this.scale.y;
 
-            if (Math.abs(this.scale.x - this.aimedScale.x) < this.speed/500) {
+            if (Math.abs(this.scale.x - this.aimedScale.x) < 0.001) {
                 this.scale.set(this.aimedScale.x, this.aimedScale.y);
             } else {
-                this.scale.set(this.scale.x + deltaX * distanceRatio, this.scale.x + deltaY * distanceRatio);
+                this.scale.set(this.scale.x + deltaX * this.distanceRatio, this.scale.x + deltaY * this.distanceRatio);
             }
         }
+
+        console.log()
 
         // CHECK FOR COMPLETENESS
         if (
@@ -85,9 +87,21 @@ export default class Visualization extends PIXI.Container {
         ) {
             this.isAnimating = false;
         }
+        else{
+            let p = this.position.equals(this.destination);
+            let x = this.scale.x == this.aimedScale.x;
+            let y = this.scale.y == this.aimedScale.y;
+            return this.isAnimating;
+        }
 
         return this.isAnimating;
+    }
 
+    calculateSpeed(amountOfFrames){
+        let deltaX = this.destination.x - this.position.x;
+        let deltaY = this.destination.y - this.position.y;
+        let distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+        this.speed = distance/amountOfFrames;
     }
 
     setSpeed(speed){

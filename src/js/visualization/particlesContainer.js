@@ -7,6 +7,7 @@ export default class ParticlesContainer extends PIXI.Container {
         this.hasPriorityChanged = false;
         this.isAnimating = false;
         this.speedPxPerFrame = 2;
+        this.amountOfFrames = 0;
     }
 
     createParticles(dataset, options) {
@@ -151,23 +152,33 @@ export default class ParticlesContainer extends PIXI.Container {
     }
 
     calculateSpeedArrivingSameTime() {
+        let counter = 0;
         let sum = 0;
         for (let i = 0; i < this.children.length; i++) {
             let deltaX = this.children[i].destination.x - this.children[i].position.x;
             let deltaY = this.children[i].destination.y - this.children[i].position.y;
             let distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
             sum+=distance;
-
             this.children[i].distance = distance;
+
+            if(distance > 0){
+                counter++;
+            }
         }
 
-        let averageDistance = Math.floor(sum/this.children.length);
-        let amountOfFrames = averageDistance/this.speedPxPerFrame;
+        let averageDistance = Math.floor(sum/counter);
+        this.amountOfFrames = averageDistance/this.speedPxPerFrame;
 
         for (let i = 0; i < this.children.length; i++) {
-            this.children[i].speed = this.children[i].distance/amountOfFrames;
+            this.children[i].speed = this.children[i].distance/this.amountOfFrames;
             delete this.children[i].distance;
         }
+
+        return this.amountOfFrames;
+    }
+
+    getAmountOfFrames(){
+        return this.amountOfFrames;
     }
 
     moveParticles(to, transition, origin, yTranslate, ratio) {
@@ -189,6 +200,9 @@ export default class ParticlesContainer extends PIXI.Container {
                     transition
                 );
             }
+
+            return this.calculateSpeedArrivingSameTime();
+
         } else if (to === "top") {
             for (let i = 0; i < this.children.length; i++) {
                 particle = this.children[i];
@@ -204,6 +218,8 @@ export default class ParticlesContainer extends PIXI.Container {
                     transition
                 );
             }
+
+            return this.calculateSpeedArrivingSameTime();
         }
     }
 
@@ -259,6 +275,8 @@ export default class ParticlesContainer extends PIXI.Container {
                     transition
                 );
             }
+
+            return this.calculateSpeedArrivingSameTime();
         } else if (from === "bottom") {
             let particle;
             for (let i = 0; i < this.children.length; i++) {
@@ -274,6 +292,8 @@ export default class ParticlesContainer extends PIXI.Container {
                     transition
                 );
             }
+
+            return this.calculateSpeedArrivingSameTime();
         }
     }
 }

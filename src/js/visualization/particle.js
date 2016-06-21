@@ -15,6 +15,7 @@ export default class Particle extends PIXI.Sprite {
 
         this.destination = new PIXI.Point(x, y);
         this.isAnimating = false;
+        this.distanceRatio = 0;
         this.speed = speed;
         this.aimedSize = {
             "width": size,
@@ -55,8 +56,6 @@ export default class Particle extends PIXI.Sprite {
             return false;
         }
 
-        let ratio;
-
         if (!this.position.equals(this.destination)) {
             let deltaX = this.destination.x - this.position.x;
             let deltaY = this.destination.y - this.position.y;
@@ -65,8 +64,8 @@ export default class Particle extends PIXI.Sprite {
             if (distance <= this.speed) {
                 this.position.set(this.destination.x, this.destination.y);
             } else {
-                ratio = this.speed / distance;
-                this.position.set(this.position.x + deltaX * ratio, this.position.y + deltaY * ratio);
+                this.distanceRatio = this.speed / distance;
+                this.position.set(this.position.x + deltaX * this.distanceRatio, this.position.y + deltaY * this.distanceRatio);
             }
         }
 
@@ -77,7 +76,7 @@ export default class Particle extends PIXI.Sprite {
             if (Math.abs(this.width - this.aimedSize.width) < this.speed) {
                 this.setSize(this.aimedSize.width, this.aimedSize.height);
             } else {
-                this.setSize(this.width + deltaX * ratio, this.height + deltaY * ratio);
+                this.setSize(this.width + deltaX * this.distanceRatio, this.height + deltaY * this.distanceRatio);
             }
         }
 
@@ -93,10 +92,12 @@ export default class Particle extends PIXI.Sprite {
          }
          }*/
 
+        // use this._width and this._height for bug fixing
+        // else sometimes the particle doesn't reach its aimed size
         if (
             this.position.equals(this.destination) &&
-            this.width == this.aimedSize.width &&
-            this.height == this.aimedSize.height /*&&
+            this._width == this.aimedSize.width &&
+            this._height == this.aimedSize.height /*&&
          this.alpha === this.aimedAlpha*/
         ) {
             this.isAnimating = false;

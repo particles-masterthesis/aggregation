@@ -165,10 +165,16 @@ export default class ParticlesContainer extends PIXI.Container {
             }
         }
 
+        if(counter === 0){
+            return 0;
+        }
+
         let averageDistance = Math.floor(sum / counter);
         this.amountOfFrames = averageDistance / this.speedPxPerFrame;
 
         for (let i = 0; i < this.children.length; i++) {
+            console.log(this.children[i].distance, this.amountOfFrames);
+
             this.children[i].speed = this.children[i].distance / this.amountOfFrames;
             delete this.children[i].distance;
         }

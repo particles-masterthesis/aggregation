@@ -1,9 +1,11 @@
 function sleep(ms) {
-    return new Promise(function (resolve, reject) { setTimeout(resolve, ms); });
+    return new Promise(function (resolve, reject) {
+        setTimeout(resolve, ms);
+    });
 }
 
-function animateParticleToCentroid(currentViz, levelOfDetail){
-    for(let particle of currentViz.particles){
+function animateParticleToCentroid(currentViz, levelOfDetail) {
+    for (let particle of currentViz.particles) {
         let coords = currentViz.getCentroidOfParticle(
             particle,
             levelOfDetail
@@ -25,26 +27,25 @@ export default class TransitionManager {
         this.reset = 0;
     }
 
-    drawDot(){
+    drawDot() {
         return {
             obj: this.canvas.drawDotMap(
                 dataStore.data,
-                this.currentViz.constructor.name === "DotMap",
                 () => {}
             ),
             type: 'dot'
         };
     }
 
-    fadeOutParticles(){
-        for(let particle of this.currentViz.particles){
+    fadeOutParticles() {
+        for (let particle of this.currentViz.particles) {
             particle.fade('out');
         }
         this.canvas.particlesContainer.startAnimation();
     }
 
-    animate(current, upcoming){
-        return new Promise( (resolve, reject) => {
+    animate(current, upcoming) {
+        return new Promise((resolve, reject) => {
             this.canvas.stop();
             this.currentViz = current.obj;
             this.upcomingVizType = upcoming;
@@ -52,14 +53,16 @@ export default class TransitionManager {
             let upcomingViz = {};
             const transitionKey = `${current.type}_${upcoming}`;
             console.log(transitionKey);
-            switch(transitionKey){
+            switch (transitionKey) {
                 case 'dot_psm':
                     animateParticleToCentroid(this.currentViz, this.canvas.levelOfDetail);
                     this.canvas.render();
                     upcomingViz.obj = this.canvas.drawProportionalSymbolMap(
                         null,
                         this.currentViz.constructor.name === "ProportionalSymbolMap",
-                        () => { this.fadeOutParticles(); }
+                        () => {
+                            this.fadeOutParticles();
+                        }
                     );
                     upcomingViz.type = 'psm';
                     resolve(upcomingViz);
@@ -71,7 +74,8 @@ export default class TransitionManager {
                     upcomingViz.obj = this.canvas.drawChoroplethMap(
                         null,
                         this.currentViz.constructor.name === "ChoroplethMap",
-                        () => {}
+                        () => {
+                        }
                     );
                     upcomingViz.type = 'choropleth';
                     resolve(upcomingViz);
@@ -97,7 +101,7 @@ export default class TransitionManager {
                 case 'choropleth_dot':
                 case 'cartogram_dot':
                     this.currentViz.removeAllDomNodes((cb) => {
-                        if(this.currentViz.isFunction(cb)) cb();
+                        if (this.currentViz.isFunction(cb)) cb();
                         this.canvas.stop();
                         upcomingViz = this.drawDot();
                         this.canvas.render();

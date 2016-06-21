@@ -24,7 +24,6 @@ export default class TransitionManager {
         return {
             obj: this.canvas.drawDotMap(
                     dataStore.data,
-                    this.currentViz.constructor.name === "DotMap",
                     () => {}
                 ),
             type: 'dot'

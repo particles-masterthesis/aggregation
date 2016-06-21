@@ -107,8 +107,7 @@ window.updateScreen = () => {
 
         case "dot":
             currentVisualization = canvas.drawDotMap(
-                dataStore.data,
-                currentVisualization.constructor.name === "DotMap"
+                dataStore.data
             );
             visualizationHistory.unshift({
                 'type': 'dot',

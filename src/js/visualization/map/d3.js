@@ -21,7 +21,7 @@ export default class D3 {
         this.width = width;
         this.height = height;
         this.projection = this._d3.geo.albersUsa()
-            .scale(1400)
+                .scale(width)
             .translate([this.width / 2, this.height / 2]);
 
         this.symbolScale = this._d3.scale.log()

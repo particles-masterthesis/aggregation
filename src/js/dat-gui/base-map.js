@@ -6,9 +6,9 @@ export default function (dataStore, ui, canvas, update) {
         canvas,
         'levelOfDetail',
         ['country', 'state', 'county']
-    ).onChange(() => {
+    ).onChange((value) => {
         if(canvas.visualization.constructor.name === "DotMap"){
-            canvas.visualization.updateBaseMap(this.levelOfDetail);
+            canvas.visualization.updateBaseMap(value);
         }
     });
 

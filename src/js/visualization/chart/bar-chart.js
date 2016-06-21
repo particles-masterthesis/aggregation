@@ -10,18 +10,23 @@ export default class BarChart extends Chart {
      */
     constructor(width, height, particlesContainer, options) {
         super(width, height, particlesContainer);
+
+        // for animating the complete viz during transition
+        this.speed = 4;
+        this.destination = new PIXI.Point(0, 0);
+        this.aimedSize = {
+            width,
+            height
+        };
+
         this.options = options;
 
         // It easier and better for performance to just hide the particles behind a graphic
         // then to set every particles alpha to 0
         this.overlayBars = new PIXI.Graphics();
 
-        this.createStage();
-    }
-
-
-    createStage() {
         let {uniqueValues, maxAppearance} = this.analyzeFeature(this.options.schema, this.options.features.x);
+        // have to calculate it before drawing also because the attribute heightVisualization is new calculated
         let {size, particlesPerRow, widthAreaPerValue, marginBar, blankParticlesHighestBar} = this.calculateValues(uniqueValues, maxAppearance);
 
         // X- AND Y-AXIS
@@ -166,17 +171,15 @@ export default class BarChart extends Chart {
      * @param useBars
      * @param areParticlesNew
      */
-    drawParticles(useBars, areParticlesNew) {
+    drawData(useBars, areParticlesNew) {
         let {uniqueValues, maxAppearance} = this.analyzeFeature(this.options.schema, this.options.features.x);
         let {size, particlesPerRow, widthAreaPerValue, marginBar, blankParticlesHighestBar} = this.calculateValues(uniqueValues, maxAppearance);
 
         if (useBars) {
-            this.hideParticles();
             this.drawBars(uniqueValues, maxAppearance + blankParticlesHighestBar);
         }
         else {
-            this.placeParticles(uniqueValues, size, particlesPerRow, marginBar, widthAreaPerValue, areParticlesNew);
-            this.showParticles();
+            this.setParticlesDestination(uniqueValues, size, particlesPerRow, marginBar, widthAreaPerValue, areParticlesNew);
         }
     }
 
@@ -188,7 +191,7 @@ export default class BarChart extends Chart {
      * @param widthAreaPerValue
      * @param areParticlesNew
      */
-    placeParticles(uniqueValues, size, particlesPerRow, marginBar, widthAreaPerValue, areParticlesNew) {
+    setParticlesDestination(uniqueValues, size, particlesPerRow, marginBar, widthAreaPerValue, areParticlesNew) {
         let x, y, uniqueValue;
         let transitionType = $("select.transition").val();
         let values = Object.keys(uniqueValues);
@@ -387,16 +390,5 @@ export default class BarChart extends Chart {
         titleLabel.x = this._width / 2;
         titleLabel.y = this._height - this.padding - this.heightVisualization - this.padding / 2;
         this.addChild(titleLabel);
-    }
-
-    hideParticles() {
-        this.overlayBars.lineStyle(0, 0xffffff, 1);
-        this.overlayBars.beginFill(0xffffff, 1);
-        this.overlayBars.drawRect(this.padding + 1, this.padding, this.widthVisualization - 1, this.heightVisualization + 5);
-        this.addChild(this.overlayBars);
-    }
-
-    showParticles() {
-        this.removeChild(this.overlayBars);
     }
 }

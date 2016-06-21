@@ -28,10 +28,10 @@ export default class TransitionManager {
     drawDot(){
         return {
             obj: this.canvas.drawDotMap(
-                    dataStore.data,
-                    this.currentViz.constructor.name === "DotMap",
-                    () => {}
-                ),
+                dataStore.data,
+                this.currentViz.constructor.name === "DotMap",
+                () => {}
+            ),
             type: 'dot'
         };
     }
@@ -116,9 +116,9 @@ export default class TransitionManager {
                     dotMapPromise.then((dotMap) => {
                         sleep(500).then(() => {
                             this.animate(dotMap, endResult)
-                            .then((result) => {
-                                resolve(result);
-                            });
+                                .then((result) => {
+                                    resolve(result);
+                                });
                         });
                     });
                     break;
@@ -128,7 +128,5 @@ export default class TransitionManager {
                     throw new Error(`Visualization transition not working with ${upcoming}`);
             }
         });
-
     }
-
 }

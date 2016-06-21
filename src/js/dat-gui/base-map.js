@@ -6,8 +6,10 @@ export default function (dataStore, ui, canvas, update) {
         canvas,
         'levelOfDetail',
         ['country', 'state', 'county']
-    ).onChange(() => {
-        update(dataStore, canvas);
+    ).onChange((value) => {
+        if(canvas.visualization.constructor.name === "DotMap"){
+            canvas.visualization.updateBaseMap(value);
+        }
     });
 
     folderBaseMap.open();

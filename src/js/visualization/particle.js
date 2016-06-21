@@ -3,33 +3,28 @@ import "pixi.js";
 
 export default class Particle extends PIXI.Sprite {
 
-    constructor(texture, textureHover, data, x, y, width, height) {
-        // call constructor of parent class
+    constructor(texture, textureHover, data, x, y, size, speed) {
         super(texture);
 
         this.textureDefault = texture;
         this.textureHover = textureHover;
 
-        // Attributes of the parent class
-        this.position = new PIXI.Point(x, y);
-        this.width = width;
-        this.height = height;
+        this.width = this.height = size;
         this.margin = 1;
-
-        // Attributes
-        // 2px every 1/60 second seem to be a good value
-        this.speed = 4;
-        this.destination = new PIXI.Point(x, y);
         this.alpha = 1;
+
+        this.destination = new PIXI.Point(x, y);
+        this.isAnimating = false;
+        this.distanceRatio = 0;
+        this.speed = speed;
         this.aimedSize = {
-            width,
-            height
+            "width": size,
+            "height": size
         };
+        this.aimedAlpha = 1;
 
         this.data = data;
         this.id = this.data["Row ID"];
-
-        this.isAnimating = false;
 
         this.addClickListener();
     }
@@ -38,8 +33,12 @@ export default class Particle extends PIXI.Sprite {
         switch (type) {
             case "none":
                 this.isAnimating = false;
+
                 this.setPosition(x, y);
+                this.setDestination(x,y);
+
                 this.setSize(width, height);
+                this.setAimedSize(width, height);
                 break;
 
             case "linear":
@@ -49,7 +48,7 @@ export default class Particle extends PIXI.Sprite {
                 break;
 
             default:
-                throw new Error(`Transition type not handled: ${type}`);
+                throw new Error(`Particles transition type not handled: ${type}`);
         }
     }
 
@@ -58,38 +57,30 @@ export default class Particle extends PIXI.Sprite {
             return false;
         }
 
-        //console.log("POSITION", this.position, "DESTINATION", this.destination);
-
         if (!this.position.equals(this.destination)) {
             let deltaX = this.destination.x - this.position.x;
             let deltaY = this.destination.y - this.position.y;
             let distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
-            //console.log("DELTAX", deltaX, "DELTAY", deltaY, "DISTANCE", distance);
 
             if (distance <= this.speed) {
                 this.position.set(this.destination.x, this.destination.y);
             } else {
-                let ratio = this.speed / distance;
-                //console.log("SPEED", this.speed, "DISTANCE", distance, "RATIO", ratio);
-
-                this.position.set(this.position.x + deltaX * ratio, this.position.y + deltaY * ratio);
-                //console.log("POSITION", this.position, "DESTINATION", this.destination);
+                this.distanceRatio = this.speed / distance;
+                this.position.set(this.position.x + deltaX * this.distanceRatio, this.position.y + deltaY * this.distanceRatio);
             }
         }
 
-        if (this._width != this.aimedSize.width || this._height != this.aimedSize.height) {
-            if (Math.abs(this._width - this.aimedSize.width) < this.speed * 3 / 4) {
+        if (this.width != this.aimedSize.width || this.height != this.aimedSize.height) {
+            let deltaX = this.aimedSize.width - this.width;
+            let deltaY = this.aimedSize.height - this.height;
+
+            if (Math.abs(this.width - this.aimedSize.width) < this.speed) {
                 this.setSize(this.aimedSize.width, this.aimedSize.height);
-            }
-            else if (this.aimedSize.width > this._width) {
-                this.setSize(this._width + this.speed * 3 / 4, this._height + this.speed * 3 / 4);
-            }
-            else {
-                this.setSize(this._width - this.speed * 3 / 4, this._height - this.speed * 3 / 4);
+            } else {
+                this.setSize(this.width + deltaX * this.distanceRatio, this.height + deltaY * this.distanceRatio);
             }
         }
 
-        // this.speed * 2 / 100 = 0.04 alpha each animation call
         if(
             (this.aimedAlpha !== null && this.aimedAlpha !== undefined) &&
             this.aimedAlpha !== this.alpha
@@ -114,7 +105,6 @@ export default class Particle extends PIXI.Sprite {
         }
 
         return this.isAnimating;
-
     }
 
     setPosition(x, y) {
@@ -157,10 +147,10 @@ export default class Particle extends PIXI.Sprite {
         }.bind(this));
     }
 
-    fade(type){
+    fade(type) {
         this.isAnimating = true;
-        if(type === 'in') this.aimedAlpha = 1;
-        if(type === 'out') this.aimedAlpha = 0;
+        if (type === 'in') this.aimedAlpha = 1;
+        if (type === 'out') this.aimedAlpha = 0;
         return this;
     }
 

@@ -23,25 +23,37 @@ export default class DotMap extends BaseMap {
         super(width, height, particleContainer, levelOfDetail, true);
         this.size = 5;
         super.show(true, true);
-
-        this.drawDots(this.particles, animationCb);
     }
 
-    drawDots(particles, animationCb){
-        let point, size = this.size;
-        for(let particle of particles){
-            point = [particle.data.Longitude, particle.data.Latitude];
-            point = this.baseMap.projection(point);
+    drawData(animationCb, areParticlesNew){
+        let point;
 
-            particle.coords = point;
+        if(this.isFunction(animationCb)){
+            for(let particle of this.particles){
+                point = [particle.data.Longitude, particle.data.Latitude];
+                point = this.baseMap.projection(point);
+                particle.coords = point;
 
-            if(this.isFunction(animationCb)){
                 setTimeout(drawFunc.bind(this), 250, particle, this.size);
-            } else {
-                drawParticle(particle, this.size, false);
+            }
+        } else {
+            let transitionType = $("select.transition").val();
+
+            for(let particle of this.particles){
+                point = [particle.data.Longitude, particle.data.Latitude];
+                point = this.baseMap.projection(point);
+                particle.coords = point;
+
+                if(areParticlesNew){
+                    drawParticle(particle, this.size, false);
+                } else {
+                    particle.transitionTo(point[0]-(this.size/2), point[1]-(this.size/2), this.size, this.size, transitionType);
+                }
             }
         }
     }
 
-    removeAllDomNodes(){}
+    removeAllDomNodes(){
+
+    }
 }

@@ -19,9 +19,11 @@ import TransitionManager from './visualization/map/transition-manager';
  * @method window.onload
  * @description After loading all scripts initialize the instances, load dataset and update ui
  */
+
 window.onload = () => {
     let dataStore = window.dataStore = new DataStore();
     dataStore.import(`${location.origin}${location.pathname}/dist/datasets/superstore-preprocessed-coords-geoids.csv`);
+    dataStore.title = "Superstore";
 
     let ui = window.ui = new UI();
     let canvas = window.canvas = new Canvas(dataStore.data, dataStore.currentSelection);
@@ -90,7 +92,7 @@ window.updateScreen = () => {
                 dataStore.schema,
                 dataStore.currentSelection,
                 dataStore.oldSelectionX,
-                "Superstore"
+                dataStore.title
             );
             visualizationHistory.unshift({
                 'type': 'bar',
@@ -99,8 +101,10 @@ window.updateScreen = () => {
             break;
         case "scatterPlot":
             currentVisualization = canvas.drawScatterPlot(
-                dataStore,
-                "Superstore"
+                dataStore.data,
+                dataStore.schema,
+                dataStore.currentSelection,
+                dataStore.title
             );
             visualizationHistory.unshift({
                 'type': 'scatter',
@@ -186,6 +190,20 @@ function addEventListener(dataStore, canvas){
         UI.toggleFeatureDropdowns();
         canvas.prepareCanvas();
         window.updateScreen(dataStore, canvas);
+    });
+
+    $("select.transition").change(function () {
+        if($(this).val() === "none"){
+            $("select.transition-layout").attr("disabled", true);
+            $("select.sort-type").attr("disabled", true);
+            $("select.sort-by").attr("disabled", true);
+        } else {
+            $("select.transition-layout").attr("disabled", false);
+            $("select.sort-type").attr("disabled", false);
+            if($("select.sort-type").val() === "manually"){
+                $("select.sort-by").attr("disabled", false);
+            }
+        }
     });
 
     $("select.sort-by").change(function(){

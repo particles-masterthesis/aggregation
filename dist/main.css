@@ -6792,7 +6792,7 @@ svg {
 }
 canvas {
   z-index: 2;
-  border: 1px solid #f8f8f8;
+  border: 1px solid #e7e7e7;
 }
 table {
   border: 1px solid #e7e7e7;
@@ -6860,4 +6860,15 @@ svg.hideMap .country,
 svg.hideMap #states,
 svg.hideMap #counties {
   visibility: hidden;
+}
+nav .container-fluid {
+  padding-right: 245px;
+}
+#__bs_notify__ {
+  position: absolute;
+  z-index: 5;
+  left: 0px;
+  bottom: 0px;
+  top: inherit !important;
+  right: inherit !important;
 }

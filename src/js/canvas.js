@@ -29,7 +29,7 @@ export default class Canvas {
 
         this.particles = {
             "speedPxPerFrame": 2,
-            "arrivalSync": true,
+            "arrivalSync": false,
             "shape": "rectangle",
             "sizeOfParticles": 4        // Only for scatter-plot relevant
         };

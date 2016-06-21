@@ -77,8 +77,6 @@ export default class Visualization extends PIXI.Container {
             }
         }
 
-        console.log()
-
         // CHECK FOR COMPLETENESS
         if (
             this.position.equals(this.destination) &&

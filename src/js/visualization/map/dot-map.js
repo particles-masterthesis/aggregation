@@ -6,14 +6,12 @@ export default class DotMap extends BaseMap {
         super(width, height, particleContainer, levelOfDetail, true);
         this.size = 5;
         super.show(true, true);
-
-        this.drawDots(this.particles, animationCb);
     }
 
-    drawDots(particles, animationCb){
+    drawData(animationCb, areParticlesNew){
         let point, size = this.size;
         if(this.isFunction(animationCb)){
-            for(let particle of particles){
+            for(let particle of this.particles){
                 point = [particle.data.Longitude, particle.data.Latitude];
                 point = this.baseMap.projection(point);
 
@@ -26,18 +24,22 @@ export default class DotMap extends BaseMap {
                 .fade('in');
             }
         } else {
-            for(let particle of particles){
+            let transitionType = $("select.transition").val();
+
+            for(let particle of this.particles){
                 point = [particle.data.Longitude, particle.data.Latitude];
                 point = this.baseMap.projection(point);
 
-                particle
-                .setPosition(point[0]-(size/2), point[1]-(size/2))
-                .setSize(size, size)
-                .setDestination(point[0]-(size/2), point[1]-(size/2))
-                .setAimedSize(size, size);
+                if(areParticlesNew){
+                    particle.setPosition(point[0]-(size/2), point[1]-(size/2)).setSize(size, size);
+                } else {
+                    particle.transitionTo(point[0]-(size/2), point[1]-(size/2), size, size, transitionType);
+                }
             }
         }
     }
 
-    removeAllDomNodes(){}
+    removeAllDomNodes(){
+        
+    }
 }

@@ -155,11 +155,12 @@ export default class Cartogram extends BaseMap {
 
     removeSvgElement(element, animationCb){
         if(this.isFunction(animationCb)){
+
             this[element]
             .transition()
             .attr("width", 0)
             .attr("height", 0)
-            .each("end", animationCb)
+            .call(endall, function(){ animationCb(); })
             .remove();
         }
         else {
@@ -174,5 +175,4 @@ export default class Cartogram extends BaseMap {
     }
 
 }
-
 

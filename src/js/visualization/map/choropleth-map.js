@@ -83,7 +83,7 @@ export default class ChoroplethMap extends BaseMap {
             this[element]
             .transition()
             .attr("fill", "#D3D3D3")
-            .each("end", animationCb)
+            .call(endall, function(){ animationCb(); })
             .remove();
         } else {
             this.baseMap._d3.selectAll(`#choropleth-${element}`).remove();

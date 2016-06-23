@@ -6,6 +6,17 @@ import { colorbrewer } from './colorbrewer.min.js';
 let singleton = Symbol();
 let singletonEnforcer = Symbol();
 
+
+window.endall = function (transition, callback) {
+    if (!callback) callback = function(){};
+    if (transition.size() === 0) { callback(); }
+    var n = 0;
+
+    transition
+    .each(function() { ++n; })
+    .each("end", function() { if (!--n) callback.apply(this, arguments); });
+};
+
 export default class D3 {
     constructor(enforcer) {
         if(enforcer != singletonEnforcer){

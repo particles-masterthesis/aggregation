@@ -9,6 +9,8 @@ export default function (dataStore, ui, canvas, update) {
     ).onChange((value) => {
         if(canvas.visualization.constructor.name === "DotMap"){
             canvas.visualization.updateBaseMap(value);
+        } else {
+            update(canvas);
         }
     });
 

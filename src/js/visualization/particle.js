@@ -80,7 +80,9 @@ export default class Particle extends PIXI.Sprite {
                 this.setSize(this.width + deltaX * this.distanceRatio, this.height + deltaY * this.distanceRatio);
             }
         }
-
+        // console.log("\n\n\nALPHA ANIMATION");
+        // console.log(this.aimedAlpha);
+        // console.log(this.alpha);
         if(
             (this.aimedAlpha !== null && this.aimedAlpha !== undefined) &&
             this.aimedAlpha !== this.alpha

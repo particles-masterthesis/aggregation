@@ -87,9 +87,7 @@ export default class ProportionalSymbolMap extends BaseMap {
             this[element]
             .transition()
             .attr("r", 0)
-            .each("end", animationCb(() => {
-                // this.baseMap._d3.selectAll(`#psm-${element}`).remove();
-            }))
+            .call(endall, function(){ animationCb(); })
             .remove();
 
         } else {

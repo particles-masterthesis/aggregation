@@ -105,6 +105,7 @@ export default class TransitionManager {
                         this.canvas.stop();
                         upcomingViz = this.drawDot();
                         this.canvas.render();
+                        this.canvas.particlesContainer.startAnimation();
                         resolve(upcomingViz);
                     });
                     break;

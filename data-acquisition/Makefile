@@ -6,7 +6,7 @@ clean:
 copy:
 	cp -rf data/us.json ../src/datasets/
 	cp -rf data/superstore-preprocessed-coords-geoids.csv ../src/datasets/
-ff
+
 
 build/gz_2010_us_050_00_20m.zip:
 	mkdir -p $(dir $@)

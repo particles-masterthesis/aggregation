@@ -9,41 +9,41 @@ html
                 .navbar-header
                     a.navbar-brand(href="#") Particles
                 ul.nav.navbar-nav
-                    li
-                        | X
-                        select.selectpicker.feature.feature-x
-                    li
-                        | Y
-                        select.selectpicker.feature.feature-y
+                    //- li
+                    //-     | X
+                    //-     select.selectpicker.feature.feature-x
+                    //- li
+                    //-     | Y
+                    //-     select.selectpicker.feature.feature-y
                     li
                         | Diagram
                         select.selectpicker.visualization
-                            option(value="overview") Overview
-                            option(value="barChart") Bar chart
-                            option(value="scatterPlot") Scatter plot
+                            //- option(value="overview") Overview
+                            //- option(value="barChart") Bar chart
+                            //- option(value="scatterPlot") Scatter plot
                             option(value="dot" selected) Dot map
                             option(value="psm") Proportional symbol map
                             option(value="choropleth") Choropleth map
                             option(value="cartogram") Cartogram
-                    br
+                    //- br
                     li
                         | Transition
                         select.selectpicker.transition
                             option(value="none") None
                             option(value="linear" selected) Linear animation
-                    li
-                        | Transition layout
-                        select.selectpicker.transition-layout
-                            option(value="inPlace" selected) In-place
-                            option(value="juxtaposition") Juxtaposition
-                            option(value="stacked" ) Stacked
+                    //- li
+                    //-     | Transition layout
+                    //-     select.selectpicker.transition-layout
+                    //-         option(value="inPlace" selected) In-place
+                    //-         option(value="juxtaposition") Juxtaposition
+                    //-         option(value="stacked" ) Stacked
 
-                    li
-                        | Sort
-                        select.selectpicker.sort-type
-                            option(value="automatically" selected) automatically
-                            option(value="manually") manually
-                        | by
-                        select.selectpicker.feature.sort-by(disabled="true")
+                    //- li
+                    //-     | Sort
+                    //-     select.selectpicker.sort-type
+                    //-         option(value="automatically" selected) automatically
+                    //-         option(value="manually") manually
+                    //-     | by
+                    //-     select.selectpicker.feature.sort-by(disabled="true")
 
     script(src="dist/main.js")

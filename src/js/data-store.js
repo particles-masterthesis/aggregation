@@ -4,7 +4,7 @@ export default class DataStore {
         this.data = [];
         this.features = [];
         this.schema = {};
-        this.useSubset = true;
+        this.useSubset = false;
 
         this.sizeOfSubset = 20;
 

@@ -30,8 +30,9 @@ export default class Canvas {
         this.particles = {
             "speedPxPerFrame": 4,
             "arrivalSync": false,
-            "shape": "rectangle",
-            "sizeOfParticles": 4        // Only for scatter-plot relevant
+            "shape": "circle",
+            "sizeOfParticles": 4,        // Only for scatter-plot relevant
+            "colorScheme": this.colorScheme
         };
 
         this.height = window.innerHeight - 142; //windowH height - menu height - css-paddings
@@ -55,7 +56,7 @@ export default class Canvas {
 
         // Can't use particle container from pixi because it doesn't support interactivity
         // our container handles also the placing, transitions and animations
-        this.particlesContainer = new ParticlesContainer();
+        this.particlesContainer = new ParticlesContainer(this.colorScheme);
         this.particlesContainer.interactive = true;
         this.stage.addChild(this.particlesContainer);
 
@@ -256,6 +257,7 @@ export default class Canvas {
             this.height,
             this.particlesContainer,
             this.levelOfDetail,
+            this.colorScheme,
             animationCb
         );
 
@@ -288,7 +290,7 @@ export default class Canvas {
         }
 
         if (isCurrentVisualization) {
-            this.visualization.update(this.levelOfDetail);
+            this.visualization.update(this.levelOfDetail, this.colorScheme);
             return this.visualization;
         }
 
@@ -297,6 +299,7 @@ export default class Canvas {
             this.height,
             this.particlesContainer,
             this.levelOfDetail,
+            this.colorScheme,
             animationCb
         );
         this.stage.addChild(this.visualization);
@@ -337,7 +340,7 @@ export default class Canvas {
         }
 
         if (isCurrentVisualization) {
-            this.visualization.update(this.levelOfDetail);
+            this.visualization.update(this.levelOfDetail, this.colorScheme);
             return this.visualization;
         }
 
@@ -346,6 +349,7 @@ export default class Canvas {
             this.height,
             this.particlesContainer,
             this.levelOfDetail,
+            this.colorScheme,
             animationCb
         );
 

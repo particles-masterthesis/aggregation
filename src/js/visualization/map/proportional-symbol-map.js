@@ -3,18 +3,23 @@ import BaseMap from "./base-map";
 
 export default class ProportionalSymbolMap extends BaseMap {
 
-    constructor(width, height, particleContainer, levelOfDetail, animationCb){
-        super(width, height, particleContainer, levelOfDetail, true);
+    constructor(width, height, particleContainer, levelOfDetail, colorScheme, animationCb){
+        super(width, height, particleContainer, levelOfDetail, true, colorScheme);
 
         this.levelOfDetail = levelOfDetail;
 
         super.show(true, true);
 
-        this.drawSymbols(animationCb);
+        this.drawSymbols(false, animationCb);
         this.drawLegend();
     }
 
-    drawSymbols(animationCb){
+    drawSymbols(forceRedraw, animationCb){
+        if(forceRedraw){
+            if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
+            if (typeof this.states !== 'undefined') this.removeSvgElement('states');
+        }
+
         switch (this.levelOfDetail) {
             case "country":
             case "state":
@@ -56,6 +61,7 @@ export default class ProportionalSymbolMap extends BaseMap {
             .attr("r", 0)
             .transition()
             .delay(300)
+            .duration(1000)
             .attr("r", function(d) {
                 return map.symbolScale(d.properties.orders) || 0;
             })
@@ -66,13 +72,23 @@ export default class ProportionalSymbolMap extends BaseMap {
                 return map.symbolScale(d.properties.orders) || 0;
             });
         }
+
+        this[id]
+        .attr("fill", d => {
+            let scaled = map.colorScale(
+                map.symbolScale(Number(d.properties.orders) || 0) || 0
+            );
+            return this.getColor[scaled];
+        });
     }
 
 
-    update(levelOfDetail){
+    update(levelOfDetail, colorScheme){
         this.levelOfDetail = levelOfDetail;
+        this.colorScheme = colorScheme;
+        this.getColor = this.baseMap.colorbrewer[this.colorScheme][9];
         super.updateBaseMap(levelOfDetail);
-        this.drawSymbols();
+        this.drawSymbols(true);
         this.drawLegend();
     }
 

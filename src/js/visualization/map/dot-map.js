@@ -19,8 +19,8 @@ function drawFunc(particle, size){
 
 export default class DotMap extends BaseMap {
 
-    constructor(width, height, particleContainer, levelOfDetail, animationCb){
-        super(width, height, particleContainer, levelOfDetail, true);
+    constructor(width, height, particleContainer, levelOfDetail, colorScheme, animationCb){
+        super(width, height, particleContainer, levelOfDetail, true, colorScheme);
         this.size = 5;
         super.show(true, true);
     }

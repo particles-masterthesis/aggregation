@@ -119,7 +119,7 @@ export default class TransitionManager {
                     let endResult = upcoming;
                     let dotMapPromise = this.animate(current, 'dot');
                     dotMapPromise.then((dotMap) => {
-                        sleep(500).then(() => {
+                        sleep(1500).then(() => {
                             this.animate(dotMap, endResult)
                                 .then((result) => {
                                     resolve(result);

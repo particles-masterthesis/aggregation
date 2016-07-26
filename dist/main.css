@@ -6825,12 +6825,11 @@ svg .state-boundary {
   stroke: #fff;
 }
 svg .bubble {
-  fill-opacity: 0.5;
+  fill-opacity: 0.8;
   stroke: #fff;
   stroke-width: 0.5px;
 }
 svg .rect {
-  fill: #d3d3d3;
   stroke: #000;
   stroke-width: 1.5px;
 }

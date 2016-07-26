@@ -1,18 +1,24 @@
 import BaseMap from "./base-map";
 
 export default class Cartogram extends BaseMap {
-    constructor(width, height, particlesContainer, levelOfDetail, animationCb){
-        super(width, height, particlesContainer, levelOfDetail, false);
+    constructor(width, height, particlesContainer, levelOfDetail, colorScheme, animationCb){
+        super(width, height, particlesContainer, levelOfDetail, false, colorScheme);
         this.levelOfDetail = levelOfDetail;
 
         super.show(true, false);
 
         this.symbolPadding = 5;
-        this.drawSymbols(animationCb);
+        this.drawSymbols(false, animationCb);
 
     }
 
-    drawSymbols(animationCb){
+    drawSymbols(forceRedraw, animationCb){
+        if(forceRedraw){
+            if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
+            if (typeof this.states !== 'undefined') this.removeSvgElement('states');
+        }
+
+
         switch (this.levelOfDetail) {
             case "country":
             case "state":
@@ -63,7 +69,11 @@ export default class Cartogram extends BaseMap {
         .data(this.nodes)
         .enter()
         .append("rect")
-        .attr("class", "rect");
+        .attr("class", "rect")
+        .attr('fill', d => {
+            let scaled = map.colorScale(d.r);
+            return this.getColor[scaled];
+        });
 
         if(this.isFunction(animationCb)){
             this.node
@@ -71,6 +81,7 @@ export default class Cartogram extends BaseMap {
             .attr('height', 0)
             .transition()
             .delay(300)
+            .duration(1000)
             .attr("x", d => { return d.x - d.r; })
             .attr("y", d => { return d.y - d.r; })
             .attr("width", d => { return d.r * 2; })
@@ -89,6 +100,7 @@ export default class Cartogram extends BaseMap {
             this.node
             .attr("width", d => { return d.r * 2; })
             .attr("height", d => { return d.r * 2; });
+
 
             this[id] = this.node;
             force
@@ -169,9 +181,11 @@ export default class Cartogram extends BaseMap {
         this[element] = undefined;
     }
 
-    update(levelOfDetail){
+    update(levelOfDetail, colorScheme){
         this.levelOfDetail = levelOfDetail;
-        this.drawSymbols();
+        this.colorScheme = colorScheme;
+        this.getColor = this.baseMap.colorbrewer[this.colorScheme][9];
+        this.drawSymbols(true);
     }
 
 }

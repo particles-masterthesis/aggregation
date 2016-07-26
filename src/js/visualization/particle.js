@@ -26,7 +26,7 @@ export default class Particle extends PIXI.Sprite {
         this.data = data;
         this.id = this.data["Row ID"];
 
-        this.addClickListener();
+        // this.addClickListener();
     }
 
     transitionTo(x, y, width, height, type) {

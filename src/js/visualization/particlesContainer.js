@@ -25,17 +25,17 @@ export default class ParticlesContainer extends PIXI.Container {
                 textureHover = PIXI.Texture.fromImage("dist/img/particle_circle_hover.png");
             }
 
-            let callbackAdd = data => () => this.showParticleDetails(data);
-            let callbackRemove = () => () => {
-                if (document.getElementById("dataRow")) {
-                    document.body.removeChild(document.getElementById("dataRow"));
-                }
-            };
+            // let callbackAdd = data => () => this.showParticleDetails(data);
+            // let callbackRemove = () => () => {
+            //     if (document.getElementById("dataRow")) {
+            //         document.body.removeChild(document.getElementById("dataRow"));
+            //     }
+            // };
 
             for (let i = 0; i < dataset.length; i++) {
                 let sprite = new Particle(texture, textureHover, dataset[i], 0, 0, options.sizeOfParticles, options.speedPxPerFrame);
-                sprite.on("mouseover", callbackAdd(sprite.data));
-                sprite.on("mouseout", callbackRemove());
+                // sprite.on("mouseover", callbackAdd(sprite.data));
+                // sprite.on("mouseout", callbackRemove());
                 this.addChild(sprite);
             }
 

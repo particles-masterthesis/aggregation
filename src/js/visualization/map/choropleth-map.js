@@ -119,7 +119,7 @@ export default class ChoroplethMap extends BaseMap {
             this[id]
             .attr("fill", "#D3D3D3")
             .transition()
-            .delay(300)
+            .delay(500)
             .duration(1000)
             .attr("fill", d => {
                 let scaled = map.colorScale(

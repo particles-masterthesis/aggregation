@@ -80,7 +80,7 @@ export default class Cartogram extends BaseMap {
             .attr('width', 0)
             .attr('height', 0)
             .transition()
-            .delay(300)
+            .delay(500)
             .duration(1000)
             .attr("x", d => { return d.x - d.r; })
             .attr("y", d => { return d.y - d.r; })

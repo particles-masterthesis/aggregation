@@ -60,7 +60,7 @@ export default class ProportionalSymbolMap extends BaseMap {
             this[id]
             .attr("r", 0)
             .transition()
-            .delay(300)
+            .delay(500)
             .duration(1000)
             .attr("r", function(d) {
                 return map.symbolScale(d.properties.orders) || 0;

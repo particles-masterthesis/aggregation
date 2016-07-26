@@ -23,12 +23,12 @@ export default class Canvas {
 
     constructor(dataset, features) {
         this.useBars = false;
-        this.levelOfDetail = "country";
+        this.levelOfDetail = "state";
         this.colorScheme = "Oranges";
         this.requestFrameID = null;
 
         this.particles = {
-            "speedPxPerFrame": 4,
+            "speedPxPerFrame": 2,
             "arrivalSync": false,
             "shape": "circle",
             "sizeOfParticles": 4,        // Only for scatter-plot relevant

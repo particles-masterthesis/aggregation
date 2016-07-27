@@ -7,7 +7,12 @@ export default class ProportionalSymbolMap extends BaseMap {
         super(width, height, particleContainer, levelOfDetail, true, colorScheme);
 
         this.levelOfDetail = levelOfDetail;
-        this.drawLegend();
+        this.colorScale2 = this.baseMap._d3.scale.quantize()
+        .domain([0, 100])
+        .range(this.baseMap.colorbrewer[this.colorScheme][9]);
+
+        this.drawSymbolLegend();
+        this.drawColorLegend();
 
         if(!keepInformation){
             this.drawSymbols(false, animationCb);
@@ -83,7 +88,8 @@ export default class ProportionalSymbolMap extends BaseMap {
                 y: centroid[1],
                 y0: centroid[1],
                 r: r,
-                value: orders
+                value: orders,
+                data: d.properties
             };
 
         })
@@ -100,14 +106,10 @@ export default class ProportionalSymbolMap extends BaseMap {
         .append("circle")
         .attr("class", `${id}-bubbles`)
         .attr('fill', d => {
-            let scaled = map.colorScale(d.r);
-            return this.getColor[scaled];
+            return this.colorScale2(d.data.avgQuantity);
         })
         .attr('cx', d => { return d.x; })
         .attr('cy', d => { return d.y; });
-
-        console.log(this.nodes);
-        console.log(this[id]);
 
         if(this.isFunction(animationCb)){
             this[id]
@@ -128,16 +130,23 @@ export default class ProportionalSymbolMap extends BaseMap {
     update(levelOfDetail, colorScheme){
         this.levelOfDetail = levelOfDetail;
         this.colorScheme = colorScheme;
-        this.getColor = this.baseMap.colorbrewer[this.colorScheme][9];
+        this.colorScale2 = this.baseMap._d3.scale.quantize()
+        .domain([0, 100])
+        .range(this.baseMap.colorbrewer[this.colorScheme][9]);
         super.updateBaseMap(levelOfDetail);
         this.drawSymbols(true);
-        this.drawLegend();
+        this.drawSymbolLegend();
+        this.drawColorLegend(true);
     }
 
     removeAllDomNodes(animationCb){
         if (typeof this.counties !== 'undefined') this.removeSvgElement('counties', animationCb);
         if (typeof this.states !== 'undefined') this.removeSvgElement('states', animationCb);
-        if (typeof this.legend !== 'undefined') this.removeSvgElement('legend');
+        if (typeof this.symbolLegend !== 'undefined') this.removeSvgElement('symbolLegend');
+        if (typeof this.colorLegend !== 'undefined') this.removeSvgElement('colorLegend');
+
+        this.baseMap._d3.selectAll('#psm-symbol-legend').remove();
+        this.baseMap._d3.selectAll('#psm-color-legend').remove();
     }
 
     removeSvgElement(element, animationCb){
@@ -154,44 +163,83 @@ export default class ProportionalSymbolMap extends BaseMap {
         this[element] = undefined;
     }
 
-    drawLegend(){
+    drawSymbolLegend(){
         let map = this.baseMap;
+        console.log(typeof this.symbolLegend !== 'undefined');
+        if (typeof this.symbolLegend !== 'undefined') return;
 
-        if (typeof this.legend !== 'undefined') return;
-
-        this.legend = map.svg.append("g")
-        .attr("id", "psm-legend")
+        this.symbolLegend = map.svg.append("g")
+        .attr("id", "psm-symbol-legend")
         .attr("class", "legend")
         .attr("transform", "translate(50, 60)");
 
-        this.legend.append('circle')
+        this.symbolLegend.append('circle')
         .attr('class', 'info-bubble')
         .attr('r', 5)
         .attr('cx', 50)
         .attr('cy', -25);
 
-        this.legend.append('text')
+        this.symbolLegend.append('text')
         .attr('class', 'info-text')
         .attr('x', 75)
         .attr('y', -21)
         .text('Orders');
 
-        let tmp = this.legend;
+        let tmp = this.symbolLegend;
 
-        this.legend = this.legend
+        this.symbolLegend = this.symbolLegend
         .selectAll("g")
         .data([10, 100, 1000])
         .enter().append("g");
 
-        this.legend.append("circle")
+        this.symbolLegend.append("circle")
         .attr("cy", function(d) { return -map.symbolScale(d); })
         .attr("r", map.symbolScale);
 
-        this.legend.append("text")
+        this.symbolLegend.append("text")
         .attr("y", function(d) { return -2 * map.symbolScale(d); })
         .attr("dy", "1.3em")
         .text(this.baseMap._d3.format(".1s"));
 
-        this.legend = tmp;
+        this.symbolLegend = tmp;
+
+
     }
+
+    drawColorLegend(forceRedraw){
+        let map = this.baseMap;
+        let values = [0, 12, 23, 34, 45, 56, 67, 78, 89];
+        let labels = ["< 12", 12, 23, 34, 45, 56, 67, 78, "78 <"];
+        let width = 40, height = 20;
+
+        if (!forceRedraw && typeof this.colorLegend !== 'undefined') return;
+        if (forceRedraw && typeof this.colorLegend !== 'undefined')
+            this.removeSvgElement('colorLegend');
+
+
+        this.colorLegend = map.svg.append("g")
+        .attr("id", "psm-color-legend");
+
+        let legend = this.colorLegend.selectAll("g.legend")
+        .data(values)
+        .enter()
+        .append("g")
+        .attr("transform", "translate(150,0)")
+        .attr("class", "legend");
+
+        legend.append("rect")
+        .attr("x", height)
+        .attr("y", (d, i) => { return i * height; })
+        .attr("width", width)
+        .attr("height", height)
+        .attr("fill", d => {
+            return this.colorScale2(d);
+        });
+
+        legend.append("text")
+        .attr("x", width * 3.5)
+        .attr("y", (d, i) => { return (i * height) + height - 5; })
+        .text((d, i) => { return `${labels[i]} average order quantity`; });
+    }
+
 }

@@ -40,7 +40,7 @@ export default class ChoroplethMap extends BaseMap {
         let map = this.baseMap;
         let values = [1, 3, 7, 16, 40, 100, 252, 631, 1585];
         let width = 40, height = 20;
-        window.map = map;
+
         if (!forceRedraw && typeof this.legend !== 'undefined') return;
         if (forceRedraw && typeof this.legend !== 'undefined') this.removeSvgElement('legend');
 

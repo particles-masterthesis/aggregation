@@ -43,6 +43,9 @@ export default class D3 {
         .domain(this._d3.range(10).map( i => i * 4 ))
         .range(this._d3.range(9));
 
+        this.colorScale2 = this._d3.scale.quantize()
+        .domain([0, 100]);
+
         this.path = this._d3.geo.path().projection(this.projection);
         this.svg = this._d3.select("body > svg");
         if (this.svg.empty()){
@@ -114,25 +117,25 @@ export default class D3 {
                     }
                 }
 
-                for(let i = 0; i < states.length; i++){
-                    if(Number(states[i].properties.orders) === 0){
-                        continue;
-                    }
-                    states[i].properties.avgProfit = (Number(
-                        Number(states[i].properties.avgProfit) /
-                        Number(states[i].properties.orders)
-                    ).toFixed(2))/1;
+                // for(let i = 0; i < states.length; i++){
+                //     if(Number(states[i].properties.orders) === 0){
+                //         continue;
+                //     }
+                //     states[i].properties.avgProfit = (Number(
+                //         Number(states[i].properties.avgProfit) /
+                //         Number(states[i].properties.orders)
+                //     ).toFixed(2))/1;
 
-                    states[i].properties.avgSales = (Number(
-                        Number(states[i].properties.avgSales) /
-                        Number(states[i].properties.orders)
-                    ).toFixed(2))/1;
+                //     states[i].properties.avgSales = (Number(
+                //         Number(states[i].properties.avgSales) /
+                //         Number(states[i].properties.orders)
+                //     ).toFixed(2))/1;
 
-                    states[i].properties.avgQuantity = Math.ceil(
-                        Number(states[i].properties.avgQuantity) /
-                        Number(states[i].properties.orders)
-                    );
-                }
+                //     states[i].properties.avgQuantity = Math.ceil(
+                //         Number(states[i].properties.avgQuantity) /
+                //         Number(states[i].properties.orders)
+                //     );
+                // }
 
             }
         });

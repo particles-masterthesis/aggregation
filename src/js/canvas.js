@@ -333,7 +333,7 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawCartogram(dataset, isCurrentVisualization, animationCb) {
+    drawCartogram(dataset, isCurrentVisualization, keepSymbols, animationCb) {
         if (!isFunction(animationCb)) {
             this.reset();
             this.particlesContainer.createParticles(dataset, this.particles);
@@ -350,6 +350,7 @@ export default class Canvas {
             this.particlesContainer,
             this.levelOfDetail,
             this.colorScheme,
+            keepSymbols,
             animationCb
         );
 

@@ -88,6 +88,7 @@ export default class TransitionManager {
                     upcomingViz.obj = this.canvas.drawCartogram(
                         null,
                         this.currentViz.constructor.name === "Cartogram",
+                        false,
                         () => {
                             this.currentViz.hide(false, true);
                             this.fadeOutParticles();
@@ -110,8 +111,26 @@ export default class TransitionManager {
                     });
                     break;
 
-                case 'psm_choropleth':
                 case 'psm_cartogram':
+                    let psm = this.currentViz;
+
+                    upcomingViz.obj = this.canvas.drawCartogram(
+                        null,
+                        this.currentViz.constructor.name === "Cartogram",
+                        {
+                            nodes: psm.nodes,
+                            circles: psm.states != null? psm.states : psm.counties
+                        },
+                        () => {
+                            this.currentViz.hide(false, true);
+                            this.fadeOutParticles();
+                        }
+                    );
+                    upcomingViz.type = 'cartogram';
+                    resolve(upcomingViz);
+                    break;
+
+                case 'psm_choropleth':
                 case 'choropleth_psm':
                 case 'choropleth_cartogram':
                 case 'cartogram_psm':

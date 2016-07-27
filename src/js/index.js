@@ -72,6 +72,7 @@ window.updateScreen = () => {
                 })
                 .catch((error) => {
                     console.log('promise error');
+                    console.log(error);
                 });
 
                 return;
@@ -147,7 +148,8 @@ window.updateScreen = () => {
         case "cartogram":
             currentVisualization = canvas.drawCartogram(
                 dataStore.data,
-                currentVisualization.constructor.name === "Cartogram"
+                currentVisualization.constructor.name === "Cartogram",
+                false
             );
             visualizationHistory.unshift({
                 'type': 'cartogram',

@@ -1,4 +1,5 @@
 {
     "esversion": 6,
-    "browserify": true
+    "browserify": true,
+    "-W041": false
 }

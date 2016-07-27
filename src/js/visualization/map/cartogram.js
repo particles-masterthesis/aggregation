@@ -1,14 +1,37 @@
 import BaseMap from "./base-map";
 
 export default class Cartogram extends BaseMap {
-    constructor(width, height, particlesContainer, levelOfDetail, colorScheme, animationCb){
+    constructor(width, height, particlesContainer, levelOfDetail, colorScheme, keepSymbols, animationCb){
         super(width, height, particlesContainer, levelOfDetail, false, colorScheme);
         this.levelOfDetail = levelOfDetail;
 
-        super.show(true, false);
+        this.symbolPadding = 0.01;
+        this.force = this.baseMap._d3.layout.force()
+        .charge(0)
+        .gravity(0)
+        .size([this.width - this.symbolPadding, this.height - this.symbolPadding]);
 
-        this.symbolPadding = 5;
-        this.drawSymbols(false, animationCb);
+
+        if(!keepSymbols){
+            super.show(true, false);
+            this.drawSymbols(false, animationCb);
+        } else{
+            this.nodes = keepSymbols.nodes;
+            this.node = keepSymbols.circles;
+
+            if(this.levelOfDetail === 'county'){
+                this.counties = this.node;
+            } else {
+                this.states = this.node;
+            }
+
+            this.force
+            .nodes(keepSymbols.nodes)
+            .on("tick", this.tick.bind(this, 0.0099))
+            .start();
+
+            animationCb();
+        }
 
     }
 
@@ -17,7 +40,6 @@ export default class Cartogram extends BaseMap {
             if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
             if (typeof this.states !== 'undefined') this.removeSvgElement('states');
         }
-
 
         switch (this.levelOfDetail) {
             case "country":
@@ -37,11 +59,6 @@ export default class Cartogram extends BaseMap {
     draw(id, animationCb){
         const map = this.baseMap;
 
-        const force = map._d3.layout.force()
-        .charge(0)
-        .gravity(0)
-        .size([this.width - this.symbolPadding, this.height - this.symbolPadding]);
-
         const data = map._topojson.feature(map.data.us, map.data.us.objects[id]).features;
         this.nodes = data
         .filter( d => {
@@ -54,8 +71,8 @@ export default class Cartogram extends BaseMap {
             let r = map.symbolScale(orders) || 0;
             return{
                 x: centroid[0],
-                y: centroid[1],
                 x0: centroid[0],
+                y: centroid[1],
                 y0: centroid[1],
                 r: r,
                 value: orders
@@ -65,31 +82,28 @@ export default class Cartogram extends BaseMap {
 
         this.node = map.svg.append("g")
         .attr("id", `cartogram-${id}`)
-        .selectAll("rect")
+        .selectAll("circle")
         .data(this.nodes)
         .enter()
-        .append("rect")
-        .attr("class", "rect")
+        .append("circle")
         .attr('fill', d => {
             let scaled = map.colorScale(d.r);
             return this.getColor[scaled];
-        });
+        })
+        .attr('cx', d => { return d.x; })
+        .attr('cy', d => { return d.y; });
+
 
         if(this.isFunction(animationCb)){
             this.node
-            .attr('width', 0)
-            .attr('height', 0)
+            .attr('r', 0)
             .transition()
-            .delay(500)
             .duration(1000)
-            .attr("x", d => { return d.x - d.r; })
-            .attr("y", d => { return d.y - d.r; })
-            .attr("width", d => { return d.r * 2; })
-            .attr("height", d => { return d.r * 2; })
+            .attr("r", d => { return d.r; })
             .each("end", () => {
                 animationCb();
 
-                force
+                this.force
                 .nodes(this.nodes)
                 .on("tick", this.tick.bind(this, 0.00599))
                 .start();
@@ -98,24 +112,25 @@ export default class Cartogram extends BaseMap {
             this[id] = this.node;
         } else {
             this.node
-            .attr("width", d => { return d.r * 2; })
-            .attr("height", d => { return d.r * 2; });
-
+            .attr('r', d => { return d.r; });
 
             this[id] = this.node;
-            force
+
+            this.force
             .nodes(this.nodes)
             .on("tick", this.tick.bind(this, 0.0099))
             .start();
         }
+
+        this[id] = this.node;
     }
 
     tick(gravity) {
         this.node
         .each(this.gravity(gravity))
         .each(this.collide(0.25))
-        .attr("x", d => { return d.x - d.r; })
-        .attr("y", d => { return d.y - d.r; });
+        .attr("cx", d => { return d.x; })
+        .attr("cy", d => { return d.y; });
     }
 
     gravity(k) {
@@ -137,20 +152,17 @@ export default class Cartogram extends BaseMap {
                 if (quad.point && (quad.point !== node)) {
                     let x = node.x - quad.point.x;
                     let y = node.y - quad.point.y;
-                    let lx = Math.abs(x);
-                    let ly = Math.abs(y);
+
+                    let l = Math.sqrt(x * x + y * y);
                     let r = nr + quad.point.r;
 
-                    if (lx < r && ly < r) {
-                        if (lx > ly) {
-                            lx = (lx - r) * (x < 0 ? -k : k);
-                            node.x -= lx;
-                            quad.point.x += lx;
-                        } else {
-                            ly = (ly - r) * (y < 0 ? -k : k);
-                            node.y -= ly;
-                            quad.point.y += ly;
-                        }
+                    if (l < r) {
+                        l = (l - r) / l * k;
+                        node.x -= x *= l;
+                        node.y -= y *= l;
+                        quad.point.x += x;
+                        quad.point.y += y;
+
                     }
                 }
 
@@ -159,7 +171,6 @@ export default class Cartogram extends BaseMap {
         };
     }
 
-
     removeAllDomNodes(animationCb){
         if (typeof this.counties !== 'undefined') this.removeSvgElement('counties', animationCb);
         if (typeof this.states !== 'undefined') this.removeSvgElement('states', animationCb);
@@ -167,11 +178,9 @@ export default class Cartogram extends BaseMap {
 
     removeSvgElement(element, animationCb){
         if(this.isFunction(animationCb)){
-
             this[element]
             .transition()
-            .attr("width", 0)
-            .attr("height", 0)
+            .attr("r", 0)
             .call(endall, function(){ animationCb(); })
             .remove();
         }

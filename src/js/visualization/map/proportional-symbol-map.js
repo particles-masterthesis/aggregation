@@ -38,23 +38,46 @@ export default class ProportionalSymbolMap extends BaseMap {
     draw(id, animationCb){
         let map = this.baseMap;
 
+        const data = map._topojson.feature(map.data.us, map.data.us.objects[id]).features;
+
+        this.nodes = data
+        .filter( d => {
+            let centroid = map.path.centroid(d);
+            return !(isNaN(centroid[0]) || isNaN(centroid[1]));
+        })
+        .map( d => {
+            let centroid = map.path.centroid(d);
+            let orders = d.properties.orders || 0;
+            let r = map.symbolScale(orders) || 0;
+            return{
+                x: centroid[0],
+                x0: centroid[0],
+                y: centroid[1],
+                y0: centroid[1],
+                r: r,
+                value: orders
+            };
+
+        })
+        .sort( (a, b) => {
+            return b.value - a.value;
+        });
+
+
+
         this[id] = map.svg.append("g")
         .attr("id", `psm-${id}`)
         .attr("class", "bubble")
         .selectAll("circle")
-        .data(
-            map._topojson.feature(map.data.us, map.data.us.objects[id]).features
-            .sort(function(a, b) {
-                return (b.properties.orders || 0) - (a.properties.orders || 0);
-            })
-        )
+        .data(this.nodes)
         .enter()
         .append("circle")
-        .attr("transform", function(d) {
-            let coords = map.path.centroid(d);
-            if(isNaN(coords[0]) || isNaN(coords[1])) return;
-            return "translate(" + coords + ")";
-        });
+        .attr('fill', d => {
+            let scaled = map.colorScale(d.r);
+            return this.getColor[scaled];
+        })
+        .attr('cx', d => { return d.x; })
+        .attr('cy', d => { return d.y; });
 
         if(this.isFunction(animationCb)){
             this[id]
@@ -62,24 +85,13 @@ export default class ProportionalSymbolMap extends BaseMap {
             .transition()
             .delay(500)
             .duration(1000)
-            .attr("r", function(d) {
-                return map.symbolScale(d.properties.orders) || 0;
-            })
+            .attr("r", d => { return d.r; })
             .each("end", animationCb);
         } else {
             this[id]
-            .attr("r", function(d) {
-                return map.symbolScale(d.properties.orders) || 0;
-            });
+            .attr("r", d => { return d.r; });
         }
-
-        this[id]
-        .attr("fill", d => {
-            let scaled = map.colorScale(
-                map.symbolScale(Number(d.properties.orders) || 0) || 0
-            );
-            return this.getColor[scaled];
-        });
+        this.symbols = this[id];
     }
 
 
@@ -152,5 +164,4 @@ export default class ProportionalSymbolMap extends BaseMap {
 
         this.legend = tmp;
     }
-
 }

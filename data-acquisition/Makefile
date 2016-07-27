@@ -16,7 +16,10 @@ build/gz_2010_us_050_00_20m.shp: build/gz_2010_us_050_00_20m.zip
 	unzip -od $(dir $@) $<
 	touch $@
 
-data/counties.json: build/gz_2010_us_050_00_20m.shp
+preprocess-superstore:
+	node superstore-aggregated.js
+
+data/counties.json: build/gz_2010_us_050_00_20m.shp preprocess-superstore
 	./../node_modules/.bin/topojson \
 		-o $@ \
 		--id-property 'GEO_ID' \
@@ -26,6 +29,9 @@ data/counties.json: build/gz_2010_us_050_00_20m.shp
 		--properties 'countyId=COUNTY' \
 		--properties 'county=NAME' \
 		--properties 'orders=AMOUNT' \
+		--properties 'avgQuantity=AVG_QUANTITY' \
+		--properties 'avgSales=AVG_SALES' \
+		--properties 'avgProfit=AVG_PROFIT' \
 		-- counties=$<
 
 data/states.json: data/counties.json
@@ -34,6 +40,7 @@ data/states.json: data/counties.json
 		--in-object=counties \
 		--out-object=states \
 		--key='d.id.substring(d.id.search("S")+1, d.id.search("S")+3)' \
+		--properties 'asdf' \
 		-- $<
 
 data/us.json: data/states.json
@@ -42,5 +49,6 @@ data/us.json: data/states.json
 		--in-object=states \
 		--out-object=country \
 		-- $<
+
 
 

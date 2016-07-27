@@ -63,8 +63,6 @@ export default class ProportionalSymbolMap extends BaseMap {
             return b.value - a.value;
         });
 
-
-
         this[id] = map.svg.append("g")
         .attr("id", `psm-${id}`)
         .attr("class", "bubble")

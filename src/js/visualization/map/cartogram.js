@@ -174,6 +174,7 @@ export default class Cartogram extends BaseMap {
     removeAllDomNodes(animationCb){
         if (typeof this.counties !== 'undefined') this.removeSvgElement('counties', animationCb);
         if (typeof this.states !== 'undefined') this.removeSvgElement('states', animationCb);
+        this.baseMap._d3.selectAll('#psm-legend').remove();
     }
 
     removeSvgElement(element, animationCb){

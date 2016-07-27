@@ -126,7 +126,8 @@ window.updateScreen = () => {
         case "psm":
             currentVisualization = canvas.drawProportionalSymbolMap(
                 dataStore.data,
-                currentVisualization.constructor.name === "ProportionalSymbolMap"
+                currentVisualization.constructor.name === "ProportionalSymbolMap",
+                false
             );
             visualizationHistory.unshift({
                 'type': 'psm',

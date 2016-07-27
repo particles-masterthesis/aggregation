@@ -3,15 +3,43 @@ import BaseMap from "./base-map";
 
 export default class ProportionalSymbolMap extends BaseMap {
 
-    constructor(width, height, particleContainer, levelOfDetail, colorScheme, animationCb){
+    constructor(width, height, particleContainer, levelOfDetail, colorScheme, keepInformation, animationCb){
         super(width, height, particleContainer, levelOfDetail, true, colorScheme);
 
         this.levelOfDetail = levelOfDetail;
-
-        super.show(true, true);
-
-        this.drawSymbols(false, animationCb);
         this.drawLegend();
+
+        if(!keepInformation){
+            this.drawSymbols(false, animationCb);
+        } else{
+            this.nodes = keepInformation.data;
+            this.symbols = keepInformation.symbols;
+
+            let id;
+            if(this.levelOfDetail === 'county'){
+                id = 'counties';
+            } else {
+                id = 'states';
+            }
+
+            let container = document.getElementById(`cartogram-${id}`);
+            if(container == null){
+                container = document.getElementById(`psm-${id}`);
+            }
+            container.parentNode.appendChild(container);
+
+            let map = this.baseMap;
+            this[id] = map.svg
+            .selectAll(`.${id}-bubbles`)
+            .transition()
+            .delay(200)
+            .duration(1000)
+            .attr('cx', d => { return d.x0; })
+            .attr('cy', d => { return d.y0; })
+            .each("end", animationCb);
+            this.symbols = this[id];
+        }
+        super.show(true, true);
     }
 
     drawSymbols(forceRedraw, animationCb){
@@ -70,12 +98,16 @@ export default class ProportionalSymbolMap extends BaseMap {
         .data(this.nodes)
         .enter()
         .append("circle")
+        .attr("class", `${id}-bubbles`)
         .attr('fill', d => {
             let scaled = map.colorScale(d.r);
             return this.getColor[scaled];
         })
         .attr('cx', d => { return d.x; })
         .attr('cy', d => { return d.y; });
+
+        console.log(this.nodes);
+        console.log(this[id]);
 
         if(this.isFunction(animationCb)){
             this[id]

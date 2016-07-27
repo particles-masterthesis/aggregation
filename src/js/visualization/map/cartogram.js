@@ -1,7 +1,7 @@
 import BaseMap from "./base-map";
 
 export default class Cartogram extends BaseMap {
-    constructor(width, height, particlesContainer, levelOfDetail, colorScheme, keepSymbols, animationCb){
+    constructor(width, height, particlesContainer, levelOfDetail, colorScheme, keepInformation, animationCb){
         super(width, height, particlesContainer, levelOfDetail, false, colorScheme);
         this.levelOfDetail = levelOfDetail;
 
@@ -12,12 +12,12 @@ export default class Cartogram extends BaseMap {
         .size([this.width - this.symbolPadding, this.height - this.symbolPadding]);
 
 
-        if(!keepSymbols){
+        if(!keepInformation){
             super.show(true, false);
             this.drawSymbols(false, animationCb);
         } else{
-            this.nodes = keepSymbols.nodes;
-            this.node = keepSymbols.circles;
+            this.nodes = keepInformation.data;
+            this.node = keepInformation.symbols;
 
             if(this.levelOfDetail === 'county'){
                 this.counties = this.node;
@@ -26,7 +26,7 @@ export default class Cartogram extends BaseMap {
             }
 
             this.force
-            .nodes(keepSymbols.nodes)
+            .nodes(this.nodes)
             .on("tick", this.tick.bind(this, 0.0099))
             .start();
 
@@ -86,6 +86,7 @@ export default class Cartogram extends BaseMap {
         .data(this.nodes)
         .enter()
         .append("circle")
+        .attr('class', 'bubble')
         .attr('fill', d => {
             let scaled = map.colorScale(d.r);
             return this.getColor[scaled];
@@ -123,6 +124,7 @@ export default class Cartogram extends BaseMap {
         }
 
         this[id] = this.node;
+        this.symbols = this[id];
     }
 
     tick(gravity) {

@@ -51,6 +51,7 @@ export default class TransitionManager {
             this.upcomingVizType = upcoming;
 
             let upcomingViz = {};
+            let information;
             const transitionKey = `${current.type}_${upcoming}`;
             console.log(transitionKey);
             switch (transitionKey) {
@@ -60,6 +61,7 @@ export default class TransitionManager {
                     upcomingViz.obj = this.canvas.drawProportionalSymbolMap(
                         null,
                         this.currentViz.constructor.name === "ProportionalSymbolMap",
+                        false,
                         () => {
                             this.fadeOutParticles();
                         }
@@ -113,14 +115,16 @@ export default class TransitionManager {
 
                 case 'psm_cartogram':
                     let psm = this.currentViz;
+                    information = {
+                        data: psm.nodes,
+                        symbols: psm.symbols
+                    };
 
+                    console.log(information);
                     upcomingViz.obj = this.canvas.drawCartogram(
                         null,
                         this.currentViz.constructor.name === "Cartogram",
-                        {
-                            nodes: psm.nodes,
-                            circles: psm.states != null? psm.states : psm.counties
-                        },
+                        information,
                         () => {
                             this.currentViz.hide(false, true);
                             this.fadeOutParticles();
@@ -130,10 +134,31 @@ export default class TransitionManager {
                     resolve(upcomingViz);
                     break;
 
+                case 'cartogram_psm':
+                    this.currentViz.force.stop();
+                    let cartogram = this.currentViz;
+                    console.log(cartogram);
+                    information = {
+                        data: cartogram.nodes,
+                        symbols: cartogram.symbols || cartogram.node
+                    };
+                    console.log(information);
+
+                    upcomingViz.obj = this.canvas.drawProportionalSymbolMap(
+                        null,
+                        this.currentViz.constructor.name === "ProportionalSymbolMap",
+                        information,
+                        () => {
+                            this.fadeOutParticles();
+                        }
+                    );
+                    upcomingViz.type = 'psm';
+                    resolve(upcomingViz);
+                    break;
+
                 case 'psm_choropleth':
                 case 'choropleth_psm':
                 case 'choropleth_cartogram':
-                case 'cartogram_psm':
                 case 'cartogram_choropleth':
                     let endResult = upcoming;
                     let dotMapPromise = this.animate(current, 'dot');

@@ -6824,6 +6824,10 @@ svg .state-boundary {
   fill: none;
   stroke: #fff;
 }
+svg .show-boundaries {
+  stroke: #d3d3d3;
+  stroke-width: 0.5px;
+}
 svg .bubble {
   fill-opacity: 0.8;
   stroke: #fff;

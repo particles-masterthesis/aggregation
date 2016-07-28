@@ -101,22 +101,28 @@ export default class ProportionalSymbolMap extends BaseMap {
         .enter()
         .append("circle")
         .attr("class", `${id}-bubbles`)
-        .attr('fill', d => {
-            return this.colorScale(d.data.orders);
-        })
         .attr('cx', d => { return d.x; })
         .attr('cy', d => { return d.y; });
 
         if(this.isFunction(animationCb)){
             this[id]
-            .attr("r", 0)
+            .attr("r", 20)
+            .attr('fill', d => { return this.colorScale(1); })
             .transition()
-            .delay(500)
-            .duration(1000)
+            .delay(50)
+            .duration(2000)
+            .transition()
+            .attr('fill', d => {
+                return this.colorScale(d.data.orders);
+            })
+            .transition()
             .attr("r", d => { return d.r; })
             .each("end", animationCb);
         } else {
             this[id]
+            .attr('fill', d => {
+                return this.colorScale(d.data.orders);
+            })
             .attr("r", d => { return d.r; });
         }
         this.symbols = this[id];

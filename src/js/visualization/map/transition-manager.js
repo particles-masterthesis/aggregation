@@ -56,7 +56,10 @@ export default class TransitionManager {
             console.log(transitionKey);
             switch (transitionKey) {
                 case 'dot_psm':
-                    animateParticleToCentroid(this.currentViz, this.canvas.levelOfDetail);
+
+                    // ANIMATE PARTICLE TO CENTROID
+                    // IF PARTICLE IS THERE, GIVE BUBBLE MORE COLOR
+                    // animateParticleToCentroid(this.currentViz, this.canvas.levelOfDetail);
                     this.canvas.render();
                     upcomingViz.obj = this.canvas.drawProportionalSymbolMap(
                         null,
@@ -71,12 +74,12 @@ export default class TransitionManager {
                     break;
 
                 case 'dot_choropleth':
-                    this.fadeOutParticles();
                     this.canvas.render();
                     upcomingViz.obj = this.canvas.drawChoroplethMap(
                         null,
                         this.currentViz.constructor.name === "ChoroplethMap",
                         () => {
+                            this.fadeOutParticles();
                         }
                     );
                     upcomingViz.type = 'choropleth';

@@ -29,7 +29,7 @@ export default class Canvas {
 
         this.particles = {
             "speedPxPerFrame": 2,
-            "arrivalSync": false,
+            "arrivalSync": true,
             "shape": "circle",
             "sizeOfParticles": 4,        // Only for scatter-plot relevant
             "colorScheme": this.colorScheme
@@ -250,7 +250,6 @@ export default class Canvas {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
         let areParticlesNew = this.particlesContainer.createParticles(dataset, this.particles);
-        console.log(areParticlesNew);
 
         this.visualizationOld = this.visualization ? this.visualization : null;
         this.visualization = new DotMap(

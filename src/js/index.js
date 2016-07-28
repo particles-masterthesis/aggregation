@@ -72,7 +72,7 @@ window.updateScreen = () => {
                 })
                 .catch((error) => {
                     console.log('promise error');
-                    console.log(error);
+                    throw error;
                 });
 
                 return;

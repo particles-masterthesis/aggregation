@@ -101,6 +101,9 @@ export default class TransitionManager {
                     break;
 
                 case 'psm_dot':
+
+                    break;
+
                 case 'choropleth_dot':
                 case 'cartogram_dot':
                     this.currentViz.removeAllDomNodes((cb) => {

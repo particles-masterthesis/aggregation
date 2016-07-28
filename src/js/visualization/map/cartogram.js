@@ -11,8 +11,12 @@ export default class Cartogram extends BaseMap {
         .gravity(0)
         .size([this.width - this.symbolPadding, this.height - this.symbolPadding]);
 
+        this.colorScale = this.baseMap.colorScale
+        .range(this.baseMap.colorbrewer[this.colorScheme][9]);
 
         if(!keepInformation){
+            this.drawSymbolLegend();
+            this.drawColorLegend();
             super.show(true, false);
             this.drawSymbols(false, animationCb);
         } else{
@@ -67,33 +71,30 @@ export default class Cartogram extends BaseMap {
         })
         .map( d => {
             let centroid = map.path.centroid(d);
-            let orders = d.properties.orders || 0;
-            let r = map.symbolScale(orders) || 0;
+            let r = map.symbolScale(d.properties.population) || 0;
             return{
                 x: centroid[0],
                 x0: centroid[0],
                 y: centroid[1],
                 y0: centroid[1],
                 r: r,
-                value: orders
+                data: d.properties
             };
-
         });
 
         this.node = map.svg.append("g")
         .attr("id", `cartogram-${id}`)
+        .attr("class", "bubble")
         .selectAll("circle")
         .data(this.nodes)
         .enter()
         .append("circle")
-        .attr('class', 'bubble')
+        .attr('class', `${id}-bubbles`)
         .attr('fill', d => {
-            let scaled = map.colorScale(d.r);
-            return this.getColor[scaled];
+            return this.colorScale(d.data.orders);
         })
         .attr('cx', d => { return d.x; })
         .attr('cy', d => { return d.y; });
-
 
         if(this.isFunction(animationCb)){
             this.node
@@ -202,14 +203,14 @@ export default class Cartogram extends BaseMap {
     update(levelOfDetail, colorScheme){
         this.levelOfDetail = levelOfDetail;
         this.colorScheme = colorScheme;
-        this.colorScale2 = this.baseMap._d3.scale.quantize()
-        .domain([0, 100])
+
+        this.colorScale = this.baseMap.colorScale
         .range(this.baseMap.colorbrewer[this.colorScheme][9]);
+
         this.drawSymbols(true);
         this.drawSymbolLegend();
         this.drawColorLegend(true);
     }
-
 
     drawSymbolLegend(){
         let map = this.baseMap;
@@ -221,23 +222,17 @@ export default class Cartogram extends BaseMap {
         .attr("class", "legend")
         .attr("transform", "translate(50, 60)");
 
-        this.symbolLegend.append('circle')
-        .attr('class', 'info-bubble')
-        .attr('r', 5)
-        .attr('cx', 50)
-        .attr('cy', -25);
-
         this.symbolLegend.append('text')
         .attr('class', 'info-text')
-        .attr('x', 75)
+        .attr('x', 50)
         .attr('y', -21)
-        .text('Orders');
+        .text('Population');
 
         let tmp = this.symbolLegend;
 
         this.symbolLegend = this.symbolLegend
         .selectAll("g")
-        .data([10, 100, 1000])
+        .data([1e6, 3e6, 6e6])
         .enter().append("g");
 
         this.symbolLegend.append("circle")
@@ -250,20 +245,27 @@ export default class Cartogram extends BaseMap {
         .text(this.baseMap._d3.format(".1s"));
 
         this.symbolLegend = tmp;
-
-
     }
 
     drawColorLegend(forceRedraw){
-        let map = this.baseMap;
-        let values = [0, 12, 23, 34, 45, 56, 67, 78, 89];
-        let labels = ["< 12", 12, 23, 34, 45, 56, 67, 78, "78 <"];
-        let width = 40, height = 20;
 
         if (!forceRedraw && typeof this.colorLegend !== 'undefined') return;
         if (forceRedraw && typeof this.colorLegend !== 'undefined')
             this.removeSvgElement('colorLegend');
 
+        // let values = [];
+        // for(var i = 0; i<1000; i++){
+        //     let color = this.colorScale(i);
+        //     if(!(res.indexOf(color) > -1)){
+        //         console.log(i);
+        //         res.push(color);
+        //     }
+        // }
+
+        let values =[1, 112, 223, 334, 445, 556, 667, 778, 889];
+        let labels = ["1-112", "112-222", "223-333", "334-444","445-555", "556-666", "667-777", "778-888", "889 <"];
+        let map = this.baseMap;
+        let width = 40, height = 20;
 
         this.colorLegend = map.svg.append("g")
         .attr("id", "cartogram-color-legend");
@@ -281,13 +283,13 @@ export default class Cartogram extends BaseMap {
         .attr("width", width)
         .attr("height", height)
         .attr("fill", d => {
-            return this.colorScale2(d);
+            return this.colorScale(d);
         });
 
         legend.append("text")
         .attr("x", width * 3.5)
         .attr("y", (d, i) => { return (i * height) + height - 5; })
-        .text((d, i) => { return `${labels[i]} average order quantity`; });
+        .text((d, i) => { return `${labels[i]} ammount of orders`; });
     }
 
 

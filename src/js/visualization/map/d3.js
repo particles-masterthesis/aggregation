@@ -35,16 +35,12 @@ export default class D3 {
                 .scale(width)
             .translate([this.width / 2, this.height / 2]);
 
-        this.symbolScale = this._d3.scale.log()
-        .domain([1, 100])
-        .range([0, 20]);
+        this.symbolScale = this._d3.scale.sqrt()
+        .domain([0, 1e6])
+        .range([0, 10]);
 
-        this.colorScale = this._d3.scale.quantile()
-        .domain(this._d3.range(10).map( i => i * 4 ))
-        .range(this._d3.range(9));
-
-        this.colorScale2 = this._d3.scale.quantize()
-        .domain([0, 100]);
+        this.colorScale = this._d3.scale.quantize()
+        .domain([0, 1000]);
 
         this.path = this._d3.geo.path().projection(this.projection);
         this.svg = this._d3.select("body > svg");
@@ -70,14 +66,6 @@ export default class D3 {
                     return obj.id === stateId;
                 }
 
-                for(let i = 0; i < states.length; i++){
-                    Object.keys(states[i].properties)
-                    .forEach( item => {
-                        if(item != "stateId")
-                            delete states[i].properties[item];
-                    });
-                }
-
                 // get orders aggregated on states object
                 for(let i = 0; i < counties.length; i++){
                     var stateId = counties[i].properties.stateId;
@@ -92,120 +80,18 @@ export default class D3 {
                         state.properties.orders = Number((counties[i].properties.orders || 0));
                     }
 
-                    if('avgQuantity' in state.properties){
-                        state.properties.avgQuantity =
-                            Number(state.properties.avgQuantity) +
-                            Number((counties[i].properties.avgQuantity || 0));
-                    } else {
-                        state.properties.avgQuantity = Number((counties[i].properties.avgQuantity || 0));
+                    if ('population' in state.properties){
+                        state.properties.population =
+                            Number(state.properties.population) +
+                            Number((counties[i].properties.population || 0));
                     }
-
-                    if('avgSales' in state.properties){
-                        state.properties.avgSales =
-                            Number(state.properties.avgSales) +
-                            Number((counties[i].properties.avgSales || 0));
-                    } else {
-                        state.properties.avgSales = Number((counties[i].properties.avgSales || 0));
-                    }
-
-                    if('avgProfit' in state.properties){
-                        state.properties.avgProfit =
-                            Number(state.properties.avgProfit) +
-                            Number((counties[i].properties.avgProfit || 0));
-                    } else {
-                        state.properties.avgProfit = Number((counties[i].properties.avgProfit || 0));
+                    else {
+                        state.properties.population = Number((counties[i].properties.population || 0));
                     }
                 }
 
-                // for(let i = 0; i < states.length; i++){
-                //     if(Number(states[i].properties.orders) === 0){
-                //         continue;
-                //     }
-                //     states[i].properties.avgProfit = (Number(
-                //         Number(states[i].properties.avgProfit) /
-                //         Number(states[i].properties.orders)
-                //     ).toFixed(2))/1;
-
-                //     states[i].properties.avgSales = (Number(
-                //         Number(states[i].properties.avgSales) /
-                //         Number(states[i].properties.orders)
-                //     ).toFixed(2))/1;
-
-                //     states[i].properties.avgQuantity = Math.ceil(
-                //         Number(states[i].properties.avgQuantity) /
-                //         Number(states[i].properties.orders)
-                //     );
-                // }
-
             }
         });
-        // let us = this.data.us;
-        // let counties = topojson.feature(us, us.objects.counties).features;
-        // let states = topojson.feature(us, us.objects.states).features;
-
-        // let arrQuantity = [];
-        // let arrSales = [];
-        // let arrProfit = [];
-        // for(let i = 0; i < counties.length; i++){
-        //     arrQuantity.push(
-        //         Number(counties[i].properties.avgQuantity || 0)
-        //     );
-        //     arrSales.push(
-        //         Number(counties[i].properties.avgSales || 0)
-        //     );
-        //     arrProfit.push(
-        //         Number(counties[i].properties.avgProfit || 0)
-        //     );
-        // }
-
-        // var minQuantity = Math.min.apply(null, arrQuantity),
-        //     maxQuantity = Math.max.apply(null, arrQuantity);
-        // var minSales = Math.min.apply(null, arrSales),
-        //     maxSales = Math.max.apply(null, arrSales);
-        // var minProfit = Math.min.apply(null, arrProfit),
-        //     maxProfit = Math.max.apply(null, arrProfit);
-
-
-        // // 0 9
-        // // 0 2354.39
-        // // -535.87 748.01
-        // console.log(minQuantity, maxQuantity, arrQuantity.average());
-        // console.log(minSales, maxSales, arrSales.average());
-        // console.log(minProfit, maxProfit, arrProfit.average());
-
-
-        // arrQuantity = [];
-        // arrSales = [];
-        // arrProfit = [];
-        // for(let i = 0; i < states.length; i++){
-        //     // console.log(states);
-        //     arrQuantity.push(
-        //         states[i].properties.avgQuantity
-        //     );
-        //     arrSales.push(
-        //         states[i].properties.avgSales
-        //     );
-        //     arrProfit.push(
-        //         states[i].properties.avgProfit
-        //     );
-        // }
-
-        // console.log(arrSales);
-        // minQuantity = Math.min.apply(null, arrQuantity);
-        // maxQuantity = Math.max.apply(null, arrQuantity);
-        // minSales = Math.min.apply(null, arrSales);
-        // maxSales = Math.max.apply(null, arrSales);
-        // minProfit = Math.min.apply(null, arrProfit);
-        // maxProfit = Math.max.apply(null, arrProfit);
-
-
-        // // 0 4
-        // // 0 1603.14
-        // // -3 100.2
-        // console.log(minQuantity, maxQuantity, arrQuantity.average());
-        // console.log(minSales, maxSales, arrSales.average());
-        // console.log(minProfit, maxProfit, arrProfit.average());
-
 
         this.data.topojson = {};
         this.data.topojson.country = topojson.feature(

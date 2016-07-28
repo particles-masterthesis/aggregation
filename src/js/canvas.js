@@ -250,6 +250,7 @@ export default class Canvas {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
         let areParticlesNew = this.particlesContainer.createParticles(dataset, this.particles);
+        console.log(areParticlesNew);
 
         this.visualizationOld = this.visualization ? this.visualization : null;
         this.visualization = new DotMap(

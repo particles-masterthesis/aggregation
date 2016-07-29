@@ -25,16 +25,17 @@ export default class DotMap extends BaseMap {
         super.show(true, true);
     }
 
-    drawData(animationCb, areParticlesNew){
+    drawData(animationCb, areParticlesNew, keepParticles){
         let point;
-
         if(this.isFunction(animationCb)){
-            for(let particle of this.particles){
-                point = [particle.data.Longitude, particle.data.Latitude];
-                point = this.baseMap.projection(point);
-                particle.coords = point;
+            if(!keepParticles){
+                for(let particle of this.particles){
+                    point = [particle.data.Longitude, particle.data.Latitude];
+                    point = this.baseMap.projection(point);
+                    particle.coords = point;
 
-                setTimeout(drawFunc.bind(this), 250, particle, this.size);
+                    setTimeout(drawFunc.bind(this), 250, particle, this.size);
+                }
             }
         } else {
             let transitionType = $("select.transition").val();
@@ -53,7 +54,5 @@ export default class DotMap extends BaseMap {
         }
     }
 
-    removeAllDomNodes(){
-
-    }
+    removeAllDomNodes(){}
 }

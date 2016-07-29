@@ -4,19 +4,61 @@ function sleep(ms) {
     });
 }
 
-function animateParticleToCentroid(currentViz, levelOfDetail) {
+function animateParticleToCentroidSymbolAndColor(currentViz, canvas, upcomingViz) {
     for (let particle of currentViz.particles) {
         let coords = currentViz.getCentroidOfParticle(
             particle,
-            levelOfDetail
+            canvas.levelOfDetail
         );
 
         particle.transitionTo(
-            coords[0],
-            coords[1],
+            coords[0] - currentViz.size/2,
+            coords[1] - currentViz.size/2,
             currentViz.size,
             currentViz.size,
-            'linear'
+            'linear',
+            () => {
+
+                upcomingViz.nodes.filter( (obj) => {
+                    if(obj.data.stateId == particle.data.StateId){
+                        ++obj.particles;
+                        // obj.particles = Math.floor(Math.random() * 2000) + 100;
+                        return true;
+                    }
+                    return false;
+                });
+
+                upcomingViz.colorSymbol(
+                    canvas.levelOfDetail,
+                    particle.data.StateId
+                );
+            }
+        );
+    }
+}
+
+function animateParticleToOriginAndColor(currentViz, canvas, upcomingViz) {
+    for (let particle of currentViz.particles) {
+        particle.transitionTo(
+            particle.coords[0] - upcomingViz.size/2,
+            particle.coords[1] - upcomingViz.size/2,
+            upcomingViz.size,
+            upcomingViz.size,
+            'linear',
+            () => {
+                currentViz.nodes.filter( (obj) => {
+                    if(obj.data.stateId == particle.data.StateId){
+                        obj.particles -= 1;
+                        return true;
+                    }
+                    return false;
+                });
+
+                currentViz.colorSymbol(
+                    canvas.levelOfDetail,
+                    particle.data.StateId
+                );
+            }
         );
     }
 }
@@ -37,11 +79,21 @@ export default class TransitionManager {
         };
     }
 
-    fadeOutParticles() {
+    fadeParticles(type) {
         for (let particle of this.currentViz.particles) {
-            particle.fade('out');
+            particle.fade(type);
         }
         this.canvas.particlesContainer.startAnimation();
+    }
+
+    setParticleAlpha(value) {
+        for (let particle of this.currentViz.particles) {
+            particle.setAlpha(value);
+        }
+    }
+
+    disableSelection(val){
+        $("select.visualization").attr("disabled", val);
     }
 
     animate(current, upcoming) {
@@ -49,7 +101,7 @@ export default class TransitionManager {
             this.canvas.stop();
             this.currentViz = current.obj;
             this.upcomingVizType = upcoming;
-
+            this.disableSelection(true);
             let upcomingViz = {};
             let information;
             const transitionKey = `${current.type}_${upcoming}`;
@@ -57,19 +109,70 @@ export default class TransitionManager {
             switch (transitionKey) {
                 case 'dot_psm':
 
-                    // ANIMATE PARTICLE TO CENTROID
-                    // IF PARTICLE IS THERE, GIVE BUBBLE MORE COLOR
-                    // animateParticleToCentroid(this.currentViz, this.canvas.levelOfDetail);
-                    this.canvas.render();
                     upcomingViz.obj = this.canvas.drawProportionalSymbolMap(
                         null,
                         this.currentViz.constructor.name === "ProportionalSymbolMap",
                         false,
                         () => {
-                            this.fadeOutParticles();
                         }
                     );
                     upcomingViz.type = 'psm';
+
+                    animateParticleToCentroidSymbolAndColor(
+                        this.currentViz,
+                        this.canvas,
+                        upcomingViz.obj
+                    );
+                    this.canvas.particlesContainer.startAnimation();
+                    this.canvas.render();
+
+                    canvas.animationQueue.push(() => {
+                        upcomingViz.obj.scaleSymbol(
+                            false,
+                            canvas.levelOfDetail,
+                            () => {
+                                this.setParticleAlpha(0);
+                                this.disableSelection(false);
+                            }
+                        );
+                    });
+
+                    resolve(upcomingViz);
+                    break;
+
+                case 'psm_dot':
+                    this.canvas.stop();
+                    upcomingViz.obj = this.canvas.drawDotMap(
+                            dataStore.data,
+                            () => {},
+                            true
+                        );
+                    upcomingViz.type = 'dot';
+
+                    this.currentViz.scaleSymbol(
+                        20,
+                        this.canvas.levelOfDetail,
+                        () => {
+                            this.setParticleAlpha(1);
+                            this.canvas.particlesContainer.startAnimation();
+                            this.canvas.render();
+                        }
+                    );
+
+                    canvas.animationQueue.push(() => {
+                        animateParticleToOriginAndColor(
+                            this.currentViz,
+                            this.canvas,
+                            upcomingViz.obj
+                        );
+                    });
+
+                    canvas.animationQueue.push(() => {
+                        this.currentViz.removeAllDomNodes(()=>{
+                            this.disableSelection(false);
+                        });
+                    });
+
                     resolve(upcomingViz);
                     break;
 
@@ -79,7 +182,7 @@ export default class TransitionManager {
                         null,
                         this.currentViz.constructor.name === "ChoroplethMap",
                         () => {
-                            this.fadeOutParticles();
+                            this.fadeParticles('out');
                         }
                     );
                     upcomingViz.type = 'choropleth';
@@ -96,16 +199,13 @@ export default class TransitionManager {
                         false,
                         () => {
                             this.currentViz.hide(false, true);
-                            this.fadeOutParticles();
+                            this.fadeParticles('out');
                         }
                     );
                     upcomingViz.type = 'cartogram';
                     resolve(upcomingViz);
                     break;
 
-                case 'psm_dot':
-
-                    break;
 
                 case 'choropleth_dot':
                 case 'cartogram_dot':
@@ -133,7 +233,7 @@ export default class TransitionManager {
                         information,
                         () => {
                             this.currentViz.hide(false, true);
-                            this.fadeOutParticles();
+                            this.fadeParticles('out');
                         }
                     );
                     upcomingViz.type = 'cartogram';
@@ -155,7 +255,7 @@ export default class TransitionManager {
                         this.currentViz.constructor.name === "ProportionalSymbolMap",
                         information,
                         () => {
-                            this.fadeOutParticles();
+                            this.fadeParticles('out');
                         }
                     );
                     upcomingViz.type = 'psm';

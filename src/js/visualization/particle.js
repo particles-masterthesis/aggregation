@@ -29,7 +29,7 @@ export default class Particle extends PIXI.Sprite {
         // this.addClickListener();
     }
 
-    transitionTo(x, y, width, height, type) {
+    transitionTo(x, y, width, height, type, cb) {
         switch (type) {
             case "none":
                 this.isAnimating = false;
@@ -45,6 +45,9 @@ export default class Particle extends PIXI.Sprite {
                 this.isAnimating = true;
                 this.setDestination(x, y);
                 this.setAimedSize(width, height);
+                if(cb && ({}).toString.call(cb) === "[object Function]"){
+                    this.transitionPositionCb = cb;
+                }
                 break;
 
             default:
@@ -80,14 +83,12 @@ export default class Particle extends PIXI.Sprite {
                 this.setSize(this.width + deltaX * this.distanceRatio, this.height + deltaY * this.distanceRatio);
             }
         }
-        // console.log("\n\n\nALPHA ANIMATION");
-        // console.log(this.aimedAlpha);
-        // console.log(this.alpha);
+
         if(
             (this.aimedAlpha !== null && this.aimedAlpha !== undefined) &&
             this.aimedAlpha !== this.alpha
         ){
-            if(Math.abs(this.alpha - this.aimedAlpha) < this.speed * 2 / 100){
+            if(Math.abs(this.alpha - this.aimedAlpha) < (this.speed * 2 / 100) + this.speed * 2 / 100){
                 this.alpha = this.aimedAlpha;
             }
             else if(this.aimedAlpha < this.alpha){
@@ -103,6 +104,10 @@ export default class Particle extends PIXI.Sprite {
             this._height == this.aimedSize.height &&
             this.alpha === this.aimedAlpha
         ) {
+            if(this.hasOwnProperty("transitionPositionCb")){
+                this.transitionPositionCb();
+                delete this.transitionPositionCb;
+            }
             this.isAnimating = false;
         }
 

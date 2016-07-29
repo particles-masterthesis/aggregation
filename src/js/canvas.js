@@ -28,7 +28,7 @@ export default class Canvas {
         this.requestFrameID = null;
 
         this.particles = {
-            "speedPxPerFrame": 2,
+            "speedPxPerFrame": 0.5,
             "arrivalSync": true,
             "shape": "circle",
             "sizeOfParticles": 4,        // Only for scatter-plot relevant
@@ -246,11 +246,10 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawDotMap(dataset, animationCb) {
+    drawDotMap(dataset, animationCb, keepParticles) {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
         let areParticlesNew = this.particlesContainer.createParticles(dataset, this.particles);
-
         this.visualizationOld = this.visualization ? this.visualization : null;
         this.visualization = new DotMap(
             this.width,
@@ -261,24 +260,24 @@ export default class Canvas {
             animationCb
         );
 
-        this.animationQueue.push(() => {
-            this.minimizeOldVisualization(areParticlesNew, transitionType, transitionLayout);
-        });
+        // this.animationQueue.push(() => {
+        //     this.minimizeOldVisualization(areParticlesNew, transitionType, transitionLayout);
+        // });
 
         this.animationQueue.push(() => {
-            this.moveNewVisualization(areParticlesNew, transitionType, transitionLayout);
+        //     this.moveNewVisualization(areParticlesNew, transitionType, transitionLayout);
             this.stage.addChild(this.visualization);
-            this.visualization.drawData(animationCb, areParticlesNew);
-            this.moveParticlesDestination(areParticlesNew, transitionType, transitionLayout);
+            this.visualization.drawData(animationCb, areParticlesNew, keepParticles);
+            // this.moveParticlesDestination(areParticlesNew, transitionType, transitionLayout);
 
-            // After defining the destination we have to calculate the speed for the particles
-            // so the reach at the same time their destination
-            if (this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
+        //     // After defining the destination we have to calculate the speed for the particles
+        //     // so the reach at the same time their destination
+        //     if (this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
         });
 
-        this.animationQueue.push(() => {
-            this.cleanLayout();
-        });
+        // this.animationQueue.push(() => {
+        //     this.cleanLayout();
+        // });
 
         return this.visualization;
     }

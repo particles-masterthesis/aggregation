@@ -86,7 +86,8 @@ export default class ProportionalSymbolMap extends BaseMap {
                 y: centroid[1],
                 y0: centroid[1],
                 r: r,
-                data: d.properties
+                data: d.properties,
+                particles: 0
             };
         })
         .sort( (a, b) => {
@@ -108,16 +109,7 @@ export default class ProportionalSymbolMap extends BaseMap {
             this[id]
             .attr("r", 20)
             .attr('fill', d => { return this.colorScale(1); })
-            .transition()
-            .delay(50)
-            .duration(2000)
-            .transition()
-            .attr('fill', d => {
-                return this.colorScale(d.data.orders);
-            })
-            .transition()
-            .attr("r", d => { return d.r; })
-            .each("end", animationCb);
+            .attr('class', d => { return `state-${d.data.stateId}`; });
         } else {
             this[id]
             .attr('fill', d => {
@@ -128,6 +120,46 @@ export default class ProportionalSymbolMap extends BaseMap {
         this.symbols = this[id];
     }
 
+    colorSymbol(levelOfDetail, stateId){
+        let map = this.baseMap;
+        let id;
+        switch (levelOfDetail) {
+            case "country":
+            case "state":
+                id = 'states';
+                break;
+            case "county":
+                id = 'counties';
+                break;
+            default:
+                break;
+        }
+
+        map.svg
+        .select(`.state-${stateId}`)
+        .attr('fill', d => {
+            return this.colorScale(d.particles);
+        });
+    }
+
+    scaleSymbol(defaultValue, levelOfDetail, animationCb){
+        let id;
+        switch (levelOfDetail) {
+            case "country":
+            case "state":
+                id = 'states';
+                break;
+            default:
+                id = 'counties';
+                break;
+        }
+
+        this[id]
+        .transition()
+        .duration(1500)
+        .attr("r", d => { return defaultValue || d.r; })
+        .call(window.endall, animationCb);
+    }
 
     update(levelOfDetail, colorScheme){
         this.levelOfDetail = levelOfDetail;

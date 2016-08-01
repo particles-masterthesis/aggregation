@@ -2,55 +2,175 @@ import BaseMap from "./base-map";
 
 export default class ChoroplethMap extends BaseMap {
 
-    constructor(width, height, particlesContainer, levelOfDetail, colorScheme, useSybols, animationCb){
-        super(width, height, particlesContainer, levelOfDetail, true, colorScheme);
-
-        this.levelOfDetail = levelOfDetail;
-        this.colorScale = this.baseMap.colorScale
-        .range(this.baseMap.colorbrewer[this.colorScheme][9]);
-        this.useSybols = useSybols;
+    constructor(
+        width,
+        height,
+        particlesContainer,
+        levelOfDetail,
+        colorScheme
+    ){
+        super(
+            width,
+            height,
+            particlesContainer,
+            levelOfDetail,
+            true,
+            colorScheme
+        );
 
         super.show(true, true);
-        this.drawChoropleth(false, animationCb);
-        this.drawLegend(false);
     }
 
-    drawChoropleth(forceRedraw, animationCb){
-        if(forceRedraw){
-            if (typeof this['counties-units'] !== 'undefined'){
-                this['counties-units']
-                .attr('fill', d => {
-                    return this.colorScale(d.particles);
-                });
-                return;
-            }
-            if (typeof this['states-units'] !== 'undefined'){
-                this['states-units']
-                .attr('fill', d => {
-                    return this.colorScale(d.particles);
-                });
-                return;
-            }
+    initNodes(nodes){
+        this.nodes = nodes == null? this.nodes : nodes;
+        if(typeof this.nodes !== 'undefined') return;
+
+        let map = this.baseMap;
+        this.nodes = map.nodes[this.id];
+        this.nodes.sort( (a, b) => {
+            return b.data.population - a.data.population;
+        });
+    }
+
+    initUnits(nodes){
+        this.initNodes(nodes);
+
+        let map = this.baseMap;
+        this[`units-${this.id}`] = map.svg
+        .append("g")
+        .attr("id", `choropleth-units-${this.id}`)
+        .selectAll("path")
+        .data(this.nodes)
+        .enter()
+        .append('path')
+        .attr("fill", '#D3D3D3')
+        .attr("class", 'show-boundaries')
+        .attr("d", map.path);
+    }
+
+    initSymbols(){
+        this.initNodes();
+
+        let map = this.baseMap;
+        this[`symbols-${this.id}`] = map.svg
+        .append("g")
+        .attr("id", `choropleth-symbols-${this.id}`)
+        .attr("class", "bubble")
+        .selectAll("circle")
+        .data(this.nodes)
+        .enter()
+        .append('circle')
+        .attr('cx', d => { return d.x; })
+        .attr('cy', d => { return d.y; });
+    }
+
+    drawDefaultSymbols(){
+        this[`symbols-${this.id}`]
+        .attr("r", 20)
+        .attr('fill', d => { return this.colorScale(1); })
+        .attr('class', d => { return `${this.id}-${d.id}`; });
+    }
+
+    colorSymbol(id){
+        this.baseMap.svg
+        .select(`.${this.id}-${id}`)
+        .attr('fill', d => {
+            return this.colorScale(d.particles);
+        });
+    }
+
+    colorSymbols(){
+        this[`symbols-${this.id}`]
+        .attr('fill', d => { return this.colorScale(d.particles); });
+    }
+
+    colorUnits(){
+        let units = this[`units-${this.id}`];
+        let colorScale = this.colorScale;
+        this.transition = this.baseMap._d3
+        .transition()
+        .duration(1000)
+        .each(function(){
+            units
+            .transition()
+            .attr('fill', d => {
+                return colorScale(d.particles);
+            });
+        });
+    }
+
+    scaleSymbols(animationCb){
+        let that = this;
+        let symbols = this[`symbols-${this.id}`];
+        this.transition = this.transition || this.baseMap._d3.transition();
+
+        this.transition.transition().each(function(){
+            symbols
+            .transition()
+            .attr('r', 0)
+            .call(window.endall, function(){
+                animationCb();
+            });
+        });
+    }
+
+    update(levelOfDetail, colorScheme){
+        if(levelOfDetail !== this.levelOfDetail){
+            this.removeSvgElement(`units-${this.id}`);
+            this.levelOfDetail = levelOfDetail;
+
+            this.setId();
+            this.initUnits(
+                super.updateParticlesOnLevel(levelOfDetail)
+            );
+            this.colorUnits();
+
+            super.updateBaseMap(levelOfDetail);
         }
 
-        switch (this.levelOfDetail) {
-            case "country":
-            case "state":
-                // this.baseMap.colorScale.domain([0, 2100]);
-                if (typeof this['counties-units'] !== 'undefined')
-                    this.removeSvgElement('counties');
-                if (typeof this['states-units'] === 'undefined')
-                    this.draw("states", animationCb);
-                break;
-            case "county":
-                // this.baseMap.colorScale.domain([0, 1000]);
-                if (typeof this['states-units'] !== 'undefined')
-                    this.removeSvgElement('states');
-                if (typeof this['counties-units'] === 'undefined')
-                    this.draw("counties", animationCb);
-                break;
-            default:
-                break;
+        if(colorScheme !== this.colorScheme){
+            this.colorScheme = colorScheme;
+
+            this.colorScale = this.baseMap.colorScale
+            .range(this.baseMap.colorbrewer[this.colorScheme][9]);
+            this.colorUnits();
+        }
+
+        this.drawLegend(true);
+    }
+
+    removeAllDomNodes(animationCb){
+        this.removeSvgElement('colorLegend');
+        this.removeSvgElement(`units-${this.id}`);
+        this.removeSvgElement(
+            `symbols-${this.id}`,
+            'symbol',
+            () => {
+            this.removeSvgElement(`symbols-${this.id}`);
+            animationCb();
+        });
+    }
+
+    removeSvgElement(element, type, animationCb){
+        if(this.isFunction(animationCb)){
+            if(type === 'symbol'){
+                this[element]
+                .transition()
+                .attr('r', 0)
+                .call(window.endall, function(){ animationCb(); });
+            }
+
+            if(type === 'unit'){
+                this[element]
+                .transition()
+                .attr('fill', '#D3D3D3')
+                .call(window.endall, function(){ animationCb(); });
+            }
+        } else {
+            this[element].remove();
+            this.baseMap._d3.selectAll(`#choropleth-${element}`)
+            .remove();
+            return delete this[element];
         }
     }
 
@@ -74,7 +194,7 @@ export default class ChoroplethMap extends BaseMap {
         let width = 40, height = 20;
 
         this.colorLegend = map.svg.append("g")
-        .attr("id", "choropleth-color-legend");
+        .attr("id", "choropleth-colorLegend");
 
         let legend = this.colorLegend.selectAll("g.legend")
         .data(values)
@@ -98,278 +218,4 @@ export default class ChoroplethMap extends BaseMap {
         .text((d, i) => { return `${labels[i]} ammount of orders`; });
     }
 
-    removeAllDomNodes(animationCb){
-        if (typeof this['states-symbols'] !== 'undefined')
-            this.removeSymbols('states-symbols', animationCb);
-
-        if (typeof this['units-symbols'] !== 'undefined')
-            this.removeSymbols('states-symbols', animationCb);
-
-        this.baseMap.reset();
-        this.baseMap._d3.selectAll('#choropleth-units-states').remove();
-        this.baseMap._d3.selectAll('#choropleth-units-counties').remove();
-        this.baseMap._d3.selectAll('#choropleth-color-legend').remove();
-    }
-
-    removeSymbols(id, animationCb){
-        let d3 = this.baseMap._d3;
-        let symbols = this[id];
-        symbols
-        .transition()
-        .attr('r', 0)
-        .call(window.endall, function(){
-            d3.selectAll('#choropleth-symbols-states').remove();
-            animationCb();
-        });
-        this[id] = undefined;
-    }
-
-    removeSvgElement(element, animationCb){
-        if(this.isFunction(animationCb)){
-            this[element]
-            .transition()
-            .attr("fill", "#D3D3D3")
-            .call(endall, function(){ animationCb(); })
-            .remove();
-        } else {
-            if(this[element]) this[element].remove();
-            this.baseMap._d3.selectAll(`#choropleth-${element}`).remove();
-        }
-        this[element] = undefined;
-    }
-
-    update(levelOfDetail, colorScheme){
-        this.levelOfDetail = levelOfDetail;
-        this.colorScheme = colorScheme;
-
-        this.colorScale = this.baseMap.colorScale
-        .range(this.baseMap.colorbrewer[this.colorScheme][9]);
-
-        super.updateBaseMap(levelOfDetail);
-        this.drawChoropleth(true);
-        this.drawLegend(true);
-    }
-
-    calculateCircle(coords){
-        let circle = [];
-        let length = 0;
-        let lengths = [length];
-        let polygon = this.baseMap._d3.geom.polygon(coords);
-        let p0 = coords[0];
-        let p1, x, y, i = 0, n = coords.length;
-
-        while(++i < n){
-            p1 = coords[i];
-            x = p1[0] - p0[0];
-            y = p1[1] - p0[1];
-            lengths.push(length =+ Math.sqrt(x * x + y * y));
-            p0 = p1;
-        }
-
-        let area = polygon.area();
-        let radius = 20;
-        let centroid = polygon.centroid(-1 / (6 * area));
-        let angleOffset = -Math.PI / 2;
-        let angle, k = 2 * Math.PI / lengths[lengths.length - 1];
-        i = -1;
-
-        while(++i < n){
-            angle = angleOffset + lengths[i] * k;
-            circle.push([
-                centroid[0] + radius * Math.cos(angle),
-                centroid[1] + radius * Math.sin(angle),
-            ]);
-        }
-        return circle;
-
-    }
-
-    draw(id, animationCb){
-        let map = this.baseMap;
-
-        const data = map._topojson.feature(map.data.us, map.data.us.objects[id]).features;
-
-        this.nodes = data
-        .filter( d => {
-            let centroid = map.path.centroid(d);
-            return !(isNaN(centroid[0]) || isNaN(centroid[1]));
-        })
-        .map( d => {
-            let centroid = map.path.centroid(d);
-            // let originCoords = d.geometry.coordinates[0][0].map(
-            //     map.projection
-            // );
-            // let circleCoords = this.calculateCircle(originCoords);
-            // let shapePath = 'M' + originCoords.join('L') + 'Z';
-            // let circlePath = 'M' + circleCoords.join('L') + 'Z';
-            return{
-                type: d.type,
-                id: d.id,
-                geometry: d.geometry,
-                // shapePath: shapePath,
-                // circlePath: circlePath,
-                x: centroid[0],
-                y: centroid[1],
-                value: d.properties.orders,
-                particles: 0,
-                data: d.properties
-            };
-        });
-
-        this[`${id}-units`] = map.svg
-        .append("g")
-        .attr("id", `choropleth-units-${id}`)
-        .selectAll("path")
-        .data(this.nodes)
-        .enter()
-        .append('path')
-        .attr('class', 'show-boundaries');
-
-        if(this.isFunction(animationCb)){
-
-            this[`${id}-units`]
-            .attr("fill", "#D3D3D3");
-
-            if(this.useSybols){
-                this[`${id}-symbols`] = map.svg
-                .append("g")
-                .attr("id", `choropleth-symbols-${id}`)
-                .selectAll("circle")
-                .data(this.nodes)
-                .enter()
-                .append('circle')
-                .attr('class', d => {
-                    return `state-${d.data.stateId}`; })
-                .attr('cx', d => { return d.x; })
-                .attr('cy', d => { return d.y; })
-                .attr('r', 20)
-                .attr('fill', d => { return this.colorScale(1); });
-            }
-        } else {
-            this[`${id}-units`]
-            .attr("fill", d => {return this.colorScale(d.value);})
-            .attr("d", map.path);
-            // .attr("d", d => {
-            //     return d.shapePath;
-            // });
-        }
-    }
-
-    colorSymbolsAndRemoveArea(levelOfDetail, animationCb){
-        let map = this.baseMap;
-        let id;
-        switch (levelOfDetail) {
-            case "country":
-            case "state":
-                id = 'states';
-                break;
-            case "county":
-                id = 'counties';
-                break;
-            default:
-                break;
-        }
-
-        this[`${id}-symbols`] = map.svg
-        .append("g")
-        .attr("id", `choropleth-symbols-${id}`)
-        .selectAll("circle")
-        .data(this.nodes)
-        .enter()
-        .append('circle')
-        .attr('class', d => { return `state-${d.data.stateId}`; })
-        .attr('cx', d => { return d.x; })
-        .attr('cy', d => { return d.y; })
-        .attr('r', 20)
-        .attr('fill', d => {
-            return this.colorScale(d.particles);
-        });
-
-        this.removeSvgElement(`${id}-units`, animationCb);
-    }
-
-    colorSymbol(levelOfDetail, stateId){
-        let map = this.baseMap;
-        let id;
-        switch (levelOfDetail) {
-            case "country":
-            case "state":
-                id = 'states';
-                break;
-            case "county":
-                id = 'counties';
-                break;
-            default:
-                break;
-        }
-
-        map.svg
-        .select(`.state-${stateId}`)
-        .attr('fill', d => {
-            return this.colorScale(d.particles);
-        });
-    }
-
-    colorAreaAndRemoveSymbols(levelOfDetail, useParticles, animationCb){
-        let map = this.baseMap;
-        let id;
-        switch (levelOfDetail) {
-            case "country":
-            case "state":
-                id = 'states';
-                break;
-            case "county":
-                id = 'counties';
-                break;
-            default:
-                break;
-        }
-
-        var symbols = this[`${id}-symbols`];
-        var units = this[`${id}-units`];
-        var colorScale = this.colorScale;
-
-        let unitTransition = map._d3
-        .transition()
-        .duration(1000)
-        .each( function() {
-            if(symbols != null){
-                units
-                .transition()
-                .attr('fill', d => {
-                    return useParticles? colorScale(d.particles) : colorScale(d.value);
-                })
-                .attr("d", map.path);
-            } else {
-                units
-                .transition()
-                .attr('fill', d => {
-                    return useParticles? colorScale(d.particles) : colorScale(d.value);
-                })
-                .attr("d", map.path)
-                .call(endall, function(){
-                    animationCb();
-                    map._d3.selectAll('#psm-states').remove();
-                    map._d3.selectAll('#psm-counties').remove();
-                });
-            }
-        });
-
-        if(symbols != null){
-            unitTransition
-            .transition()
-            .each( function() {
-                symbols
-                .transition()
-                .attr('r', 0)
-                .remove()
-                .call(endall, function(){
-                    map._d3.selectAll('#choropleth-symbols-states').remove();
-
-                    animationCb();
-                });
-            });
-        }
-        this[`${id}-symbols`] = undefined;
-    }
 }

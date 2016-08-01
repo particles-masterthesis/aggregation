@@ -10,14 +10,35 @@ export default class BaseMap extends Visualization {
         this.levelOfDetail = levelOfDetail;
         this.colorScheme = colorScheme;
 
-        this.getColor = this.baseMap.colorbrewer[this.colorScheme][9];
-
 
         if (!this.baseMap.svg) {
             this.baseMap.init(width, height, levelOfDetail, drawMap);
         }
 
         if (drawMap) this.updateBaseMap(levelOfDetail);
+
+        this.setId();
+        this.colorScale = this.baseMap.colorScale
+        .range(this.baseMap.colorbrewer[this.colorScheme][9]);
+    }
+
+    setId(){
+        if(this.levelOfDetail === 'county'){
+            this.id = 'counties';
+        } else {
+            this.id = 'states';
+        }
+    }
+
+    updateParticlesOnLevel(upcomingLevelOfDetail){
+        let map = this.baseMap;
+        let nodes = map.nodes[this.id];
+        if(upcomingLevelOfDetail === 'county'){
+            nodes.map( d => {
+                d.particles = d.data.orders || 0;
+            });
+        }
+        return nodes;
     }
 
     updateBaseMap(levelOfDetail) {

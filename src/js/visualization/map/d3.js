@@ -17,6 +17,41 @@ window.endall = function (transition, callback) {
     .each("end", function() { if (!--n) callback.apply(this, arguments); });
 };
 
+
+function calculateCircle(coords){
+    let circle = [];
+    let length = 0;
+    let lengths = [length];
+    let polygon = this._d3.geom.polygon(coords);
+    let p0 = coords[0];
+    let p1, x, y, i = 0, n = coords.length;
+
+    while(++i < n){
+        p1 = coords[i];
+        x = p1[0] - p0[0];
+        y = p1[1] - p0[1];
+        lengths.push(length =+ Math.sqrt(x * x + y * y));
+        p0 = p1;
+    }
+
+    let area = polygon.area();
+    let radius = 20;
+    let centroid = polygon.centroid(-1 / (6 * area));
+    let angleOffset = -Math.PI / 2;
+    let angle, k = 2 * Math.PI / lengths[lengths.length - 1];
+    i = -1;
+
+    while(++i < n){
+        angle = angleOffset + lengths[i] * k;
+        circle.push([
+            centroid[0] + radius * Math.cos(angle),
+            centroid[1] + radius * Math.sin(angle),
+        ]);
+    }
+    return circle;
+
+}
+
 export default class D3 {
     constructor(enforcer) {
         if(enforcer != singletonEnforcer){
@@ -122,6 +157,60 @@ export default class D3 {
         this.centroids = {};
         this.calculateCentroids('states');
         this.calculateCentroids('counties');
+
+        this.nodes = {};
+        const statesTopojson = this._topojson.feature(this.data.us, this.data.us.objects.states).features;
+        const countiesTopojson = this._topojson.feature(this.data.us, this.data.us.objects.counties).features;
+
+        this.nodes.states = statesTopojson
+        .filter( d => {
+            let centroid = this.path.centroid(d);
+            return !(isNaN(centroid[0]) || isNaN(centroid[1]));
+        })
+        .map( d => {
+            let centroid = this.path.centroid(d);
+            // let originCoords = d.geometry.coordinates[0][0].map(
+            //     this.projection
+            // );
+            // let circleCoords = calculateCircle.bind(this, originCoords);
+            // let shapePath = 'M' + originCoords.join('L') + 'Z';
+            // let circlePath = 'M' + circleCoords.join('L') + 'Z';
+            let r = this.symbolScale(d.properties.population) || 0;
+            return{
+                type: d.type,
+                id: d.properties.stateId,
+                geometry: d.geometry,
+                x: centroid[0],
+                y: centroid[1],
+                r: r,
+                particles: 0,
+                data: d.properties
+                // shapePath: shapePath,
+                // circlePath: circlePath,
+            };
+        });
+
+        this.nodes.counties = countiesTopojson
+        .filter( d => {
+            let centroid = this.path.centroid(d);
+            return !(isNaN(centroid[0]) || isNaN(centroid[1]));
+        })
+        .map( d => {
+            let centroid = this.path.centroid(d);
+            let r = this.symbolScale(d.properties.population) || 0;
+            return{
+                type: d.type,
+                id: d.properties.countyId,
+                geometry: d.geometry,
+                x: centroid[0],
+                y: centroid[1],
+                r: r,
+                particles: 0,
+                data: d.properties
+            };
+        });
+
+        console.log(this);
 
     }
 

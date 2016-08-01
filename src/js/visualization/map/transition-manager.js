@@ -4,7 +4,12 @@ function sleep(ms) {
     });
 }
 
-function animateParticleToCentroidSymbolAndColor(currentViz, canvas, upcomingViz) {
+function animateParticleToCentroidSymbolAndColor(
+    currentViz,
+    canvas,
+    upcomingViz
+) {
+    let id = currentViz.id === 'counties'? 'CountyId' : 'StateId';
     for (let particle of currentViz.particles) {
         let coords = currentViz.getCentroidOfParticle(
             particle,
@@ -20,7 +25,7 @@ function animateParticleToCentroidSymbolAndColor(currentViz, canvas, upcomingViz
             () => {
 
                 upcomingViz.nodes.filter( (obj) => {
-                    if(obj.data.stateId == particle.data.StateId){
+                    if(obj.id == particle.data[id]){
                         ++obj.particles;
                         // obj.particles = Math.floor(Math.random() * 2000) + 100;
                         return true;
@@ -29,15 +34,19 @@ function animateParticleToCentroidSymbolAndColor(currentViz, canvas, upcomingViz
                 });
 
                 upcomingViz.colorSymbol(
-                    canvas.levelOfDetail,
-                    particle.data.StateId
+                    particle.data[id]
                 );
             }
         );
     }
 }
 
-function animateParticleToOriginAndColor(currentViz, canvas, upcomingViz) {
+function animateParticleToOriginAndColor(
+    currentViz,
+    canvas,
+    upcomingViz
+) {
+    let id = currentViz.id === 'counties'? 'CountyId' : 'StateId';
     for (let particle of currentViz.particles) {
         particle.transitionTo(
             particle.coords[0] - upcomingViz.size/2,
@@ -47,16 +56,15 @@ function animateParticleToOriginAndColor(currentViz, canvas, upcomingViz) {
             'linear',
             () => {
                 currentViz.nodes.filter( (obj) => {
-                    if(obj.data.stateId == particle.data.StateId){
-                        obj.particles -= 1;
+                    if(obj.id == particle.data[id]){
+                        --obj.particles;
                         return true;
                     }
                     return false;
                 });
 
                 currentViz.colorSymbol(
-                    canvas.levelOfDetail,
-                    particle.data.StateId
+                    particle.data[id]
                 );
             }
         );
@@ -67,6 +75,13 @@ export default class TransitionManager {
     constructor(canvas) {
         this.canvas = canvas;
         this.reset = 0;
+    }
+
+    isCurrentVisualization(constructorName){
+        if(constructorName === 'ProportionalSymbolMap') return true;
+        if(constructorName === 'ChoroplethMap') return true;
+        if(constructorName === 'Cartogram') return true;
+        return false;
     }
 
     drawDot() {
@@ -113,13 +128,14 @@ export default class TransitionManager {
                 case 'dot_psm':
 
                     upcomingViz.obj = this.canvas.drawProportionalSymbolMap(
-                        null,
-                        this.currentViz.constructor.name === "ProportionalSymbolMap",
-                        false,
-                        () => {
-                        }
-                    );
+                            this.isCurrentVisualization()
+                        );
                     upcomingViz.type = 'psm';
+
+                    upcomingViz.obj.initSymbols();
+                    upcomingViz.obj.drawDefaultSymbols();
+                    upcomingViz.obj.drawSymbolLegend();
+                    upcomingViz.obj.drawColorLegend();
 
                     animateParticleToCentroidSymbolAndColor(
                         this.currentViz,
@@ -130,9 +146,8 @@ export default class TransitionManager {
                     this.canvas.render();
 
                     canvas.animationQueue.push(() => {
-                        upcomingViz.obj.scaleSymbol(
+                        upcomingViz.obj.scaleSymbols(
                             false,
-                            canvas.levelOfDetail,
                             () => {
                                 this.setParticleAlpha(0);
                                 this.disableSelection(false);
@@ -146,29 +161,25 @@ export default class TransitionManager {
                 case 'psm_dot':
                     this.canvas.stop();
                     upcomingViz.obj = this.canvas.drawDotMap(
-                            dataStore.data,
-                            () => {},
-                            true
-                        );
+                        dataStore.data
+                    );
                     upcomingViz.type = 'dot';
 
-                    this.currentViz.scaleSymbol(
+                    this.currentViz.scaleSymbols(
                         20,
-                        this.canvas.levelOfDetail,
                         () => {
                             this.setParticleAlpha(1);
-                            this.canvas.particlesContainer.startAnimation();
-                            this.canvas.render();
                         }
                     );
 
-                    canvas.animationQueue.push(() => {
-                        animateParticleToOriginAndColor(
-                            this.currentViz,
-                            this.canvas,
-                            upcomingViz.obj
-                        );
-                    });
+                    animateParticleToOriginAndColor(
+                        this.currentViz,
+                        this.canvas,
+                        upcomingViz.obj
+                    );
+
+                    this.canvas.particlesContainer.startAnimation();
+                    this.canvas.render();
 
                     canvas.animationQueue.push(() => {
                         this.currentViz.removeAllDomNodes(()=>{
@@ -181,13 +192,13 @@ export default class TransitionManager {
 
                 case 'dot_choropleth':
                     upcomingViz.obj = this.canvas.drawChoroplethMap(
-                        null,
-                        this.currentViz.constructor.name === "ChoroplethMap",
-                        true,
-                        () => {
-                        }
+                        this.isCurrentVisualization()
                     );
                     upcomingViz.type = 'choropleth';
+                    upcomingViz.obj.initUnits();
+                    upcomingViz.obj.initSymbols();
+                    upcomingViz.obj.drawDefaultSymbols();
+                    upcomingViz.obj.drawLegend();
 
                     animateParticleToCentroidSymbolAndColor(
                         this.currentViz,
@@ -198,15 +209,14 @@ export default class TransitionManager {
                     this.canvas.render();
 
                     canvas.animationQueue.push(() => {
-                        upcomingViz.obj.colorAreaAndRemoveSymbols(
-                            canvas.levelOfDetail,
-                            true,
-                            () => {
-                                this.setParticleAlpha(0);
-                                this.disableSelection(false);
-                                // console.log(upcomingViz.obj);
-                            }
-                        );
+                        upcomingViz.obj.colorUnits();
+                        upcomingViz.obj.scaleSymbols(() => {
+                            this.setParticleAlpha(0);
+                            this.disableSelection(false);
+                            upcomingViz.obj.removeSvgElement(
+                                `symbols-${upcomingViz.obj.id}`
+                            );
+                        });
                     });
 
                     resolve(upcomingViz);
@@ -215,32 +225,35 @@ export default class TransitionManager {
                 case 'choropleth_dot':
                     this.canvas.stop();
                     upcomingViz.obj = this.canvas.drawDotMap(
-                            dataStore.data,
-                            () => {},
-                            true
-                        );
+                        dataStore.data
+                    );
                     upcomingViz.type = 'dot';
 
-                    this.currentViz.colorSymbolsAndRemoveArea(
-                        this.canvas.levelOfDetail,
+                    this.currentViz.initSymbols();
+                    this.currentViz.drawDefaultSymbols();
+                    this.currentViz.colorSymbols();
+
+
+                    this.currentViz.removeSvgElement(
+                        `units-${this.currentViz.id}`,
+                        'unit',
                         () => {
                             this.setParticleAlpha(1);
-                            this.canvas.particlesContainer.startAnimation();
+                            animateParticleToOriginAndColor(
+                                this.currentViz,
+                                this.canvas,
+                                upcomingViz.obj
+                            );
+                            this.canvas
+                            .particlesContainer.startAnimation();
                             this.canvas.render();
                         }
                     );
 
                     canvas.animationQueue.push(() => {
-                        animateParticleToOriginAndColor(
-                            this.currentViz,
-                            this.canvas,
-                            upcomingViz.obj
-                        );
-                    });
-
-                    canvas.animationQueue.push(() => {
                         this.currentViz.removeAllDomNodes(()=>{
                             this.disableSelection(false);
+                            console.log(this.currentViz);
                         });
                     });
 

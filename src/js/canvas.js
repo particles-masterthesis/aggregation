@@ -246,7 +246,7 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawDotMap(dataset, animationCb, keepParticles) {
+    drawDotMap(dataset) {
         let transitionType = $("select.transition").val();
         let transitionLayout = $("select.transition-layout").val();
         let areParticlesNew = this.particlesContainer.createParticles(dataset, this.particles);
@@ -256,33 +256,18 @@ export default class Canvas {
             this.height,
             this.particlesContainer,
             this.levelOfDetail,
-            this.colorScheme,
-            animationCb
+            this.colorScheme
         );
 
-        // this.animationQueue.push(() => {
-        //     this.minimizeOldVisualization(areParticlesNew, transitionType, transitionLayout);
-        // });
-
         this.animationQueue.push(() => {
-        //     this.moveNewVisualization(areParticlesNew, transitionType, transitionLayout);
             this.stage.addChild(this.visualization);
-            this.visualization.drawData(animationCb, areParticlesNew, keepParticles);
-            // this.moveParticlesDestination(areParticlesNew, transitionType, transitionLayout);
-
-        //     // After defining the destination we have to calculate the speed for the particles
-        //     // so the reach at the same time their destination
-        //     if (this.particles.arrivalSync) this.particlesContainer.calculateSpeedArrivingSameTime();
+            this.visualization.drawData();
         });
-
-        // this.animationQueue.push(() => {
-        //     this.cleanLayout();
-        // });
 
         return this.visualization;
     }
 
-    drawProportionalSymbolMap(dataset, isCurrentVisualization, keepSymbols, animationCb) {
+    drawProportionalSymbolMap(isCurrentVisualization) {
         if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail, this.colorScheme);
             return this.visualization;
@@ -293,9 +278,7 @@ export default class Canvas {
             this.height,
             this.particlesContainer,
             this.levelOfDetail,
-            this.colorScheme,
-            keepSymbols,
-            animationCb
+            this.colorScheme
         );
         this.stage.addChild(this.visualization);
 
@@ -304,7 +287,7 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawChoroplethMap(dataset, isCurrentVisualization, useSybols, animationCb) {
+    drawChoroplethMap(isCurrentVisualization) {
         if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail, this.colorScheme);
             return this.visualization;
@@ -315,9 +298,7 @@ export default class Canvas {
             this.height,
             this.particlesContainer,
             this.levelOfDetail,
-            this.colorScheme,
-            useSybols,
-            animationCb
+            this.colorScheme
         );
 
         this.particlesContainer.startAnimation();

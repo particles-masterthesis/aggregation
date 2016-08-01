@@ -3,197 +3,143 @@ import BaseMap from "./base-map";
 
 export default class ProportionalSymbolMap extends BaseMap {
 
-    constructor(width, height, particleContainer, levelOfDetail, colorScheme, keepInformation, animationCb){
-        super(width, height, particleContainer, levelOfDetail, true, colorScheme);
+    constructor(
+        width,
+        height,
+        particleContainer,
+        levelOfDetail,
+        colorScheme
+    ){
+        super(
+            width,
+            height,
+            particleContainer,
+            levelOfDetail,
+            true,
+            colorScheme
+        );
 
-        this.levelOfDetail = levelOfDetail;
-        this.colorScale = this.baseMap.colorScale
-        .range(this.baseMap.colorbrewer[this.colorScheme][9]);
-
-
-        if(!keepInformation){
-            this.drawSymbolLegend();
-            this.drawColorLegend();
-            this.drawSymbols(false, animationCb);
-        } else{
-            this.nodes = keepInformation.data;
-            this.symbols = keepInformation.symbols;
-
-            let id;
-            if(this.levelOfDetail === 'county'){
-                id = 'counties';
-            } else {
-                id = 'states';
-            }
-
-            let container = document.getElementById(`cartogram-${id}`);
-            if(container == null){
-                container = document.getElementById(`psm-${id}`);
-            }
-            container.parentNode.appendChild(container);
-
-            let map = this.baseMap;
-            this[id] = map.svg
-            .selectAll(`.${id}-bubbles`)
-            .transition()
-            .delay(200)
-            .duration(1000)
-            .attr('cx', d => { return d.x0; })
-            .attr('cy', d => { return d.y0; })
-            .each("end", animationCb);
-            this.symbols = this[id];
-        }
         super.show(true, true);
+
+        // if(!keepInformation){
+        //     this.drawSymbolLegend();
+        //     this.drawColorLegend();
+        //     this.drawSymbols(false, animationCb);
+        // } else{
+        //     this.nodes = keepInformation.data;
+        //     this.symbols = keepInformation.symbols;
+
+        //     let id;
+        //     if(this.levelOfDetail === 'county'){
+        //         id = 'counties';
+        //     } else {
+        //         id = 'states';
+        //     }
+
+        //     let container = document.getElementById(`cartogram-${id}`);
+        //     if(container == null){
+        //         container = document.getElementById(`psm-${id}`);
+        //     }
+        //     container.parentNode.appendChild(container);
+
+        //     let map = this.baseMap;
+        //     this[id] = map.svg
+        //     .selectAll(`.${id}-bubbles`)
+        //     .transition()
+        //     .delay(200)
+        //     .duration(1000)
+        //     .attr('cx', d => { return d.x0; })
+        //     .attr('cy', d => { return d.y0; })
+        //     .each("end", animationCb);
+        //     this.symbols = this[id];
+        // }
     }
 
-    drawSymbols(forceRedraw, animationCb){
-        if(forceRedraw){
-            if (typeof this.counties !== 'undefined'){
-                this.counties
-                .attr('fill', d => {
-                    return this.colorScale(d.particles);
-                });
-            }
-            if (typeof this.states !== 'undefined'){
-                this.states
-                .attr('fill', d => {
-                    return this.colorScale(d.particles);
-                });
-                return;
-            }
-        }
-
-        switch (this.levelOfDetail) {
-            case "country":
-            case "state":
-                if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
-                if (typeof this.states === 'undefined') this.draw("states", animationCb);
-                break;
-            case "county":
-                if (typeof this.states !== 'undefined') this.removeSvgElement('states');
-                if (typeof this.counties === 'undefined') this.draw("counties", animationCb);
-                break;
-            default:
-                break;
-        }
-    }
-
-    draw(id, animationCb){
+    initSymbols(nodes){
         let map = this.baseMap;
 
-        const data = map._topojson.feature(map.data.us, map.data.us.objects[id]).features;
-
-        this.nodes = data
-        .filter( d => {
-            let centroid = map.path.centroid(d);
-            return !(isNaN(centroid[0]) || isNaN(centroid[1]));
-        })
-        .map( d => {
-            let centroid = map.path.centroid(d);
-            let r = map.symbolScale(d.properties.population) || 0;
-            return{
-                x: centroid[0],
-                x0: centroid[0],
-                y: centroid[1],
-                y0: centroid[1],
-                r: r,
-                data: d.properties,
-                particles: 0
-            };
-        })
-        .sort( (a, b) => {
+        this.nodes = nodes == null? map.nodes[this.id]: nodes;
+        this.nodes.sort( (a, b) => {
             return b.data.population - a.data.population;
         });
 
-        this[id] = map.svg.append("g")
-        .attr("id", `psm-${id}`)
+        this[this.id] = map.svg.append("g")
+        .attr("id", `psm-${this.id}`)
         .attr("class", "bubble")
         .selectAll("circle")
         .data(this.nodes)
         .enter()
         .append("circle")
-        .attr("class", `${id}-bubbles`)
         .attr('cx', d => { return d.x; })
         .attr('cy', d => { return d.y; });
-
-        if(this.isFunction(animationCb)){
-            this[id]
-            .attr("r", 20)
-            .attr('fill', d => { return this.colorScale(1); })
-            .attr('class', d => { return `state-${d.data.stateId}`; });
-        } else {
-            this[id]
-            .attr('fill', d => {
-                return this.colorScale(d.particles);
-            })
-            .attr("r", d => { return d.r; });
-        }
-        this.symbols = this[id];
     }
 
-    colorSymbol(levelOfDetail, stateId){
-        let map = this.baseMap;
-        let id;
-        switch (levelOfDetail) {
-            case "country":
-            case "state":
-                id = 'states';
-                break;
-            case "county":
-                id = 'counties';
-                break;
-            default:
-                break;
-        }
+    drawDefaultSymbols(){
+        this[this.id]
+        .attr("r", 20)
+        .attr('fill', d => { return this.colorScale(1); })
+        .attr('class', d => { return `${this.id}-${d.id}`; });
+    }
 
-        map.svg
-        .select(`.state-${stateId}`)
+    colorSymbol(id){
+        this.baseMap.svg
+        .select(`.${this.id}-${id}`)
         .attr('fill', d => {
             return this.colorScale(d.particles);
         });
     }
 
-    scaleSymbol(defaultValue, levelOfDetail, animationCb){
-        let id;
-        switch (levelOfDetail) {
-            case "country":
-            case "state":
-                id = 'states';
-                break;
-            default:
-                id = 'counties';
-                break;
-        }
+    colorSymbols(){
+        this[this.id]
+        .attr('fill', d => {
+            return this.colorScale(d.particles);
+        });
 
-        this[id]
+    }
+
+    scaleSymbols(defaultValue, animationCb){
+        this[this.id]
         .transition()
-        .duration(1500)
+        .duration(1000)
         .attr("r", d => { return defaultValue || d.r; })
         .call(window.endall, animationCb);
     }
 
     update(levelOfDetail, colorScheme){
-        this.levelOfDetail = levelOfDetail;
-        this.colorScheme = colorScheme;
+        if(levelOfDetail !== this.levelOfDetail){
+            this.removeSvgElement(this.id);
+            this.levelOfDetail = levelOfDetail;
 
-        this.colorScale = this.baseMap.colorScale
-        .range(this.baseMap.colorbrewer[this.colorScheme][9]);
+            this.setId();
 
-        super.updateBaseMap(levelOfDetail);
-        this.drawSymbols(true);
+            this.initSymbols(
+                super.updateParticlesOnLevel(levelOfDetail)
+            );
+            this.scaleSymbols(false, () => {
+                this.colorSymbols();
+            });
+
+            super.updateBaseMap(levelOfDetail);
+        }
+
+        if(colorScheme !== this.colorScheme){
+            this.colorScheme = colorScheme;
+
+            this.colorScale = this.baseMap.colorScale
+            .range(this.baseMap.colorbrewer[this.colorScheme][9]);
+            this.colorSymbols();
+            this.drawColorLegend(true);
+        }
         this.drawSymbolLegend();
-        this.drawColorLegend(true);
     }
 
     removeAllDomNodes(animationCb){
-        console.log(this);
-        if (typeof this.counties !== 'undefined') this.removeSvgElement('counties', animationCb);
-        if (typeof this.states !== 'undefined') this.removeSvgElement('states', animationCb);
-        if (typeof this.symbolLegend !== 'undefined') this.removeSvgElement('symbolLegend');
-        if (typeof this.colorLegend !== 'undefined') this.removeSvgElement('colorLegend');
-
-        this.baseMap._d3.selectAll('#psm-symbol-legend').remove();
-        this.baseMap._d3.selectAll('#psm-color-legend').remove();
+        this.removeSvgElement('colorLegend');
+        this.removeSvgElement('symbolLegend');
+        this.removeSvgElement(this.id, () => {
+            this.removeSvgElement(this.id);
+            animationCb();
+        });
     }
 
     removeSvgElement(element, animationCb){
@@ -201,14 +147,12 @@ export default class ProportionalSymbolMap extends BaseMap {
             this[element]
             .transition()
             .attr("r", 0)
-            .call(endall, function(){ animationCb(); })
-            .remove();
-
-        } else {
+            .call(endall, function(){ animationCb(); });
+        } else{
             this[element].remove();
             this.baseMap._d3.selectAll(`#psm-${element}`).remove();
+            return delete this[element];
         }
-        this[element] = undefined;
     }
 
     drawSymbolLegend(){
@@ -217,7 +161,7 @@ export default class ProportionalSymbolMap extends BaseMap {
         if (typeof this.symbolLegend !== 'undefined') return;
 
         this.symbolLegend = map.svg.append("g")
-        .attr("id", "psm-symbol-legend")
+        .attr("id", "psm-symbolLegend")
         .attr("class", "legend")
         .attr("transform", "translate(50, 60)");
 
@@ -267,7 +211,7 @@ export default class ProportionalSymbolMap extends BaseMap {
         let width = 40, height = 20;
 
         this.colorLegend = map.svg.append("g")
-        .attr("id", "psm-color-legend");
+        .attr("id", "psm-colorLegend");
 
         let legend = this.colorLegend.selectAll("g.legend")
         .data(values)

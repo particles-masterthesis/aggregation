@@ -7,8 +7,8 @@ export default class DataStore {
         this.useSubset = true;
         this.useSubset = false;
 
-        this.sizeOfSubset = 1;
         this.sizeOfSubset = 1000;
+        this.sizeOfSubset = 1;
 
         this.currentSelection = {
             x: null,

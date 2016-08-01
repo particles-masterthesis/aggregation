@@ -126,7 +126,6 @@ export default class TransitionManager {
             console.log(transitionKey);
             switch (transitionKey) {
                 case 'dot_psm':
-
                     upcomingViz.obj = this.canvas.drawProportionalSymbolMap(
                             this.isCurrentVisualization()
                         );
@@ -253,7 +252,6 @@ export default class TransitionManager {
                     canvas.animationQueue.push(() => {
                         this.currentViz.removeAllDomNodes(()=>{
                             this.disableSelection(false);
-                            console.log(this.currentViz);
                         });
                     });
 
@@ -263,37 +261,57 @@ export default class TransitionManager {
 
                 case 'psm_choropleth':
                     upcomingViz.obj = this.canvas.drawChoroplethMap(
-                        null,
-                        this.currentViz.constructor.name === "ChoroplethMap",
-                        false,
-                        () => {
-                        }
+                        this.isCurrentVisualization()
                     );
                     upcomingViz.type = 'choropleth';
 
-                    this.currentViz.scaleSymbol(
+
+                    this.currentViz.scaleSymbols(
                         20,
-                        this.canvas.levelOfDetail,
                         () => {
-                            upcomingViz.obj.colorAreaAndRemoveSymbols(
-                                canvas.levelOfDetail,
+                            upcomingViz.obj.initUnits(undefined, true);
+                            upcomingViz.obj.colorUnits();
+                            this.currentViz.removeAllDomNodes(() => {
+                                upcomingViz.obj.drawLegend();
+                                this.disableSelection(false);
+                            });
+                        }
+                    );
+
+                    resolve(upcomingViz);
+                    break;
+
+                case 'choropleth_psm':
+                    upcomingViz.obj = this.canvas.drawProportionalSymbolMap(
+                            this.isCurrentVisualization()
+                        );
+                    upcomingViz.type = 'psm';
+
+                    upcomingViz.obj.initSymbols();
+                    upcomingViz.obj.drawDefaultSymbols();
+                    upcomingViz.obj.colorSymbols();
+
+                    this.currentViz.removeSvgElement('colorLegend');
+                    let units = `units-${this.currentViz.id}`;
+                    this.currentViz.removeSvgElement(
+                        units,
+                        'unit',
+                        () => {
+                            upcomingViz.obj.drawSymbolLegend();
+                            upcomingViz.obj.drawColorLegend();
+
+                            this.currentViz.removeSvgElement(units);
+                            upcomingViz.obj.scaleSymbols(
                                 false,
                                 () => {
-                                    this.currentViz.removeAllDomNodes(()=>{
-                                        this.disableSelection(false);
-                                    });
+                                    this.disableSelection(false);
                                 }
                             );
                         }
                     );
 
-
                     resolve(upcomingViz);
                     break;
-
-                // case 'choropleth_psm':
-
-
 
                 case 'dot_cartogram':
                     animateParticleToCentroid(this.currentViz, this.canvas.levelOfDetail);

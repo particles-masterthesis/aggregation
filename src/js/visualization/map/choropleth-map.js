@@ -32,7 +32,7 @@ export default class ChoroplethMap extends BaseMap {
         });
     }
 
-    initUnits(nodes){
+    initUnits(nodes, insertBefore){
         this.initNodes(nodes);
 
         let map = this.baseMap;
@@ -40,7 +40,14 @@ export default class ChoroplethMap extends BaseMap {
         .append("g")
         .attr("id", `choropleth-units-${this.id}`)
         .selectAll("path")
-        .data(this.nodes)
+        .data(this.nodes);
+
+        if(insertBefore){
+            let node1 = document.getElementById(`psm-${this.id}`);
+            let node2 = document.getElementById(`choropleth-units-${this.id}`);
+            node2.parentNode.insertBefore(node2, node1);
+        }
+        this[`units-${this.id}`] = this[`units-${this.id}`]
         .enter()
         .append('path')
         .attr("fill", '#D3D3D3')
@@ -153,6 +160,7 @@ export default class ChoroplethMap extends BaseMap {
 
     removeSvgElement(element, type, animationCb){
         if(this.isFunction(animationCb)){
+            console.log(type);
             if(type === 'symbol'){
                 this[element]
                 .transition()

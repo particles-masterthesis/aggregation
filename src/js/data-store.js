@@ -4,10 +4,10 @@ export default class DataStore {
         this.data = [];
         this.features = [];
         this.schema = {};
+        this.useSubset = true;
         this.useSubset = false;
-        // this.useSubset = true;
 
-        // this.sizeOfSubset = 1;
+        this.sizeOfSubset = 1;
         this.sizeOfSubset = 1000;
 
         this.currentSelection = {

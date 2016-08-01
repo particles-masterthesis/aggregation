@@ -283,11 +283,6 @@ export default class Canvas {
     }
 
     drawProportionalSymbolMap(dataset, isCurrentVisualization, keepSymbols, animationCb) {
-        if (!isFunction(animationCb)) {
-            this.reset();
-            this.particlesContainer.createParticles(dataset, this.particles);
-        }
-
         if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail, this.colorScheme);
             return this.visualization;
@@ -309,12 +304,7 @@ export default class Canvas {
         return this.visualization;
     }
 
-    drawChoroplethMap(dataset, isCurrentVisualization, animationCb) {
-        if (!isFunction(animationCb)) {
-            this.reset();
-            this.particlesContainer.createParticles(dataset, this.particles);
-        }
-
+    drawChoroplethMap(dataset, isCurrentVisualization, useSybols, animationCb) {
         if (isCurrentVisualization) {
             this.visualization.update(this.levelOfDetail, this.colorScheme);
             return this.visualization;
@@ -326,6 +316,7 @@ export default class Canvas {
             this.particlesContainer,
             this.levelOfDetail,
             this.colorScheme,
+            useSybols,
             animationCb
         );
 

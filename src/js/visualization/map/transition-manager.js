@@ -93,7 +93,9 @@ export default class TransitionManager {
     }
 
     disableSelection(val){
-        $("select.visualization").attr("disabled", val);
+        $("select").each(function(){
+            $(this).attr("disabled", val);
+        });
     }
 
     animate(current, upcoming) {
@@ -101,6 +103,7 @@ export default class TransitionManager {
             this.canvas.stop();
             this.currentViz = current.obj;
             this.upcomingVizType = upcoming;
+
             this.disableSelection(true);
             let upcomingViz = {};
             let information;
@@ -177,17 +180,107 @@ export default class TransitionManager {
                     break;
 
                 case 'dot_choropleth':
-                    this.canvas.render();
                     upcomingViz.obj = this.canvas.drawChoroplethMap(
                         null,
                         this.currentViz.constructor.name === "ChoroplethMap",
+                        true,
                         () => {
-                            this.fadeParticles('out');
                         }
                     );
                     upcomingViz.type = 'choropleth';
+
+                    animateParticleToCentroidSymbolAndColor(
+                        this.currentViz,
+                        this.canvas,
+                        upcomingViz.obj
+                    );
+                    this.canvas.particlesContainer.startAnimation();
+                    this.canvas.render();
+
+                    canvas.animationQueue.push(() => {
+                        upcomingViz.obj.colorAreaAndRemoveSymbols(
+                            canvas.levelOfDetail,
+                            true,
+                            () => {
+                                this.setParticleAlpha(0);
+                                this.disableSelection(false);
+                                // console.log(upcomingViz.obj);
+                            }
+                        );
+                    });
+
                     resolve(upcomingViz);
                     break;
+
+                case 'choropleth_dot':
+                    this.canvas.stop();
+                    upcomingViz.obj = this.canvas.drawDotMap(
+                            dataStore.data,
+                            () => {},
+                            true
+                        );
+                    upcomingViz.type = 'dot';
+
+                    this.currentViz.colorSymbolsAndRemoveArea(
+                        this.canvas.levelOfDetail,
+                        () => {
+                            this.setParticleAlpha(1);
+                            this.canvas.particlesContainer.startAnimation();
+                            this.canvas.render();
+                        }
+                    );
+
+                    canvas.animationQueue.push(() => {
+                        animateParticleToOriginAndColor(
+                            this.currentViz,
+                            this.canvas,
+                            upcomingViz.obj
+                        );
+                    });
+
+                    canvas.animationQueue.push(() => {
+                        this.currentViz.removeAllDomNodes(()=>{
+                            this.disableSelection(false);
+                        });
+                    });
+
+                    resolve(upcomingViz);
+
+                    break;
+
+                case 'psm_choropleth':
+                    upcomingViz.obj = this.canvas.drawChoroplethMap(
+                        null,
+                        this.currentViz.constructor.name === "ChoroplethMap",
+                        false,
+                        () => {
+                        }
+                    );
+                    upcomingViz.type = 'choropleth';
+
+                    this.currentViz.scaleSymbol(
+                        20,
+                        this.canvas.levelOfDetail,
+                        () => {
+                            upcomingViz.obj.colorAreaAndRemoveSymbols(
+                                canvas.levelOfDetail,
+                                false,
+                                () => {
+                                    this.currentViz.removeAllDomNodes(()=>{
+                                        this.disableSelection(false);
+                                    });
+                                }
+                            );
+                        }
+                    );
+
+
+                    resolve(upcomingViz);
+                    break;
+
+                // case 'choropleth_psm':
+
+
 
                 case 'dot_cartogram':
                     animateParticleToCentroid(this.currentViz, this.canvas.levelOfDetail);
@@ -207,7 +300,6 @@ export default class TransitionManager {
                     break;
 
 
-                case 'choropleth_dot':
                 case 'cartogram_dot':
                     this.currentViz.removeAllDomNodes((cb) => {
                         if (this.currentViz.isFunction(cb)) cb();
@@ -262,8 +354,6 @@ export default class TransitionManager {
                     resolve(upcomingViz);
                     break;
 
-                case 'psm_choropleth':
-                case 'choropleth_psm':
                 case 'choropleth_cartogram':
                 case 'cartogram_choropleth':
                     let endResult = upcoming;

@@ -70,7 +70,6 @@ export default class D3 {
                 for(let i = 0; i < counties.length; i++){
                     var stateId = counties[i].properties.stateId;
                     let state = states.filter(filterFnc)[0];
-
                     if ('orders' in state.properties){
                         state.properties.orders =
                             Number(state.properties.orders) +
@@ -89,7 +88,6 @@ export default class D3 {
                         state.properties.population = Number((counties[i].properties.population || 0));
                     }
                 }
-
             }
         });
 

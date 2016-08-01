@@ -48,8 +48,19 @@ export default class ProportionalSymbolMap extends BaseMap {
 
     drawSymbols(forceRedraw, animationCb){
         if(forceRedraw){
-            if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
-            if (typeof this.states !== 'undefined') this.removeSvgElement('states');
+            if (typeof this.counties !== 'undefined'){
+                this.counties
+                .attr('fill', d => {
+                    return this.colorScale(d.particles);
+                });
+            }
+            if (typeof this.states !== 'undefined'){
+                this.states
+                .attr('fill', d => {
+                    return this.colorScale(d.particles);
+                });
+                return;
+            }
         }
 
         switch (this.levelOfDetail) {
@@ -113,7 +124,7 @@ export default class ProportionalSymbolMap extends BaseMap {
         } else {
             this[id]
             .attr('fill', d => {
-                return this.colorScale(d.data.orders);
+                return this.colorScale(d.particles);
             })
             .attr("r", d => { return d.r; });
         }
@@ -175,6 +186,7 @@ export default class ProportionalSymbolMap extends BaseMap {
     }
 
     removeAllDomNodes(animationCb){
+        console.log(this);
         if (typeof this.counties !== 'undefined') this.removeSvgElement('counties', animationCb);
         if (typeof this.states !== 'undefined') this.removeSvgElement('states', animationCb);
         if (typeof this.symbolLegend !== 'undefined') this.removeSvgElement('symbolLegend');

@@ -181,7 +181,9 @@ export default class D3 {
                 id: d.properties.stateId,
                 geometry: d.geometry,
                 x: centroid[0],
+                x0: centroid[0],
                 y: centroid[1],
+                y0: centroid[1],
                 r: r,
                 particles: 0,
                 data: d.properties
@@ -203,7 +205,9 @@ export default class D3 {
                 id: d.properties.countyId,
                 geometry: d.geometry,
                 x: centroid[0],
+                x0: centroid[0],
                 y: centroid[1],
+                y0: centroid[1],
                 r: r,
                 particles: 0,
                 data: d.properties

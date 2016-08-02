@@ -67,8 +67,8 @@ export default class ChoroplethMap extends BaseMap {
         .data(this.nodes)
         .enter()
         .append('circle')
-        .attr('cx', d => { return d.x; })
-        .attr('cy', d => { return d.y; });
+        .attr('cx', d => { return d.x0; })
+        .attr('cy', d => { return d.y0; });
     }
 
     drawDefaultSymbols(){

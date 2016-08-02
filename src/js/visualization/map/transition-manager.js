@@ -314,90 +314,134 @@ export default class TransitionManager {
                     break;
 
                 case 'dot_cartogram':
-                    animateParticleToCentroid(this.currentViz, this.canvas.levelOfDetail);
-                    this.canvas.render();
-
                     upcomingViz.obj = this.canvas.drawCartogram(
-                        null,
-                        this.currentViz.constructor.name === "Cartogram",
-                        false,
-                        () => {
-                            this.currentViz.hide(false, true);
-                            this.fadeParticles('out');
-                        }
+                        this.isCurrentVisualization()
                     );
                     upcomingViz.type = 'cartogram';
+
+                    upcomingViz.obj.initSymbols();
+                    upcomingViz.obj.drawDefaultSymbols();
+                    upcomingViz.obj.drawSymbolLegend();
+                    upcomingViz.obj.drawColorLegend();
+
+                    animateParticleToCentroidSymbolAndColor(
+                        this.currentViz,
+                        this.canvas,
+                        upcomingViz.obj
+                    );
+                    this.canvas.particlesContainer.startAnimation();
+                    this.canvas.render();
+
+                    canvas.animationQueue.push(() => {
+                        upcomingViz.obj.scaleSymbols(
+                            false,
+                            (cartogramCb) => {
+                                this.setParticleAlpha(0);
+                                cartogramCb(() => {
+                                    this.disableSelection(false);
+                                });
+                            }
+                        );
+                    });
                     resolve(upcomingViz);
                     break;
 
 
                 case 'cartogram_dot':
-                    this.currentViz.removeAllDomNodes((cb) => {
-                        if (this.currentViz.isFunction(cb)) cb();
-                        this.canvas.stop();
-                        upcomingViz = this.drawDot();
-                        this.canvas.render();
-                        this.canvas.particlesContainer.startAnimation();
-                        resolve(upcomingViz);
+                    this.canvas.stop();
+                    upcomingViz.obj = this.canvas.drawDotMap(
+                        dataStore.data
+                    );
+                    upcomingViz.type = 'dot';
+
+                    this.currentViz.translateSymbolsToOrigin(() => {
+                        this.currentViz.scaleSymbols(20, () => {
+                            this.setParticleAlpha(1);
+                            animateParticleToOriginAndColor(
+                                this.currentViz,
+                                this.canvas,
+                                upcomingViz.obj
+                            );
+
+                        });
                     });
+
+                    sleep(750).then(() => {
+                        this.canvas.particlesContainer.startAnimation();
+                        this.canvas.render();
+                        this.canvas.animationQueue.push(() => {
+                            this.currentViz.removeAllDomNodes(()=>{
+                                this.disableSelection(false);
+                            });
+                        });
+                    });
+
+
+                    resolve(upcomingViz);
                     break;
 
                 case 'psm_cartogram':
-                    let psm = this.currentViz;
-                    information = {
-                        data: psm.nodes,
-                        symbols: psm.symbols
-                    };
-
-                    console.log(information);
                     upcomingViz.obj = this.canvas.drawCartogram(
-                        null,
-                        this.currentViz.constructor.name === "Cartogram",
-                        information,
-                        () => {
-                            this.currentViz.hide(false, true);
-                            this.fadeParticles('out');
-                        }
+                        this.isCurrentVisualization()
                     );
                     upcomingViz.type = 'cartogram';
+
+                    upcomingViz.obj.initSymbols(
+                        null,
+                        this.currentViz[this.currentViz.id]
+                    );
+                    this.currentViz.removeSvgElement('colorLegend');
+                    this.currentViz.removeSvgElement('symbolLegend');
+                    upcomingViz.obj.drawSymbolLegend();
+                    upcomingViz.obj.drawColorLegend();
+                    upcomingViz.obj.scaleSymbols(
+                        false,
+                        (cartogramCb) => {
+                            cartogramCb(() => {
+                                this.disableSelection(false);
+                            });
+                        }
+                    );
+
                     resolve(upcomingViz);
                     break;
 
                 case 'cartogram_psm':
-                    this.currentViz.force.stop();
-                    let cartogram = this.currentViz;
-                    console.log(cartogram);
-                    information = {
-                        data: cartogram.nodes,
-                        symbols: cartogram.symbols || cartogram.node
-                    };
-                    console.log(information);
-
                     upcomingViz.obj = this.canvas.drawProportionalSymbolMap(
-                        null,
-                        this.currentViz.constructor.name === "ProportionalSymbolMap",
-                        information,
-                        () => {
-                            this.fadeParticles('out');
-                        }
-                    );
+                            this.isCurrentVisualization()
+                        );
                     upcomingViz.type = 'psm';
+
+                    this.currentViz.translateSymbolsToOrigin((resetCoordinates) => {
+                        upcomingViz.obj.initSymbols(
+                            null,
+                            this.currentViz[this.currentViz.id]
+                        );
+                        this.disableSelection(false);
+                        resetCoordinates();
+                    });
+
+                    this.currentViz.removeSvgElement('colorLegend');
+                    this.currentViz.removeSvgElement('symbolLegend');
+                    upcomingViz.obj.drawSymbolLegend();
+                    upcomingViz.obj.drawColorLegend();
+
                     resolve(upcomingViz);
                     break;
 
-                case 'choropleth_cartogram':
-                case 'cartogram_choropleth':
-                    let endResult = upcoming;
-                    let dotMapPromise = this.animate(current, 'dot');
-                    dotMapPromise.then((dotMap) => {
-                        sleep(1500).then(() => {
-                            this.animate(dotMap, endResult)
-                                .then((result) => {
-                                    resolve(result);
-                                });
-                        });
-                    });
-                    break;
+                // case 'choropleth_cartogram':
+                // case 'cartogram_choropleth':
+                //     let endResult = upcoming;
+                //     let dotMapPromise = this.animate(current, 'dot');
+                //     dotMapPromise.then((dotMap) => {
+                //         sleep(1500).then(() => {
+                //             this.animate(dotMap, endResult)
+                //                 .then((result) => {
+                //                     resolve(result);
+                //                 });
+                //         });
+                //     });
+                //     break;
 
 
                 default:

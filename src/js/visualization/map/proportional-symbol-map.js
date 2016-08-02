@@ -55,13 +55,21 @@ export default class ProportionalSymbolMap extends BaseMap {
         // }
     }
 
-    initSymbols(nodes){
+    initSymbols(nodes, symbols){
         let map = this.baseMap;
 
         this.nodes = nodes == null? map.nodes[this.id]: nodes;
         this.nodes.sort( (a, b) => {
             return b.data.population - a.data.population;
         });
+
+        if(symbols){
+            this[this.id] = symbols;
+            map.svg
+            .select(`#${this[this.id][0].parentNode.id}`)
+            .attr("id", `psm-${this.id}`);
+            return;
+        }
 
         this[this.id] = map.svg.append("g")
         .attr("id", `psm-${this.id}`)
@@ -70,8 +78,8 @@ export default class ProportionalSymbolMap extends BaseMap {
         .data(this.nodes)
         .enter()
         .append("circle")
-        .attr('cx', d => { return d.x; })
-        .attr('cy', d => { return d.y; });
+        .attr('cx', d => { return d.x0; })
+        .attr('cy', d => { return d.y0; });
     }
 
     drawDefaultSymbols(){
@@ -94,7 +102,6 @@ export default class ProportionalSymbolMap extends BaseMap {
         .attr('fill', d => {
             return this.colorScale(d.particles);
         });
-
     }
 
     scaleSymbols(defaultValue, animationCb){

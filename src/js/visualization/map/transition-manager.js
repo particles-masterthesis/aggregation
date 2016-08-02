@@ -169,23 +169,23 @@ export default class TransitionManager {
                         20,
                         () => {
                             this.setParticleAlpha(1);
+                            animateParticleToOriginAndColor(
+                                this.currentViz,
+                                this.canvas,
+                                upcomingViz.obj
+                            );
+
+                            sleep(500).then(() => {
+                                this.canvas.particlesContainer.startAnimation();
+                                this.canvas.render();
+                                canvas.animationQueue.push(() => {
+                                    this.currentViz.removeAllDomNodes(()=>{
+                                        this.disableSelection(false);
+                                    });
+                                });
+                            });
                         }
                     );
-
-                    animateParticleToOriginAndColor(
-                        this.currentViz,
-                        this.canvas,
-                        upcomingViz.obj
-                    );
-
-                    this.canvas.particlesContainer.startAnimation();
-                    this.canvas.render();
-
-                    canvas.animationQueue.push(() => {
-                        this.currentViz.removeAllDomNodes(()=>{
-                            this.disableSelection(false);
-                        });
-                    });
 
                     resolve(upcomingViz);
                     break;

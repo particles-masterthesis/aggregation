@@ -122,6 +122,7 @@ export default class TransitionManager {
             this.disableSelection(true);
             let upcomingViz = {};
             let information;
+            let units;
             const transitionKey = `${current.type}_${upcoming}`;
             console.log(transitionKey);
             switch (transitionKey) {
@@ -269,7 +270,11 @@ export default class TransitionManager {
                     this.currentViz.scaleSymbols(
                         20,
                         () => {
-                            upcomingViz.obj.initUnits(undefined, true);
+                            upcomingViz.obj.initUnits(undefined, {
+                                node1: document.getElementById(
+                                    `psm-${this.currentViz.id}`
+                                )
+                            });
                             upcomingViz.obj.colorUnits();
                             this.currentViz.removeAllDomNodes(() => {
                                 upcomingViz.obj.drawLegend();
@@ -292,7 +297,7 @@ export default class TransitionManager {
                     upcomingViz.obj.colorSymbols();
 
                     this.currentViz.removeSvgElement('colorLegend');
-                    let units = `units-${this.currentViz.id}`;
+                    units = `units-${this.currentViz.id}`;
                     this.currentViz.removeSvgElement(
                         units,
                         'unit',
@@ -354,19 +359,21 @@ export default class TransitionManager {
                     );
                     upcomingViz.type = 'dot';
 
-                    this.currentViz.translateSymbolsToOrigin(() => {
-                        this.currentViz.scaleSymbols(20, () => {
+
+                    this.currentViz.translateSymbolsToOrigin();
+                    this.currentViz.resetCoords();
+                    this.currentViz.scaleSymbols(20, () => {
+                        sleep(500).then(() => {
                             this.setParticleAlpha(1);
                             animateParticleToOriginAndColor(
                                 this.currentViz,
                                 this.canvas,
                                 upcomingViz.obj
                             );
-
                         });
                     });
 
-                    sleep(750).then(() => {
+                    sleep(1000).then(() => {
                         this.canvas.particlesContainer.startAnimation();
                         this.canvas.render();
                         this.canvas.animationQueue.push(() => {
@@ -412,13 +419,14 @@ export default class TransitionManager {
                         );
                     upcomingViz.type = 'psm';
 
-                    this.currentViz.translateSymbolsToOrigin((resetCoordinates) => {
+                    this.currentViz.translateSymbolsToOrigin();
+                    this.currentViz.resetCoords();
+                    sleep(500).then(() => {
                         upcomingViz.obj.initSymbols(
                             null,
                             this.currentViz[this.currentViz.id]
                         );
                         this.disableSelection(false);
-                        resetCoordinates();
                     });
 
                     this.currentViz.removeSvgElement('colorLegend');
@@ -429,19 +437,67 @@ export default class TransitionManager {
                     resolve(upcomingViz);
                     break;
 
-                // case 'choropleth_cartogram':
-                // case 'cartogram_choropleth':
-                //     let endResult = upcoming;
-                //     let dotMapPromise = this.animate(current, 'dot');
-                //     dotMapPromise.then((dotMap) => {
-                //         sleep(1500).then(() => {
-                //             this.animate(dotMap, endResult)
-                //                 .then((result) => {
-                //                     resolve(result);
-                //                 });
-                //         });
-                //     });
-                //     break;
+                case 'choropleth_cartogram':
+                    upcomingViz.obj = this.canvas.drawCartogram(
+                        this.isCurrentVisualization()
+                    );
+                    upcomingViz.type = 'cartogram';
+
+
+                    upcomingViz.obj.initSymbols();
+                    upcomingViz.obj.drawDefaultSymbols();
+                    upcomingViz.obj.colorSymbols();
+
+                    this.currentViz.removeSvgElement('colorLegend');
+                    units = `units-${this.currentViz.id}`;
+                    this.currentViz.removeSvgElement(
+                        units,
+                        'unit',
+                        () => {
+                            upcomingViz.obj.drawSymbolLegend();
+                            upcomingViz.obj.drawColorLegend();
+
+                            this.currentViz.removeSvgElement(units);
+                            upcomingViz.obj.scaleSymbols(
+                                false,
+                                (cartogramCb) => {
+                                    cartogramCb(() => {
+                                        this.disableSelection(false);
+                                    });
+                                }
+                            );
+                        }
+                    );
+
+                    resolve(upcomingViz);
+                    break;
+
+                case 'cartogram_choropleth':
+                    upcomingViz.obj = this.canvas.drawChoroplethMap(
+                        this.isCurrentVisualization()
+                    );
+                    upcomingViz.type = 'choropleth';
+
+                    this.currentViz.translateSymbolsToOrigin();
+                    this.currentViz.resetCoords();
+                    this.currentViz.scaleSymbols(20, () => {
+
+                        sleep(1500).then(() => {
+                            upcomingViz.obj.initUnits(undefined, {
+                                node1: document.getElementById(
+                                    `cartogram-${this.currentViz.id}`
+                                )
+                            });
+                            upcomingViz.obj.colorUnits();
+                            this.currentViz.removeAllDomNodes(() => {
+                                upcomingViz.obj.drawLegend();
+                                this.disableSelection(false);
+                            });
+                        });
+                    });
+
+                    resolve(upcomingViz);
+                    break;
 
 
                 default:

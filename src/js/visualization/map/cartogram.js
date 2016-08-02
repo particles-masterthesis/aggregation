@@ -32,28 +32,6 @@ export default class Cartogram extends BaseMap {
             this.width - this.symbolPadding,
             this.height - this.symbolPadding
         ]);
-
-        // if(!keepInformation){
-        //     super.show(true, false);
-        //     this.drawSymbols(false, animationCb);
-        // } else{
-        //     this.nodes = keepInformation.data;
-        //     this.node = keepInformation.symbols;
-
-        //     if(this.levelOfDetail === 'county'){
-        //         this.counties = this.node;
-        //     } else {
-        //         this.states = this.node;
-        //     }
-
-        //     this.force
-        //     .nodes(this.nodes)
-        //     .on("tick", this.tick.bind(this, 0.0099))
-        //     .start();
-
-        //     animationCb();
-        // }
-
     }
 
     initSymbols(nodes, symbols){
@@ -107,27 +85,37 @@ export default class Cartogram extends BaseMap {
 
     translateSymbolsToOrigin(animationCb){
         this.force.stop();
-        this[this.id]
-        .transition()
-        .attr("cx", d => { return d.x0; })
-        .attr("cy", d => { return d.y0; })
-        .call(window.endall, animationCb(() => {
-            let circles = this[this.id][0];
-            for(let i = 0; i < circles.length; i++){
-                if(circles[i] == null) continue;
-                circles[i].__data__.x = circles[i].__data__.x0;
-                circles[i].__data__.y = circles[i].__data__.y0;
-            }
-            this[this.id][0] = circles;
-        }));
+        let symbols = this[this.id];
 
+
+        this.transition = this.baseMap._d3
+        .transition()
+        .each(function(){
+            symbols
+            .transition()
+            .attr("cx", d => { return d.x0; })
+            .attr("cy", d => { return d.y0; });
+        });
+    }
+
+    resetCoords(){
+        for(let i = 0; i < this[this.id][0].length; i++){
+            if(this[this.id][0][i] == null) continue;
+            this[this.id][0][i].__data__.x = this[this.id][0][i].__data__.x0;
+            this[this.id][0][i].__data__.y = this[this.id][0][i].__data__.y0;
+        }
     }
 
     scaleSymbols(defaultValue, animationCb){
-        this[this.id]
-        .transition()
-        .duration(1000)
-        .attr("r", d => { return defaultValue || d.r; })
+        this.transition = this.transition || this.baseMap._d3.transition();
+
+        let symbols = this[this.id];
+        this.transition.transition()
+        .duration(1000).each(function(){
+            symbols
+            .transition()
+            .attr("r", d => { return defaultValue || d.r; });
+        })
         .call(window.endall, animationCb((enableSelection) => {
             sleep(1500).then(() => {
                 this.force
@@ -141,95 +129,6 @@ export default class Cartogram extends BaseMap {
             });
         }));
     }
-
-    drawSymbols(forceRedraw, animationCb){
-        if(forceRedraw){
-            if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
-            if (typeof this.states !== 'undefined') this.removeSvgElement('states');
-        }
-
-        switch (this.levelOfDetail) {
-            case "country":
-            case "state":
-                if (typeof this.counties !== 'undefined') this.removeSvgElement('counties');
-                if (typeof this.states === 'undefined') this.draw("states", animationCb);
-                break;
-            case "county":
-                if (typeof this.states !== 'undefined') this.removeSvgElement('states');
-                if (typeof this.counties === 'undefined') this.draw("counties", animationCb);
-                break;
-            default:
-                break;
-        }
-    }
-
-    // draw(id, animationCb){
-    //     const map = this.baseMap;
-
-    //     const data = map._topojson.feature(map.data.us, map.data.us.objects[id]).features;
-    //     this.nodes = data
-    //     .filter( d => {
-    //         let centroid = map.path.centroid(d);
-    //         return !(isNaN(centroid[0]) || isNaN(centroid[1]));
-    //     })
-    //     .map( d => {
-    //         let centroid = map.path.centroid(d);
-    //         let r = map.symbolScale(d.properties.population) || 0;
-    //         return{
-    //             x: centroid[0],
-    //             x0: centroid[0],
-    //             y: centroid[1],
-    //             y0: centroid[1],
-    //             r: r,
-    //             data: d.properties
-    //         };
-    //     });
-
-    //     this.node = map.svg.append("g")
-    //     .attr("id", `cartogram-${id}`)
-    //     .attr("class", "bubble")
-    //     .selectAll("circle")
-    //     .data(this.nodes)
-    //     .enter()
-    //     .append("circle")
-    //     .attr('class', `${id}-bubbles`)
-    //     .attr('fill', d => {
-    //         return this.colorScale(d.data.orders);
-    //     })
-    //     .attr('cx', d => { return d.x; })
-    //     .attr('cy', d => { return d.y; });
-
-    //     if(this.isFunction(animationCb)){
-    //         this.node
-    //         .attr('r', 0)
-    //         .transition()
-    //         .duration(1000)
-    //         .attr("r", d => { return d.r; })
-    //         .each("end", () => {
-    //             animationCb();
-
-    //             this.force
-    //             .nodes(this.nodes)
-    //             .on("tick", this.tick.bind(this, 0.00599))
-    //             .start();
-
-    //         });
-    //         this[id] = this.node;
-    //     } else {
-    //         this.node
-    //         .attr('r', d => { return d.r; });
-
-    //         this[id] = this.node;
-
-    //         this.force
-    //         .nodes(this.nodes)
-    //         .on("tick", this.tick.bind(this, 0.0099))
-    //         .start();
-    //     }
-
-    //     this[id] = this.node;
-    //     this.symbols = this[id];
-    // }
 
     tick(gravity) {
         this[this.id]

@@ -37,6 +37,7 @@ export default class Canvas {
 
         this.height = window.innerHeight - 142; //windowH height - menu height - css-paddings
         this.width = window.innerWidth - 285; //windowH width - css-paddings
+        console.log(this);
 
         // arguments: width, height, view, transparent, antialias
         this.renderer = PIXI.autoDetectRenderer(this.width, this.height, {

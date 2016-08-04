@@ -167,22 +167,25 @@ export default class ProportionalSymbolMap extends BaseMap {
 
         if (typeof this.symbolLegend !== 'undefined') return;
 
-        this.symbolLegend = map.svg.append("g")
+        let symbolLegendX = map.legendWidth - 180;
+        let symbolLegendY = 200 + 280;
+
+        this.symbolLegend = map.legendSvg.append("g")
         .attr("id", "psm-symbolLegend")
         .attr("class", "legend")
-        .attr("transform", "translate(50, 60)");
+        .attr("transform", `translate(${symbolLegendX},${symbolLegendY})`);
 
         this.symbolLegend.append('text')
         .attr('class', 'info-text')
-        .attr('x', 50)
-        .attr('y', -21)
+        .attr('x', 80)
+        .attr('y', -44)
         .text('Population');
 
         let tmp = this.symbolLegend;
 
         this.symbolLegend = this.symbolLegend
         .selectAll("g")
-        .data([1e6, 3e6, 6e6])
+        .data([3e6, 9e6, 18e6])
         .enter().append("g");
 
         this.symbolLegend.append("circle")
@@ -217,14 +220,17 @@ export default class ProportionalSymbolMap extends BaseMap {
         let map = this.baseMap;
         let width = 40, height = 20;
 
-        this.colorLegend = map.svg.append("g")
+        this.colorLegend = map.legendSvg.append("g")
         .attr("id", "psm-colorLegend");
+
+        let colorLegendX = map.legendWidth - 250;
+        let colorLegendY = 200;
 
         let legend = this.colorLegend.selectAll("g.legend")
         .data(values)
         .enter()
         .append("g")
-        .attr("transform", "translate(150,0)")
+        .attr("transform", `translate(${colorLegendX},${colorLegendY})`)
         .attr("class", "legend");
 
         legend.append("rect")

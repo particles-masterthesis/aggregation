@@ -78,12 +78,22 @@ export default class D3 {
         .domain([0, 1000]);
 
         this.path = this._d3.geo.path().projection(this.projection);
-        this.svg = this._d3.select("body > svg");
+        this.svg = this._d3.select("body > svg.default");
+        this.legendSvg = this._d3.select("body > svg.legendSvg");
         if (this.svg.empty()){
             this.svg = this._d3.select("body").append("svg")
                 .attr('class', 'default')
                 .attr("width", this.width)
                 .attr("height", this.height);
+        }
+        if (this.legendSvg.empty()){
+            this.legendWidth = window.innerWidth - 20;
+            this.legendHeight = window.innerHeight - $('nav').outerHeight(true);
+
+            this.legendSvg = this._d3.select("body").append("svg")
+                .attr('class', 'legendSvg')
+                .attr("width", this.legendWidth)
+                .attr("height", this.legendHeight);
         }
 
         this.data = {};

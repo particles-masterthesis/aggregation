@@ -203,14 +203,17 @@ export default class ChoroplethMap extends BaseMap {
         let map = this.baseMap;
         let width = 40, height = 20;
 
-        this.colorLegend = map.svg.append("g")
+        this.colorLegend = map.legendSvg.append("g")
         .attr("id", "choropleth-colorLegend");
+
+        let colorLegendX = map.legendWidth - 250;
+        let colorLegendY = 200;
 
         let legend = this.colorLegend.selectAll("g.legend")
         .data(values)
         .enter()
         .append("g")
-        .attr("transform", "translate(0,0)")
+        .attr("transform", `translate(${colorLegendX},${colorLegendY})`)
         .attr("class", "legend");
 
         legend.append("rect")
